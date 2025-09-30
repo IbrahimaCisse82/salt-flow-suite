@@ -14,7 +14,830 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bassins: {
+        Row: {
+          code: string
+          created_at: string | null
+          humidity: number | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          notes: string | null
+          salinity: number | null
+          sector: string | null
+          status: Database["public"]["Enums"]["bassin_status"] | null
+          surface_area: number
+          tenant_id: string
+          updated_at: string | null
+          water_level: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          humidity?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          notes?: string | null
+          salinity?: number | null
+          sector?: string | null
+          status?: Database["public"]["Enums"]["bassin_status"] | null
+          surface_area: number
+          tenant_id: string
+          updated_at?: string | null
+          water_level?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          humidity?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          notes?: string | null
+          salinity?: number | null
+          sector?: string | null
+          status?: Database["public"]["Enums"]["bassin_status"] | null
+          surface_area?: number
+          tenant_id?: string
+          updated_at?: string | null
+          water_level?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bassins_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campagnes: {
+        Row: {
+          actual_production: number | null
+          budget_total: number | null
+          created_at: string | null
+          end_date: string
+          id: string
+          name: string
+          notes: string | null
+          revenue_forecast: number | null
+          start_date: string
+          status: Database["public"]["Enums"]["campagne_status"] | null
+          target_production: number | null
+          tenant_id: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          actual_production?: number | null
+          budget_total?: number | null
+          created_at?: string | null
+          end_date: string
+          id?: string
+          name: string
+          notes?: string | null
+          revenue_forecast?: number | null
+          start_date: string
+          status?: Database["public"]["Enums"]["campagne_status"] | null
+          target_production?: number | null
+          tenant_id: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          actual_production?: number | null
+          budget_total?: number | null
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          revenue_forecast?: number | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["campagne_status"] | null
+          target_production?: number | null
+          tenant_id?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campagnes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          address: string | null
+          client_type: Database["public"]["Enums"]["client_type"]
+          created_at: string | null
+          credit_limit: number | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          payment_terms: number | null
+          phone: string | null
+          tax_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          client_type: Database["public"]["Enums"]["client_type"]
+          created_at?: string | null
+          credit_limit?: number | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          payment_terms?: number | null
+          phone?: string | null
+          tax_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          client_type?: Database["public"]["Enums"]["client_type"]
+          created_at?: string | null
+          credit_limit?: number | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          payment_terms?: number | null
+          phone?: string | null
+          tax_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_workers: {
+        Row: {
+          created_at: string | null
+          daily_rate: number
+          first_name: string
+          id: string
+          last_name: string
+          phone: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          daily_rate: number
+          first_name: string
+          id?: string
+          last_name: string
+          phone?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          daily_rate?: number
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_workers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          employee_type: Database["public"]["Enums"]["employee_type"]
+          first_name: string
+          hire_date: string | null
+          id: string
+          is_active: boolean | null
+          last_name: string
+          notes: string | null
+          phone: string | null
+          position: string | null
+          salary: number | null
+          specialization: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          employee_type?: Database["public"]["Enums"]["employee_type"]
+          first_name: string
+          hire_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          salary?: number | null
+          specialization?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          employee_type?: Database["public"]["Enums"]["employee_type"]
+          first_name?: string
+          hire_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          salary?: number | null
+          specialization?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      harvests: {
+        Row: {
+          bassin_id: string
+          campagne_id: string | null
+          cost_per_ton: number | null
+          created_at: string | null
+          date: string
+          id: string
+          lot_number: string | null
+          notes: string | null
+          quantity: number
+          salt_type: Database["public"]["Enums"]["salt_type"]
+          team_size: number | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          bassin_id: string
+          campagne_id?: string | null
+          cost_per_ton?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          lot_number?: string | null
+          notes?: string | null
+          quantity: number
+          salt_type: Database["public"]["Enums"]["salt_type"]
+          team_size?: number | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          bassin_id?: string
+          campagne_id?: string | null
+          cost_per_ton?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          lot_number?: string | null
+          notes?: string | null
+          quantity?: number
+          salt_type?: Database["public"]["Enums"]["salt_type"]
+          team_size?: number | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "harvests_bassin_id_fkey"
+            columns: ["bassin_id"]
+            isOneToOne: false
+            referencedRelation: "bassins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "harvests_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "harvests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_records: {
+        Row: {
+          bassin_id: string
+          campagne_id: string | null
+          created_at: string | null
+          date: string
+          humidity: number | null
+          id: string
+          notes: string | null
+          quality_grade: number | null
+          quantity: number
+          salinity: number | null
+          salt_type: Database["public"]["Enums"]["salt_type"]
+          tenant_id: string
+          updated_at: string | null
+          weather_conditions: string | null
+        }
+        Insert: {
+          bassin_id: string
+          campagne_id?: string | null
+          created_at?: string | null
+          date: string
+          humidity?: number | null
+          id?: string
+          notes?: string | null
+          quality_grade?: number | null
+          quantity: number
+          salinity?: number | null
+          salt_type: Database["public"]["Enums"]["salt_type"]
+          tenant_id: string
+          updated_at?: string | null
+          weather_conditions?: string | null
+        }
+        Update: {
+          bassin_id?: string
+          campagne_id?: string | null
+          created_at?: string | null
+          date?: string
+          humidity?: number | null
+          id?: string
+          notes?: string | null
+          quality_grade?: number | null
+          quantity?: number
+          salinity?: number | null
+          salt_type?: Database["public"]["Enums"]["salt_type"]
+          tenant_id?: string
+          updated_at?: string | null
+          weather_conditions?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_records_bassin_id_fkey"
+            columns: ["bassin_id"]
+            isOneToOne: false
+            referencedRelation: "bassins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_controls: {
+        Row: {
+          certificate_number: string | null
+          created_at: string | null
+          granulometry: string | null
+          humidity: number | null
+          id: string
+          iodine_level: number | null
+          lab_name: string | null
+          lot_number: string | null
+          notes: string | null
+          passed: boolean | null
+          purity: number | null
+          salinity: number | null
+          salt_type: Database["public"]["Enums"]["salt_type"]
+          tenant_id: string
+          test_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          certificate_number?: string | null
+          created_at?: string | null
+          granulometry?: string | null
+          humidity?: number | null
+          id?: string
+          iodine_level?: number | null
+          lab_name?: string | null
+          lot_number?: string | null
+          notes?: string | null
+          passed?: boolean | null
+          purity?: number | null
+          salinity?: number | null
+          salt_type: Database["public"]["Enums"]["salt_type"]
+          tenant_id: string
+          test_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          certificate_number?: string | null
+          created_at?: string | null
+          granulometry?: string | null
+          humidity?: number | null
+          id?: string
+          iodine_level?: number | null
+          lab_name?: string | null
+          lot_number?: string | null
+          notes?: string | null
+          passed?: boolean | null
+          purity?: number | null
+          salinity?: number | null
+          salt_type?: Database["public"]["Enums"]["salt_type"]
+          tenant_id?: string
+          test_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_controls_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          delivery_date: string | null
+          discount: number | null
+          id: string
+          invoice_number: string | null
+          notes: string | null
+          payment_status: string | null
+          quantity: number
+          sale_date: string
+          salt_type: Database["public"]["Enums"]["salt_type"]
+          tax_amount: number | null
+          tenant_id: string
+          total_amount: number
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          delivery_date?: string | null
+          discount?: number | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          payment_status?: string | null
+          quantity: number
+          sale_date: string
+          salt_type: Database["public"]["Enums"]["salt_type"]
+          tax_amount?: number | null
+          tenant_id: string
+          total_amount: number
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          delivery_date?: string | null
+          discount?: number | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          payment_status?: string | null
+          quantity?: number
+          sale_date?: string
+          salt_type?: Database["public"]["Enums"]["salt_type"]
+          tax_amount?: number | null
+          tenant_id?: string
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stocks: {
+        Row: {
+          created_at: string | null
+          expiry_date: string | null
+          harvest_date: string | null
+          id: string
+          lot_number: string | null
+          notes: string | null
+          quality_grade: number | null
+          quantity: number
+          salt_type: Database["public"]["Enums"]["salt_type"]
+          tenant_id: string
+          unit_cost: number | null
+          updated_at: string | null
+          warehouse_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expiry_date?: string | null
+          harvest_date?: string | null
+          id?: string
+          lot_number?: string | null
+          notes?: string | null
+          quality_grade?: number | null
+          quantity?: number
+          salt_type: Database["public"]["Enums"]["salt_type"]
+          tenant_id: string
+          unit_cost?: number | null
+          updated_at?: string | null
+          warehouse_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expiry_date?: string | null
+          harvest_date?: string | null
+          id?: string
+          lot_number?: string | null
+          notes?: string | null
+          quality_grade?: number | null
+          quantity?: number
+          salt_type?: Database["public"]["Enums"]["salt_type"]
+          tenant_id?: string
+          unit_cost?: number | null
+          updated_at?: string | null
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stocks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stocks_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          address: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          id: string
+          name: string
+          subdomain: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          subdomain: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          subdomain?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      warehouses: {
+        Row: {
+          capacity: number
+          code: string
+          created_at: string | null
+          current_stock: number | null
+          humidity: number | null
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          temperature: number | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          capacity: number
+          code: string
+          created_at?: string | null
+          current_stock?: number | null
+          humidity?: number | null
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          temperature?: number | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          capacity?: number
+          code?: string
+          created_at?: string | null
+          current_stock?: number | null
+          humidity?: number | null
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          temperature?: number | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_logs: {
+        Row: {
+          bassin_id: string | null
+          created_at: string | null
+          date: string
+          employee_id: string | null
+          hours_worked: number
+          id: string
+          notes: string | null
+          task_description: string | null
+          tenant_id: string
+          worker_id: string | null
+        }
+        Insert: {
+          bassin_id?: string | null
+          created_at?: string | null
+          date: string
+          employee_id?: string | null
+          hours_worked: number
+          id?: string
+          notes?: string | null
+          task_description?: string | null
+          tenant_id: string
+          worker_id?: string | null
+        }
+        Update: {
+          bassin_id?: string | null
+          created_at?: string | null
+          date?: string
+          employee_id?: string | null
+          hours_worked?: number
+          id?: string
+          notes?: string | null
+          task_description?: string | null
+          tenant_id?: string
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_logs_bassin_id_fkey"
+            columns: ["bassin_id"]
+            isOneToOne: false
+            referencedRelation: "bassins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_logs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_logs_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "daily_workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +846,22 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      bassin_status: "actif" | "maintenance" | "repos" | "preparation"
+      campagne_status: "planification" | "en_cours" | "terminee" | "annulee"
+      client_type:
+        | "grossiste"
+        | "detaillant"
+        | "industriel"
+        | "exportateur"
+        | "cooperative"
+      employee_type: "permanent" | "journalier"
+      salt_type: "gros" | "fin" | "iode" | "industriel" | "export"
+      user_role:
+        | "admin"
+        | "chef_exploitation"
+        | "contremaitre"
+        | "comptable"
+        | "operateur"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +988,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      bassin_status: ["actif", "maintenance", "repos", "preparation"],
+      campagne_status: ["planification", "en_cours", "terminee", "annulee"],
+      client_type: [
+        "grossiste",
+        "detaillant",
+        "industriel",
+        "exportateur",
+        "cooperative",
+      ],
+      employee_type: ["permanent", "journalier"],
+      salt_type: ["gros", "fin", "iode", "industriel", "export"],
+      user_role: [
+        "admin",
+        "chef_exploitation",
+        "contremaitre",
+        "comptable",
+        "operateur",
+      ],
+    },
   },
 } as const
