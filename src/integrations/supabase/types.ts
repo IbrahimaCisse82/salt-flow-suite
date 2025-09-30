@@ -29,6 +29,7 @@ export type Database = {
           status: Database["public"]["Enums"]["bassin_status"] | null
           surface_area: number
           tenant_id: string
+          type: Database["public"]["Enums"]["bassin_type"]
           updated_at: string | null
           water_level: number | null
         }
@@ -46,6 +47,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["bassin_status"] | null
           surface_area: number
           tenant_id: string
+          type?: Database["public"]["Enums"]["bassin_type"]
           updated_at?: string | null
           water_level?: number | null
         }
@@ -63,6 +65,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["bassin_status"] | null
           surface_area?: number
           tenant_id?: string
+          type?: Database["public"]["Enums"]["bassin_type"]
           updated_at?: string | null
           water_level?: number | null
         }
@@ -847,6 +850,7 @@ export type Database = {
     }
     Enums: {
       bassin_status: "actif" | "maintenance" | "repos" | "preparation"
+      bassin_type: "surface_preparatoire" | "table_salante"
       campagne_status: "planification" | "en_cours" | "terminee" | "annulee"
       client_type:
         | "grossiste"
@@ -990,6 +994,7 @@ export const Constants = {
   public: {
     Enums: {
       bassin_status: ["actif", "maintenance", "repos", "preparation"],
+      bassin_type: ["surface_preparatoire", "table_salante"],
       campagne_status: ["planification", "en_cours", "terminee", "annulee"],
       client_type: [
         "grossiste",

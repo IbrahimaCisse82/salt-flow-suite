@@ -34,6 +34,7 @@ const bassins = [
   {
     id: "B1",
     name: "Bassin Nord A",
+    type: "surface_preparatoire",
     surface: 2.5,
     status: "active",
     salinity: 28,
@@ -45,6 +46,7 @@ const bassins = [
   {
     id: "B2",
     name: "Bassin Nord B",
+    type: "table_salante",
     surface: 3.0,
     status: "active",
     salinity: 32,
@@ -56,6 +58,7 @@ const bassins = [
   {
     id: "B3",
     name: "Bassin Sud A",
+    type: "surface_preparatoire",
     surface: 2.8,
     status: "repos",
     salinity: 15,
@@ -67,6 +70,7 @@ const bassins = [
   {
     id: "B4",
     name: "Bassin Sud B",
+    type: "table_salante",
     surface: 3.2,
     status: "maintenance",
     salinity: 0,
@@ -78,6 +82,7 @@ const bassins = [
   {
     id: "B5",
     name: "Bassin Est A",
+    type: "surface_preparatoire",
     surface: 2.2,
     status: "active",
     salinity: 30,
@@ -89,6 +94,7 @@ const bassins = [
   {
     id: "B6",
     name: "Bassin Est B",
+    type: "table_salante",
     surface: 2.7,
     status: "active",
     salinity: 29,
@@ -100,6 +106,7 @@ const bassins = [
   {
     id: "B7",
     name: "Bassin Ouest A",
+    type: "surface_preparatoire",
     surface: 3.5,
     status: "repos",
     salinity: 18,
@@ -111,6 +118,7 @@ const bassins = [
   {
     id: "B8",
     name: "Bassin Ouest B",
+    type: "table_salante",
     surface: 3.1,
     status: "repos",
     salinity: 12,
@@ -120,6 +128,11 @@ const bassins = [
     production: "14.2 tonnes",
   },
 ];
+
+const bassinTypeLabels = {
+  surface_preparatoire: "Surface préparatoire",
+  table_salante: "Table salante",
+};
 
 const statusConfig = {
   active: { 
@@ -255,12 +268,18 @@ const Bassins = () => {
               <Card key={bassin.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div>
+                    <div className="flex-1">
                       <CardTitle className="text-xl">{bassin.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        <MapPin className="h-3 w-3 inline mr-1" />
-                        {bassin.location}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-sm text-muted-foreground">
+                          <MapPin className="h-3 w-3 inline mr-1" />
+                          {bassin.location}
+                        </p>
+                        <span className="text-muted-foreground">•</span>
+                        <span className="text-sm font-medium text-primary">
+                          {bassinTypeLabels[bassin.type]}
+                        </span>
+                      </div>
                     </div>
                     <Badge className={statusConfig[bassin.status].className}>
                       {statusConfig[bassin.status].label}
@@ -350,15 +369,20 @@ const Bassins = () => {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
+                      <Label>Type de bassin</Label>
+                      <p className="text-sm font-medium">{bassinTypeLabels[selectedBassin.type]}</p>
+                    </div>
+                    <div>
                       <Label>Localisation</Label>
                       <p className="text-sm">{selectedBassin.location}</p>
                     </div>
-                    <div>
-                      <Label>Statut</Label>
-                      <Badge className={statusConfig[selectedBassin.status].className}>
-                        {statusConfig[selectedBassin.status].label}
-                      </Badge>
-                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Statut</Label>
+                    <Badge className={statusConfig[selectedBassin.status].className}>
+                      {statusConfig[selectedBassin.status].label}
+                    </Badge>
                   </div>
 
                   {selectedBassin.status === "active" && (
@@ -420,18 +444,32 @@ const Bassins = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="status">Statut initial</Label>
-                  <Select defaultValue="repos">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un statut" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">En production</SelectItem>
-                      <SelectItem value="repos">Repos</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Type de bassin</Label>
+                    <Select defaultValue="surface_preparatoire">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="surface_preparatoire">Surface préparatoire</SelectItem>
+                        <SelectItem value="table_salante">Table salante</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Statut initial</Label>
+                    <Select defaultValue="repos">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un statut" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">En production</SelectItem>
+                        <SelectItem value="repos">Repos</SelectItem>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="flex gap-2 pt-4">

@@ -5,6 +5,7 @@ import { Droplets, ThermometerSun, AlertCircle } from "lucide-react";
 interface Bassin {
   id: string;
   name: string;
+  type: "surface_preparatoire" | "table_salante";
   surface: number;
   status: "active" | "repos" | "maintenance";
   salinity: number;
@@ -12,11 +13,16 @@ interface Bassin {
 }
 
 const bassins: Bassin[] = [
-  { id: "B1", name: "Bassin Nord A", surface: 2.5, status: "active", salinity: 28, waterLevel: 85 },
-  { id: "B2", name: "Bassin Nord B", surface: 3.0, status: "active", salinity: 32, waterLevel: 78 },
-  { id: "B3", name: "Bassin Sud A", surface: 2.8, status: "repos", salinity: 15, waterLevel: 45 },
-  { id: "B4", name: "Bassin Sud B", surface: 3.2, status: "maintenance", salinity: 0, waterLevel: 0 },
+  { id: "B1", name: "Bassin Nord A", type: "surface_preparatoire", surface: 2.5, status: "active", salinity: 28, waterLevel: 85 },
+  { id: "B2", name: "Bassin Nord B", type: "table_salante", surface: 3.0, status: "active", salinity: 32, waterLevel: 78 },
+  { id: "B3", name: "Bassin Sud A", type: "surface_preparatoire", surface: 2.8, status: "repos", salinity: 15, waterLevel: 45 },
+  { id: "B4", name: "Bassin Sud B", type: "table_salante", surface: 3.2, status: "maintenance", salinity: 0, waterLevel: 0 },
 ];
+
+const bassinTypeLabels = {
+  surface_preparatoire: "Surface préparatoire",
+  table_salante: "Table salante",
+};
 
 const statusLabels = {
   active: { label: "En production", className: "bg-green-500/10 text-green-700 hover:bg-green-500/20" },
@@ -47,9 +53,15 @@ export const BassinOverview = () => {
                     {statusLabels[bassin.status].label}
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Surface: {bassin.surface} ha
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    Surface: {bassin.surface} ha
+                  </p>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-sm font-medium text-primary">
+                    {bassinTypeLabels[bassin.type]}
+                  </span>
+                </div>
               </div>
               
               {bassin.status === "active" && (
