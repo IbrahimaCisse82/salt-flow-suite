@@ -11,16 +11,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface NavItem {
   icon: React.ElementType;
   label: string;
   href: string;
-  active?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { icon: LayoutDashboard, label: "Tableau de bord", href: "/", active: true },
+  { icon: LayoutDashboard, label: "Tableau de bord", href: "/" },
   { icon: Droplets, label: "Bassins salants", href: "/bassins" },
   { icon: Calendar, label: "Plan de campagne", href: "/campagne" },
   { icon: Database, label: "Production", href: "/production" },
@@ -32,22 +32,29 @@ const navItems: NavItem[] = [
 ];
 
 export const Sidebar = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   return (
     <aside className="hidden md:flex w-64 flex-col border-r bg-card">
       <nav className="flex-1 space-y-1 p-4">
-        {navItems.map((item) => (
-          <Button
-            key={item.href}
-            variant={item.active ? "secondary" : "ghost"}
-            className={cn(
-              "w-full justify-start gap-3",
-              item.active && "bg-secondary/80"
-            )}
-          >
-            <item.icon className="h-5 w-5" />
-            <span>{item.label}</span>
-          </Button>
-        ))}
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.href;
+          return (
+            <Button
+              key={item.href}
+              variant={isActive ? "secondary" : "ghost"}
+              className={cn(
+                "w-full justify-start gap-3",
+                isActive && "bg-secondary/80"
+              )}
+              onClick={() => navigate(item.href)}
+            >
+              <item.icon className="h-5 w-5" />
+              <span>{item.label}</span>
+            </Button>
+          );
+        })}
       </nav>
       
       <div className="border-t p-4">
