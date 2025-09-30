@@ -324,15 +324,9 @@ const Campagne = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="target-production">Objectif production (tonnes)</Label>
-                    <Input id="target-production" type="number" placeholder="1200" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="budget">Budget total (FCFA)</Label>
-                    <Input id="budget" type="number" placeholder="450000" />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="target-production">Objectif production (tonnes)</Label>
+                  <Input id="target-production" type="number" placeholder="1200" />
                 </div>
 
                 <div className="space-y-2">
