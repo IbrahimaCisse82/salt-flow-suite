@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Calendar, 
@@ -28,13 +29,19 @@ import {
 const Campagne = () => {
   const { toast } = useToast();
   const [showNewCampagneDialog, setShowNewCampagneDialog] = useState(false);
+  const [showBudgetDialog, setShowBudgetDialog] = useState(false);
 
   const handleCreateCampagne = () => {
-    toast({
-      title: "Campagne créée",
-      description: "La nouvelle campagne a été créée avec succès",
-    });
     setShowNewCampagneDialog(false);
+    setShowBudgetDialog(true);
+  };
+
+  const handleSaveBudget = () => {
+    toast({
+      title: "Budget enregistré",
+      description: "Le budget prévisionnel de la campagne a été enregistré avec succès",
+    });
+    setShowBudgetDialog(false);
   };
   const phases = [
     { 
@@ -348,6 +355,143 @@ const Campagne = () => {
                     Créer la campagne
                   </Button>
                 </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Budget Prévisionnel */}
+          <Dialog open={showBudgetDialog} onOpenChange={setShowBudgetDialog}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Budget prévisionnel de la campagne</DialogTitle>
+                <DialogDescription>
+                  Définissez le budget pour chaque phase de la campagne
+                </DialogDescription>
+              </DialogHeader>
+              
+              <Tabs defaultValue="amenagement" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="amenagement">Aménagement</TabsTrigger>
+                  <TabsTrigger value="mise-en-eau">Mise en eau</TabsTrigger>
+                  <TabsTrigger value="cristallisation">Cristallisation</TabsTrigger>
+                  <TabsTrigger value="recolte">Récolte</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="amenagement" className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="amenagement-main-oeuvre">Main d'œuvre (FCFA)</Label>
+                        <Input id="amenagement-main-oeuvre" type="number" placeholder="50000" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="amenagement-equipements">Équipements (FCFA)</Label>
+                        <Input id="amenagement-equipements" type="number" placeholder="30000" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="amenagement-materiaux">Matériaux (FCFA)</Label>
+                        <Input id="amenagement-materiaux" type="number" placeholder="40000" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="amenagement-autres">Autres dépenses (FCFA)</Label>
+                        <Input id="amenagement-autres" type="number" placeholder="10000" />
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="mise-en-eau" className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="mise-en-eau-main-oeuvre">Main d'œuvre (FCFA)</Label>
+                        <Input id="mise-en-eau-main-oeuvre" type="number" placeholder="25000" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="mise-en-eau-energie">Énergie (FCFA)</Label>
+                        <Input id="mise-en-eau-energie" type="number" placeholder="20000" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="mise-en-eau-entretien">Entretien (FCFA)</Label>
+                        <Input id="mise-en-eau-entretien" type="number" placeholder="15000" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="mise-en-eau-autres">Autres dépenses (FCFA)</Label>
+                        <Input id="mise-en-eau-autres" type="number" placeholder="10000" />
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="cristallisation" className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="cristallisation-main-oeuvre">Main d'œuvre (FCFA)</Label>
+                        <Input id="cristallisation-main-oeuvre" type="number" placeholder="60000" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cristallisation-surveillance">Surveillance (FCFA)</Label>
+                        <Input id="cristallisation-surveillance" type="number" placeholder="30000" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="cristallisation-entretien">Entretien (FCFA)</Label>
+                        <Input id="cristallisation-entretien" type="number" placeholder="20000" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cristallisation-autres">Autres dépenses (FCFA)</Label>
+                        <Input id="cristallisation-autres" type="number" placeholder="15000" />
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="recolte" className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="recolte-main-oeuvre">Main d'œuvre (FCFA)</Label>
+                        <Input id="recolte-main-oeuvre" type="number" placeholder="80000" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="recolte-equipements">Équipements (FCFA)</Label>
+                        <Input id="recolte-equipements" type="number" placeholder="40000" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="recolte-transport">Transport (FCFA)</Label>
+                        <Input id="recolte-transport" type="number" placeholder="35000" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="recolte-stockage">Stockage (FCFA)</Label>
+                        <Input id="recolte-stockage" type="number" placeholder="25000" />
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex gap-2 pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setShowBudgetDialog(false)}
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  className="flex-1 bg-gradient-to-r from-primary to-accent"
+                  onClick={handleSaveBudget}
+                >
+                  Enregistrer le budget
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
