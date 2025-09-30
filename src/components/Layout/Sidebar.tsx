@@ -36,7 +36,7 @@ export const Sidebar = () => {
   const navigate = useNavigate();
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r bg-card">
+    <aside className="hidden md:flex w-64 flex-col border-r bg-card sticky top-0 h-screen overflow-y-auto">
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {
           const isActive = location.pathname === item.href;
