@@ -218,7 +218,7 @@ const Rapports = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm">Chiffre d'affaires</span>
-                      <span className="font-semibold">128,000 €</span>
+                      <span className="font-semibold">128,000 FCFA</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Commandes</span>

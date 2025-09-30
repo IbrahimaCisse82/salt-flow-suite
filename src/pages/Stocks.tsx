@@ -22,7 +22,7 @@ const stockCategories = [
     status: "optimal",
     warehouse: "Entrepôt A",
     lastUpdate: "2025-03-15",
-    value: "27,750 €"
+    value: "27,750 FCFA"
   },
   {
     type: "Sel fin",
@@ -32,7 +32,7 @@ const stockCategories = [
     status: "optimal",
     warehouse: "Entrepôt B",
     lastUpdate: "2025-03-15",
-    value: "18,400 €"
+    value: "18,400 FCFA"
   },
   {
     type: "Sel iodé",
@@ -42,7 +42,7 @@ const stockCategories = [
     status: "moyen",
     warehouse: "Entrepôt B",
     lastUpdate: "2025-03-14",
-    value: "11,250 €"
+    value: "11,250 FCFA"
   },
   {
     type: "Sel industriel",
@@ -52,7 +52,7 @@ const stockCategories = [
     status: "optimal",
     warehouse: "Entrepôt C",
     lastUpdate: "2025-03-15",
-    value: "18,720 €"
+    value: "18,720 FCFA"
   },
   {
     type: "Sel export",
@@ -62,7 +62,7 @@ const stockCategories = [
     status: "faible",
     warehouse: "Entrepôt A",
     lastUpdate: "2025-03-13",
-    value: "8,400 €"
+    value: "8,400 FCFA"
   },
 ];
 
@@ -122,7 +122,7 @@ const statusConfig = {
 
 const Stocks = () => {
   const totalValue = stockCategories.reduce(
-    (sum, cat) => sum + parseFloat(cat.value.replace(/[€,\s]/g, '')), 
+    (sum, cat) => sum + parseFloat(cat.value.replace(/[FCFA,\s]/g, '')), 
     0
   );
 
@@ -177,7 +177,7 @@ const Stocks = () => {
                   <TrendingUp className="h-8 w-8 text-primary" />
                 </div>
                 <p className="text-sm text-muted-foreground">Valeur totale</p>
-                <p className="text-3xl font-bold">{(totalValue / 1000).toFixed(0)}k €</p>
+                <p className="text-3xl font-bold">{(totalValue / 1000).toFixed(0)}k FCFA</p>
                 <p className="text-xs text-green-600 mt-1">+8% ce mois</p>
               </CardContent>
             </Card>

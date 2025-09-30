@@ -32,7 +32,7 @@ const recentOrders = [
     client: "Grossiste Dakar",
     type: "Sel gros",
     quantity: "50 tonnes",
-    amount: "7,500 €",
+    amount: "7,500 FCFA",
     status: "livré",
     date: "2025-03-15"
   },
@@ -40,7 +40,7 @@ const recentOrders = [
     client: "Export Maroc",
     type: "Sel iodé",
     quantity: "80 tonnes",
-    amount: "20,000 €",
+    amount: "20,000 FCFA",
     status: "en cours",
     date: "2025-03-14"
   },
@@ -48,7 +48,7 @@ const recentOrders = [
     client: "Industrie Chimique SN",
     type: "Sel industriel",
     quantity: "120 tonnes",
-    amount: "14,400 €",
+    amount: "14,400 FCFA",
     status: "livré",
     date: "2025-03-13"
   },
@@ -56,17 +56,17 @@ const recentOrders = [
     client: "Détaillant Thiès",
     type: "Sel fin",
     quantity: "25 tonnes",
-    amount: "5,000 €",
+    amount: "5,000 FCFA",
     status: "en préparation",
     date: "2025-03-12"
   },
 ];
 
 const topClients = [
-  { name: "Export Maroc", revenue: "185,000 €", orders: 12 },
-  { name: "Grossiste Dakar", revenue: "142,000 €", orders: 28 },
-  { name: "Industrie Chimique SN", revenue: "98,500 €", orders: 8 },
-  { name: "Coopérative Fatick", revenue: "76,200 €", orders: 15 },
+  { name: "Export Maroc", revenue: "185,000 FCFA", orders: 12 },
+  { name: "Grossiste Dakar", revenue: "142,000 FCFA", orders: 28 },
+  { name: "Industrie Chimique SN", revenue: "98,500 FCFA", orders: 8 },
+  { name: "Coopérative Fatick", revenue: "76,200 FCFA", orders: 15 },
 ];
 
 const Commercial = () => {
@@ -100,7 +100,7 @@ const Commercial = () => {
                   <TrendingUp className="h-5 w-5 text-green-600" />
                 </div>
                 <p className="text-sm text-muted-foreground">CA ce mois</p>
-                <p className="text-3xl font-bold">128k €</p>
+                <p className="text-3xl font-bold">128k FCFA</p>
                 <p className="text-xs text-green-600 mt-1">+18% vs. février</p>
               </CardContent>
             </Card>
@@ -171,7 +171,7 @@ const Commercial = () => {
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '8px'
                       }}
-                      formatter={(value: number) => `${(value / 1000).toFixed(0)}k €`}
+                      formatter={(value: number) => `${(value / 1000).toFixed(0)}k FCFA`}
                     />
                     <Legend />
                   </PieChart>
@@ -266,7 +266,7 @@ const Commercial = () => {
                 <CardTitle className="text-base">Panier moyen</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold mb-2">2,667 €</p>
+                <p className="text-3xl font-bold mb-2">2,667 FCFA</p>
                 <p className="text-sm text-green-600">+8% ce mois</p>
               </CardContent>
             </Card>

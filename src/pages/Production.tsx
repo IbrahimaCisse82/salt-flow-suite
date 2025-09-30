@@ -277,7 +277,7 @@ const Production = () => {
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
                   <span className="text-sm font-medium">Coût moyen/tonne</span>
-                  <span className="font-bold">145 €</span>
+                  <span className="font-bold">145 FCFA</span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
                   <span className="text-sm font-medium">Taux de conformité</span>

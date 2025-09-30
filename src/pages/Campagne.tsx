@@ -95,8 +95,8 @@ const Campagne = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Budget alloué</p>
-                  <p className="text-lg font-semibold">450,000 €</p>
-                  <p className="text-xs text-muted-foreground mt-1">187,500 € dépensés</p>
+                  <p className="text-lg font-semibold">450,000 FCFA</p>
+                  <p className="text-xs text-muted-foreground mt-1">187,500 FCFA dépensés</p>
                 </div>
               </div>
             </CardContent>
@@ -137,15 +137,15 @@ const Campagne = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Ventes locales</span>
-                  <span className="font-semibold">280,000 €</span>
+                  <span className="font-semibold">280,000 FCFA</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Export</span>
-                  <span className="font-semibold">350,000 €</span>
+                  <span className="font-semibold">350,000 FCFA</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-sm font-medium">Total</span>
-                  <span className="font-bold text-lg">630,000 €</span>
+                  <span className="font-bold text-lg">630,000 FCFA</span>
                 </div>
               </CardContent>
             </Card>
@@ -160,15 +160,15 @@ const Campagne = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Main d'œuvre</span>
-                  <span className="font-semibold">180,000 €</span>
+                  <span className="font-semibold">180,000 FCFA</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Intrants</span>
-                  <span className="font-semibold">120,000 €</span>
+                  <span className="font-semibold">120,000 FCFA</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Infrastructure</span>
-                  <span className="font-semibold">150,000 €</span>
+                  <span className="font-semibold">150,000 FCFA</span>
                 </div>
               </CardContent>
             </Card>

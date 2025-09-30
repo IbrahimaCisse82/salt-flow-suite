@@ -292,15 +292,15 @@ const Equipes = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
                   <span className="text-sm font-medium">Permanents</span>
-                  <span className="font-bold">8,400 €</span>
+                  <span className="font-bold">8,400 FCFA</span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
                   <span className="text-sm font-medium">Journaliers</span>
-                  <span className="font-bold">12,650 €</span>
+                  <span className="font-bold">12,650 FCFA</span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10 border border-primary">
                   <span className="text-sm font-medium">Total</span>
-                  <span className="font-bold text-lg text-primary">21,050 €</span>
+                  <span className="font-bold text-lg text-primary">21,050 FCFA</span>
                 </div>
               </CardContent>
             </Card>
