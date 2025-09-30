@@ -1,7 +1,37 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
+
+const expenseCategories = [
+  "Frais journaliers",
+  "Frais employés contractants",
+  "Carburant",
+  "Motopompes",
+  "Machines de broyage",
+  "Machine de lavage",
+  "Machine d'iodation",
+  "Matériel de création de digues",
+  "EPI",
+  "Repas",
+  "Transport",
+  "Téléphone",
+  "Tracteurs",
+  "Pelles",
+  "Brouettes",
+  "Sacs",
+  "Balance",
+  "Testeur",
+  "Location de marais salants",
+  "Achat de marais salants",
+];
 
 export interface BudgetExpense {
   id: string;
@@ -53,13 +83,21 @@ export const BudgetPhaseTab = ({
             <div key={expense.id} className="grid grid-cols-[1fr,auto,auto] gap-3 items-end">
               <div className="space-y-2">
                 <Label htmlFor={`${phase}-${expense.id}-description`}>Description de la dépense</Label>
-                <Input
-                  id={`${phase}-${expense.id}-description`}
-                  type="text"
-                  placeholder="Ex: Frais journaliers, Carburant, Motopompes..."
+                <Select
                   value={expense.description}
-                  onChange={(e) => onUpdateExpense(phase, expense.id, 'description', e.target.value)}
-                />
+                  onValueChange={(value) => onUpdateExpense(phase, expense.id, 'description', value)}
+                >
+                  <SelectTrigger id={`${phase}-${expense.id}-description`}>
+                    <SelectValue placeholder="Sélectionnez une catégorie de dépense" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    {expenseCategories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2 w-48">
                 <Label htmlFor={`${phase}-${expense.id}-amount`}>Montant (FCFA)</Label>
