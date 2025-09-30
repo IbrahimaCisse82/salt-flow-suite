@@ -1,9 +1,20 @@
+import { useState } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Calendar, 
   Target,
@@ -15,6 +26,16 @@ import {
 } from "lucide-react";
 
 const Campagne = () => {
+  const { toast } = useToast();
+  const [showNewCampagneDialog, setShowNewCampagneDialog] = useState(false);
+
+  const handleCreateCampagne = () => {
+    toast({
+      title: "Campagne créée",
+      description: "La nouvelle campagne a été créée avec succès",
+    });
+    setShowNewCampagneDialog(false);
+  };
   const phases = [
     { 
       name: "Préparation des bassins", 
@@ -68,7 +89,10 @@ const Campagne = () => {
                 Planification et suivi de la campagne saline en cours
               </p>
             </div>
-            <Button className="gap-2 bg-gradient-to-r from-primary to-accent">
+            <Button 
+              className="gap-2 bg-gradient-to-r from-primary to-accent"
+              onClick={() => setShowNewCampagneDialog(true)}
+            >
               <Calendar className="h-4 w-4" />
               Nouvelle campagne
             </Button>
@@ -260,6 +284,73 @@ const Campagne = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Dialog Nouvelle Campagne */}
+          <Dialog open={showNewCampagneDialog} onOpenChange={setShowNewCampagneDialog}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Créer une nouvelle campagne</DialogTitle>
+                <DialogDescription>
+                  Définissez les paramètres de la nouvelle campagne de production
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="campagne-name">Nom de la campagne</Label>
+                    <Input id="campagne-name" placeholder="Ex: Campagne 2026" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="campagne-year">Année</Label>
+                    <Input id="campagne-year" type="number" placeholder="2026" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="start-date">Date de début</Label>
+                    <Input id="start-date" type="date" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end-date">Date de fin</Label>
+                    <Input id="end-date" type="date" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="target-production">Objectif production (tonnes)</Label>
+                    <Input id="target-production" type="number" placeholder="1200" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="budget">Budget total (FCFA)</Label>
+                    <Input id="budget" type="number" placeholder="450000" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="revenue-forecast">Revenus prévisionnels (FCFA)</Label>
+                  <Input id="revenue-forecast" type="number" placeholder="630000" />
+                </div>
+
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => setShowNewCampagneDialog(false)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button 
+                    className="flex-1 bg-gradient-to-r from-primary to-accent"
+                    onClick={handleCreateCampagne}
+                  >
+                    Créer la campagne
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>
