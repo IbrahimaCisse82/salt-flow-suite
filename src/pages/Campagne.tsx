@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { BudgetPhaseTab } from "@/components/Campaign/BudgetPhaseTab";
+import { BudgetPhaseTab, BudgetExpense } from "@/components/Campaign/BudgetPhaseTab";
 import { 
   Calendar, 
   Target,
@@ -31,23 +31,52 @@ const Campagne = () => {
   const { toast } = useToast();
   const [showNewCampagneDialog, setShowNewCampagneDialog] = useState(false);
   const [showBudgetDialog, setShowBudgetDialog] = useState(false);
-  const [budgetValues, setBudgetValues] = useState<Record<string, number>>({});
+  const [phaseExpenses, setPhaseExpenses] = useState<Record<string, BudgetExpense[]>>({
+    'amenagement': [],
+    'mise-en-eau': [],
+    'cristallisation': [],
+    'recolte': []
+  });
 
   const handleCreateCampagne = () => {
     setShowNewCampagneDialog(false);
     setShowBudgetDialog(true);
   };
 
-  const handleBudgetChange = (field: string, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    setBudgetValues(prev => ({
+  const handleAddExpense = (phase: string) => {
+    const newExpense: BudgetExpense = {
+      id: `${phase}-${Date.now()}`,
+      description: '',
+      amount: 0
+    };
+    setPhaseExpenses(prev => ({
       ...prev,
-      [field]: numValue
+      [phase]: [...(prev[phase] || []), newExpense]
+    }));
+  };
+
+  const handleUpdateExpense = (phase: string, expenseId: string, field: 'description' | 'amount', value: string) => {
+    setPhaseExpenses(prev => ({
+      ...prev,
+      [phase]: prev[phase].map(expense => 
+        expense.id === expenseId 
+          ? { ...expense, [field]: field === 'amount' ? (parseFloat(value) || 0) : value }
+          : expense
+      )
+    }));
+  };
+
+  const handleDeleteExpense = (phase: string, expenseId: string) => {
+    setPhaseExpenses(prev => ({
+      ...prev,
+      [phase]: prev[phase].filter(expense => expense.id !== expenseId)
     }));
   };
 
   const calculateTotalBudget = () => {
-    return Object.values(budgetValues).reduce((sum, value) => sum + value, 0);
+    return Object.values(phaseExpenses).reduce((total, expenses) => {
+      return total + expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+    }, 0);
   };
 
   const handleSaveBudget = () => {
@@ -396,32 +425,40 @@ const Campagne = () => {
                 <TabsContent value="amenagement" className="space-y-4">
                   <BudgetPhaseTab 
                     phase="amenagement" 
-                    budgetValues={budgetValues} 
-                    onBudgetChange={handleBudgetChange} 
+                    expenses={phaseExpenses['amenagement'] || []}
+                    onAddExpense={handleAddExpense}
+                    onUpdateExpense={handleUpdateExpense}
+                    onDeleteExpense={handleDeleteExpense}
                   />
                 </TabsContent>
 
                 <TabsContent value="mise-en-eau" className="space-y-4">
                   <BudgetPhaseTab 
                     phase="mise-en-eau" 
-                    budgetValues={budgetValues} 
-                    onBudgetChange={handleBudgetChange} 
+                    expenses={phaseExpenses['mise-en-eau'] || []}
+                    onAddExpense={handleAddExpense}
+                    onUpdateExpense={handleUpdateExpense}
+                    onDeleteExpense={handleDeleteExpense}
                   />
                 </TabsContent>
 
                 <TabsContent value="cristallisation" className="space-y-4">
                   <BudgetPhaseTab 
                     phase="cristallisation" 
-                    budgetValues={budgetValues} 
-                    onBudgetChange={handleBudgetChange} 
+                    expenses={phaseExpenses['cristallisation'] || []}
+                    onAddExpense={handleAddExpense}
+                    onUpdateExpense={handleUpdateExpense}
+                    onDeleteExpense={handleDeleteExpense}
                   />
                 </TabsContent>
 
                 <TabsContent value="recolte" className="space-y-4">
                   <BudgetPhaseTab 
                     phase="recolte" 
-                    budgetValues={budgetValues} 
-                    onBudgetChange={handleBudgetChange} 
+                    expenses={phaseExpenses['recolte'] || []}
+                    onAddExpense={handleAddExpense}
+                    onUpdateExpense={handleUpdateExpense}
+                    onDeleteExpense={handleDeleteExpense}
                   />
                 </TabsContent>
               </Tabs>
