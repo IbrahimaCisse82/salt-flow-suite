@@ -155,6 +155,7 @@ const Bassins = () => {
   const [selectedBassin, setSelectedBassin] = useState(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showManageDialog, setShowManageDialog] = useState(false);
   const [newBassinLocation, setNewBassinLocation] = useState({ lat: 14.7167, lng: -17.4677 });
 
   const handleViewDetails = (bassin) => {
@@ -163,10 +164,16 @@ const Bassins = () => {
   };
 
   const handleManage = (bassin) => {
+    setSelectedBassin(bassin);
+    setShowManageDialog(true);
+  };
+
+  const handleSaveManage = () => {
     toast({
-      title: "Gestion du bassin",
-      description: `Ouverture de la gestion pour ${bassin.name}`,
+      title: "Modifications enregistrées",
+      description: `Les modifications du bassin ${selectedBassin?.name} ont été enregistrées`,
     });
+    setShowManageDialog(false);
   };
 
   const handleAddBassin = () => {
@@ -412,6 +419,112 @@ const Bassins = () => {
                   <div>
                     <Label>Production totale</Label>
                     <p className="text-lg font-semibold">{selectedBassin.production}</p>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Gérer un bassin */}
+          <Dialog open={showManageDialog} onOpenChange={setShowManageDialog}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Gérer le bassin</DialogTitle>
+                <DialogDescription>
+                  Modifier les paramètres de {selectedBassin?.name}
+                </DialogDescription>
+              </DialogHeader>
+              {selectedBassin && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="manage-name">Nom du bassin</Label>
+                      <Input id="manage-name" defaultValue={selectedBassin.name} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="manage-code">Code</Label>
+                      <Input id="manage-code" defaultValue={selectedBassin.id} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="manage-surface">Surface (ha)</Label>
+                      <Input 
+                        id="manage-surface" 
+                        type="number" 
+                        defaultValue={selectedBassin.surface} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="manage-location">Localisation</Label>
+                      <Input id="manage-location" defaultValue={selectedBassin.location} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="manage-type">Type de bassin</Label>
+                      <Select defaultValue={selectedBassin.type}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="surface_preparatoire">Surface préparatoire</SelectItem>
+                          <SelectItem value="table_salante">Table salante</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="manage-status">Statut</Label>
+                      <Select defaultValue={selectedBassin.status}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">En production</SelectItem>
+                          <SelectItem value="repos">Repos</SelectItem>
+                          <SelectItem value="maintenance">Maintenance</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {selectedBassin.status === "active" && (
+                    <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
+                      <div className="space-y-2">
+                        <Label htmlFor="manage-salinity">Salinité (%)</Label>
+                        <Input 
+                          id="manage-salinity" 
+                          type="number" 
+                          defaultValue={selectedBassin.salinity} 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="manage-waterLevel">Niveau d'eau (%)</Label>
+                        <Input 
+                          id="manage-waterLevel" 
+                          type="number" 
+                          defaultValue={selectedBassin.waterLevel} 
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-4 border-t">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => setShowManageDialog(false)}
+                    >
+                      Annuler
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-gradient-to-r from-primary to-accent"
+                      onClick={handleSaveManage}
+                    >
+                      Enregistrer les modifications
+                    </Button>
                   </div>
                 </div>
               )}
