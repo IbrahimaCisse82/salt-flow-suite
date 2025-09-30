@@ -11,6 +11,24 @@ import {
   Eye,
   Settings
 } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const bassins = [
   {
@@ -119,6 +137,35 @@ const statusConfig = {
 };
 
 const Bassins = () => {
+  const { toast } = useToast();
+  const [selectedBassin, setSelectedBassin] = useState(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+
+  const handleViewDetails = (bassin) => {
+    setSelectedBassin(bassin);
+    setShowDetailsDialog(true);
+  };
+
+  const handleManage = (bassin) => {
+    toast({
+      title: "Gestion du bassin",
+      description: `Ouverture de la gestion pour ${bassin.name}`,
+    });
+  };
+
+  const handleAddBassin = () => {
+    setShowAddDialog(true);
+  };
+
+  const handleSaveNewBassin = () => {
+    toast({
+      title: "Bassin créé",
+      description: "Le nouveau bassin a été ajouté avec succès",
+    });
+    setShowAddDialog(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -134,7 +181,10 @@ const Bassins = () => {
                 Vue d'ensemble et suivi de vos {bassins.length} bassins de production
               </p>
             </div>
-            <Button className="gap-2 bg-gradient-to-r from-primary to-accent">
+            <Button 
+              onClick={handleAddBassin}
+              className="gap-2 bg-gradient-to-r from-primary to-accent"
+            >
               <Plus className="h-4 w-4" />
               Nouveau bassin
             </Button>
@@ -254,11 +304,19 @@ const Bassins = () => {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button variant="outline" className="flex-1 gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 gap-2"
+                      onClick={() => handleViewDetails(bassin)}
+                    >
                       <Eye className="h-4 w-4" />
                       Détails
                     </Button>
-                    <Button variant="outline" className="flex-1 gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 gap-2"
+                      onClick={() => handleManage(bassin)}
+                    >
                       <Settings className="h-4 w-4" />
                       Gérer
                     </Button>
@@ -267,6 +325,133 @@ const Bassins = () => {
               </Card>
             ))}
           </div>
+
+          {/* Dialog Détails du bassin */}
+          <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Détails du bassin</DialogTitle>
+                <DialogDescription>
+                  Informations complètes sur {selectedBassin?.name}
+                </DialogDescription>
+              </DialogHeader>
+              {selectedBassin && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Identifiant</Label>
+                      <p className="text-lg font-semibold">{selectedBassin.id}</p>
+                    </div>
+                    <div>
+                      <Label>Surface</Label>
+                      <p className="text-lg font-semibold">{selectedBassin.surface} ha</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Localisation</Label>
+                      <p className="text-sm">{selectedBassin.location}</p>
+                    </div>
+                    <div>
+                      <Label>Statut</Label>
+                      <Badge className={statusConfig[selectedBassin.status].className}>
+                        {statusConfig[selectedBassin.status].label}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {selectedBassin.status === "active" && (
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                      <div>
+                        <Label>Salinité</Label>
+                        <p className="text-2xl font-bold text-primary">{selectedBassin.salinity}%</p>
+                      </div>
+                      <div>
+                        <Label>Niveau d'eau</Label>
+                        <p className="text-2xl font-bold text-accent">{selectedBassin.waterLevel}%</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t">
+                    <Label>Dernière récolte</Label>
+                    <p className="text-sm">{selectedBassin.lastHarvest}</p>
+                  </div>
+
+                  <div>
+                    <Label>Production totale</Label>
+                    <p className="text-lg font-semibold">{selectedBassin.production}</p>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Ajouter un bassin */}
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Créer un nouveau bassin</DialogTitle>
+                <DialogDescription>
+                  Remplissez les informations du nouveau bassin
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nom du bassin</Label>
+                    <Input id="name" placeholder="Ex: Bassin Nord C" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="code">Code</Label>
+                    <Input id="code" placeholder="Ex: B9" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="surface">Surface (ha)</Label>
+                    <Input id="surface" type="number" placeholder="2.5" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Localisation</Label>
+                    <Input id="location" placeholder="Ex: Secteur Nord" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="status">Statut initial</Label>
+                  <Select defaultValue="repos">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">En production</SelectItem>
+                      <SelectItem value="repos">Repos</SelectItem>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => setShowAddDialog(false)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button 
+                    className="flex-1 bg-gradient-to-r from-primary to-accent"
+                    onClick={handleSaveNewBassin}
+                  >
+                    Créer le bassin
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>
