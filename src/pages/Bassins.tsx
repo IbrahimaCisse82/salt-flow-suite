@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import MapPicker from "@/components/Map/MapPicker";
 import {
   Dialog,
   DialogContent,
@@ -154,6 +155,7 @@ const Bassins = () => {
   const [selectedBassin, setSelectedBassin] = useState(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newBassinLocation, setNewBassinLocation] = useState({ lat: 14.7167, lng: -17.4677 });
 
   const handleViewDetails = (bassin) => {
     setSelectedBassin(bassin);
@@ -174,9 +176,13 @@ const Bassins = () => {
   const handleSaveNewBassin = () => {
     toast({
       title: "Bassin créé",
-      description: "Le nouveau bassin a été ajouté avec succès",
+      description: `Bassin créé avec succès (${newBassinLocation.lat.toFixed(4)}, ${newBassinLocation.lng.toFixed(4)})`,
     });
     setShowAddDialog(false);
+  };
+
+  const handleLocationChange = (lat: number, lng: number) => {
+    setNewBassinLocation({ lat, lng });
   };
 
   return (
@@ -414,7 +420,7 @@ const Bassins = () => {
 
           {/* Dialog Ajouter un bassin */}
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Créer un nouveau bassin</DialogTitle>
                 <DialogDescription>
@@ -470,6 +476,15 @@ const Bassins = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Localisation sur la carte</Label>
+                  <MapPicker 
+                    onLocationChange={handleLocationChange}
+                    initialLat={14.7167}
+                    initialLng={-17.4677}
+                  />
                 </div>
 
                 <div className="flex gap-2 pt-4">
