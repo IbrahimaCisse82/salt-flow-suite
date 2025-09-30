@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { BudgetPhaseTab } from "@/components/Campaign/BudgetPhaseTab";
 import { 
   Calendar, 
   Target,
@@ -30,16 +31,29 @@ const Campagne = () => {
   const { toast } = useToast();
   const [showNewCampagneDialog, setShowNewCampagneDialog] = useState(false);
   const [showBudgetDialog, setShowBudgetDialog] = useState(false);
+  const [budgetValues, setBudgetValues] = useState<Record<string, number>>({});
 
   const handleCreateCampagne = () => {
     setShowNewCampagneDialog(false);
     setShowBudgetDialog(true);
   };
 
+  const handleBudgetChange = (field: string, value: string) => {
+    const numValue = parseFloat(value) || 0;
+    setBudgetValues(prev => ({
+      ...prev,
+      [field]: numValue
+    }));
+  };
+
+  const calculateTotalBudget = () => {
+    return Object.values(budgetValues).reduce((sum, value) => sum + value, 0);
+  };
+
   const handleSaveBudget = () => {
     toast({
       title: "Budget enregistré",
-      description: "Le budget prévisionnel de la campagne a été enregistré avec succès",
+      description: `Le budget prévisionnel de ${calculateTotalBudget().toLocaleString()} FCFA a été enregistré avec succès`,
     });
     setShowBudgetDialog(false);
   };
@@ -125,9 +139,9 @@ const Campagne = () => {
                   <p className="text-xs text-green-600 mt-1">438 t réalisées (36%)</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Budget alloué</p>
-                  <p className="text-lg font-semibold">450,000 FCFA</p>
-                  <p className="text-xs text-muted-foreground mt-1">187,500 FCFA dépensés</p>
+                  <p className="text-sm text-muted-foreground mb-1">Budget prévisionnel</p>
+                  <p className="text-lg font-semibold">{calculateTotalBudget().toLocaleString()} FCFA</p>
+                  <p className="text-xs text-muted-foreground mt-1">Budget total des 4 phases</p>
                 </div>
               </div>
             </CardContent>
@@ -363,6 +377,13 @@ const Campagne = () => {
                 </DialogDescription>
               </DialogHeader>
               
+               <div className="mb-6 p-4 bg-muted rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Budget total prévisionnel</span>
+                  <span className="text-2xl font-bold text-primary">{calculateTotalBudget().toLocaleString()} FCFA</span>
+                </div>
+              </div>
+
               <Tabs defaultValue="amenagement" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="amenagement">Aménagement</TabsTrigger>
@@ -371,424 +392,37 @@ const Campagne = () => {
                   <TabsTrigger value="recolte">Récolte</TabsTrigger>
                 </TabsList>
 
+
                 <TabsContent value="amenagement" className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-frais-journaliers">Frais journaliers (FCFA)</Label>
-                        <Input id="amenagement-frais-journaliers" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-frais-employes">Frais employés contractants (FCFA)</Label>
-                        <Input id="amenagement-frais-employes" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-carburant">Carburant (FCFA)</Label>
-                        <Input id="amenagement-carburant" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-motopompes">Motopompes (FCFA)</Label>
-                        <Input id="amenagement-motopompes" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-machines-broyage">Machines de broyage (FCFA)</Label>
-                        <Input id="amenagement-machines-broyage" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-machine-lavage">Machine de lavage (FCFA)</Label>
-                        <Input id="amenagement-machine-lavage" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-machine-iodation">Machine d'iodation (FCFA)</Label>
-                        <Input id="amenagement-machine-iodation" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-materiel-digues">Matériel de création de digues (FCFA)</Label>
-                        <Input id="amenagement-materiel-digues" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-epi">EPI (FCFA)</Label>
-                        <Input id="amenagement-epi" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-repas">Repas (FCFA)</Label>
-                        <Input id="amenagement-repas" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-transport">Transport (FCFA)</Label>
-                        <Input id="amenagement-transport" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-telephone">Téléphone (FCFA)</Label>
-                        <Input id="amenagement-telephone" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-tracteurs">Tracteurs (FCFA)</Label>
-                        <Input id="amenagement-tracteurs" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-pelles">Pelles (FCFA)</Label>
-                        <Input id="amenagement-pelles" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-brouettes">Brouettes (FCFA)</Label>
-                        <Input id="amenagement-brouettes" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-sacs">Sacs (FCFA)</Label>
-                        <Input id="amenagement-sacs" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-balance">Balance (FCFA)</Label>
-                        <Input id="amenagement-balance" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-testeur">Testeur (FCFA)</Label>
-                        <Input id="amenagement-testeur" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-location-marais">Location de marais salants (FCFA)</Label>
-                        <Input id="amenagement-location-marais" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="amenagement-achat-marais">Achat de marais salants (FCFA)</Label>
-                        <Input id="amenagement-achat-marais" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                  </div>
+                  <BudgetPhaseTab 
+                    phase="amenagement" 
+                    budgetValues={budgetValues} 
+                    onBudgetChange={handleBudgetChange} 
+                  />
                 </TabsContent>
 
                 <TabsContent value="mise-en-eau" className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-frais-journaliers">Frais journaliers (FCFA)</Label>
-                        <Input id="mise-en-eau-frais-journaliers" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-frais-employes">Frais employés contractants (FCFA)</Label>
-                        <Input id="mise-en-eau-frais-employes" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-carburant">Carburant (FCFA)</Label>
-                        <Input id="mise-en-eau-carburant" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-motopompes">Motopompes (FCFA)</Label>
-                        <Input id="mise-en-eau-motopompes" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-machines-broyage">Machines de broyage (FCFA)</Label>
-                        <Input id="mise-en-eau-machines-broyage" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-machine-lavage">Machine de lavage (FCFA)</Label>
-                        <Input id="mise-en-eau-machine-lavage" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-machine-iodation">Machine d'iodation (FCFA)</Label>
-                        <Input id="mise-en-eau-machine-iodation" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-materiel-digues">Matériel de création de digues (FCFA)</Label>
-                        <Input id="mise-en-eau-materiel-digues" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-epi">EPI (FCFA)</Label>
-                        <Input id="mise-en-eau-epi" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-repas">Repas (FCFA)</Label>
-                        <Input id="mise-en-eau-repas" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-transport">Transport (FCFA)</Label>
-                        <Input id="mise-en-eau-transport" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-telephone">Téléphone (FCFA)</Label>
-                        <Input id="mise-en-eau-telephone" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-tracteurs">Tracteurs (FCFA)</Label>
-                        <Input id="mise-en-eau-tracteurs" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-pelles">Pelles (FCFA)</Label>
-                        <Input id="mise-en-eau-pelles" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-brouettes">Brouettes (FCFA)</Label>
-                        <Input id="mise-en-eau-brouettes" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-sacs">Sacs (FCFA)</Label>
-                        <Input id="mise-en-eau-sacs" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-balance">Balance (FCFA)</Label>
-                        <Input id="mise-en-eau-balance" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-testeur">Testeur (FCFA)</Label>
-                        <Input id="mise-en-eau-testeur" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-location-marais">Location de marais salants (FCFA)</Label>
-                        <Input id="mise-en-eau-location-marais" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="mise-en-eau-achat-marais">Achat de marais salants (FCFA)</Label>
-                        <Input id="mise-en-eau-achat-marais" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                  </div>
+                  <BudgetPhaseTab 
+                    phase="mise-en-eau" 
+                    budgetValues={budgetValues} 
+                    onBudgetChange={handleBudgetChange} 
+                  />
                 </TabsContent>
 
                 <TabsContent value="cristallisation" className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-frais-journaliers">Frais journaliers (FCFA)</Label>
-                        <Input id="cristallisation-frais-journaliers" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-frais-employes">Frais employés contractants (FCFA)</Label>
-                        <Input id="cristallisation-frais-employes" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-carburant">Carburant (FCFA)</Label>
-                        <Input id="cristallisation-carburant" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-motopompes">Motopompes (FCFA)</Label>
-                        <Input id="cristallisation-motopompes" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-machines-broyage">Machines de broyage (FCFA)</Label>
-                        <Input id="cristallisation-machines-broyage" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-machine-lavage">Machine de lavage (FCFA)</Label>
-                        <Input id="cristallisation-machine-lavage" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-machine-iodation">Machine d'iodation (FCFA)</Label>
-                        <Input id="cristallisation-machine-iodation" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-materiel-digues">Matériel de création de digues (FCFA)</Label>
-                        <Input id="cristallisation-materiel-digues" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-epi">EPI (FCFA)</Label>
-                        <Input id="cristallisation-epi" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-repas">Repas (FCFA)</Label>
-                        <Input id="cristallisation-repas" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-transport">Transport (FCFA)</Label>
-                        <Input id="cristallisation-transport" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-telephone">Téléphone (FCFA)</Label>
-                        <Input id="cristallisation-telephone" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-tracteurs">Tracteurs (FCFA)</Label>
-                        <Input id="cristallisation-tracteurs" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-pelles">Pelles (FCFA)</Label>
-                        <Input id="cristallisation-pelles" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-brouettes">Brouettes (FCFA)</Label>
-                        <Input id="cristallisation-brouettes" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-sacs">Sacs (FCFA)</Label>
-                        <Input id="cristallisation-sacs" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-balance">Balance (FCFA)</Label>
-                        <Input id="cristallisation-balance" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-testeur">Testeur (FCFA)</Label>
-                        <Input id="cristallisation-testeur" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-location-marais">Location de marais salants (FCFA)</Label>
-                        <Input id="cristallisation-location-marais" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cristallisation-achat-marais">Achat de marais salants (FCFA)</Label>
-                        <Input id="cristallisation-achat-marais" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                  </div>
+                  <BudgetPhaseTab 
+                    phase="cristallisation" 
+                    budgetValues={budgetValues} 
+                    onBudgetChange={handleBudgetChange} 
+                  />
                 </TabsContent>
 
                 <TabsContent value="recolte" className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-frais-journaliers">Frais journaliers (FCFA)</Label>
-                        <Input id="recolte-frais-journaliers" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-frais-employes">Frais employés contractants (FCFA)</Label>
-                        <Input id="recolte-frais-employes" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-carburant">Carburant (FCFA)</Label>
-                        <Input id="recolte-carburant" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-motopompes">Motopompes (FCFA)</Label>
-                        <Input id="recolte-motopompes" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-machines-broyage">Machines de broyage (FCFA)</Label>
-                        <Input id="recolte-machines-broyage" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-machine-lavage">Machine de lavage (FCFA)</Label>
-                        <Input id="recolte-machine-lavage" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-machine-iodation">Machine d'iodation (FCFA)</Label>
-                        <Input id="recolte-machine-iodation" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-materiel-digues">Matériel de création de digues (FCFA)</Label>
-                        <Input id="recolte-materiel-digues" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-epi">EPI (FCFA)</Label>
-                        <Input id="recolte-epi" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-repas">Repas (FCFA)</Label>
-                        <Input id="recolte-repas" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-transport">Transport (FCFA)</Label>
-                        <Input id="recolte-transport" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-telephone">Téléphone (FCFA)</Label>
-                        <Input id="recolte-telephone" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-tracteurs">Tracteurs (FCFA)</Label>
-                        <Input id="recolte-tracteurs" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-pelles">Pelles (FCFA)</Label>
-                        <Input id="recolte-pelles" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-brouettes">Brouettes (FCFA)</Label>
-                        <Input id="recolte-brouettes" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-sacs">Sacs (FCFA)</Label>
-                        <Input id="recolte-sacs" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-balance">Balance (FCFA)</Label>
-                        <Input id="recolte-balance" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-testeur">Testeur (FCFA)</Label>
-                        <Input id="recolte-testeur" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-location-marais">Location de marais salants (FCFA)</Label>
-                        <Input id="recolte-location-marais" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="recolte-achat-marais">Achat de marais salants (FCFA)</Label>
-                        <Input id="recolte-achat-marais" type="number" placeholder="0" />
-                      </div>
-                    </div>
-                  </div>
+                  <BudgetPhaseTab 
+                    phase="recolte" 
+                    budgetValues={budgetValues} 
+                    onBudgetChange={handleBudgetChange} 
+                  />
                 </TabsContent>
               </Tabs>
 
