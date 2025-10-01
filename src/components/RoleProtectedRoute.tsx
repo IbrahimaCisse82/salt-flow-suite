@@ -28,6 +28,8 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
     const checkAuthAndRole = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('RoleProtectedRoute - Session check:', session ? 'Session exists' : 'No session');
+        
         if (!session) {
           setIsAuthenticated(false);
           return;
@@ -36,13 +38,20 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
         setIsAuthenticated(true);
 
         // Récupérer le rôle de l'utilisateur (fallback sur user_metadata)
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
           .maybeSingle();
 
+        console.log('RoleProtectedRoute - Profile:', profile);
+        console.log('RoleProtectedRoute - Profile error:', profileError);
+        console.log('RoleProtectedRoute - User metadata role:', session.user.user_metadata?.role);
+
         const derivedRole = (profile?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || null;
+        console.log('RoleProtectedRoute - Derived role:', derivedRole);
+        console.log('RoleProtectedRoute - Current path:', location.pathname);
+        
         setUserRole(derivedRole);
       } catch (e) {
         console.error('Auth check failed', e);
@@ -105,6 +114,7 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
 
   // Vérifier si l'utilisateur a accès à cette page
   const hasAccess = hasAccessToPage(userRole, location.pathname);
+  console.log('RoleProtectedRoute - Has access check:', { userRole, path: location.pathname, hasAccess });
 
   if (!hasAccess) {
     return (
