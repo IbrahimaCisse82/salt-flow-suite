@@ -125,6 +125,27 @@ const Comptabilite = () => {
     amountReceived: "",
     canBeDelivered: false
   });
+  
+  // État pour le formulaire de dépense
+  const [expenseFormData, setExpenseFormData] = useState({
+    date: "",
+    accountId: "",
+    campagneId: "",
+    campagnePhase: "",
+    description: "",
+    amount: "",
+    reference: "",
+    notes: ""
+  });
+  
+  // État pour le formulaire de virement
+  const [virementFormData, setVirementFormData] = useState({
+    date: "",
+    fromAccountId: "",
+    toAccountId: "",
+    amount: "",
+    notes: ""
+  });
 
   // Récupérer les comptes depuis Supabase
   const { data: accounts = [] } = useQuery({
@@ -253,6 +274,15 @@ const Comptabilite = () => {
       
       if (!profile) throw new Error('Profile not found');
       
+      // Récupérer la vente pour connaître le type de client
+      const { data: saleData, error: saleError } = await supabase
+        .from('sales')
+        .select('amount_paid, total_amount, client:clients(client_type)')
+        .eq('id', sale_id)
+        .single();
+      
+      if (saleError) throw saleError;
+
       // 1. Créer l'enregistrement de paiement
       const { error: paymentError } = await supabase
         .from('payments')
@@ -268,14 +298,6 @@ const Comptabilite = () => {
       if (paymentError) throw paymentError;
 
       // 2. Mettre à jour la vente
-      const { data: saleData, error: saleError } = await supabase
-        .from('sales')
-        .select('amount_paid, total_amount')
-        .eq('id', sale_id)
-        .single();
-      
-      if (saleError) throw saleError;
-
       const newAmountPaid = Number(saleData.amount_paid || 0) + Number(amount);
       const newBalance = Number(saleData.total_amount) - newAmountPaid;
 
@@ -290,11 +312,68 @@ const Comptabilite = () => {
       
       if (updateError) throw updateError;
 
+      // 3. Créer une transaction pour enregistrer la vente
+      const clientType = saleData.client?.client_type || 'local';
+      const transactionType = clientType === 'local' ? 'vente_locale' : 'vente_export';
+      
+      const { data: transaction, error: txError } = await supabase
+        .from('transactions')
+        .insert({
+          tenant_id: profile.tenant_id,
+          account_id: account_id,
+          transaction_type: transactionType,
+          date: payment_date,
+          amount: amount,
+          description: `Vente ${clientType === 'local' ? 'locale' : 'export'}`,
+          reference: `Paiement vente #${sale_id.slice(0, 8)}`
+        } as any)
+        .select()
+        .single();
+
+      if (txError) throw txError;
+
+      // 4. Trouver le compte de produits approprié (701 pour local, 702 pour export)
+      const productAccountNumber = clientType === 'local' ? '701' : '702';
+      const { data: productAccount } = await supabase
+        .from('chart_of_accounts')
+        .select('id')
+        .eq('account_number', productAccountNumber)
+        .maybeSingle();
+
+      if (!productAccount) throw new Error(`Compte ${productAccountNumber} introuvable`);
+
+      // 5. Créer les écritures comptables (double entrée)
+      const journalEntries = [
+        {
+          tenant_id: profile.tenant_id,
+          transaction_id: transaction.id,
+          account_id: account_id,
+          debit: amount,
+          credit: 0,
+          description: `Encaissement vente ${clientType === 'local' ? 'locale' : 'export'}`
+        },
+        {
+          tenant_id: profile.tenant_id,
+          transaction_id: transaction.id,
+          account_id: productAccount.id,
+          debit: 0,
+          credit: amount,
+          description: `Vente ${clientType === 'local' ? 'locale' : 'export'}`
+        }
+      ];
+
+      const { error: entriesError } = await supabase
+        .from('journal_entries')
+        .insert(journalEntries as any);
+
+      if (entriesError) throw entriesError;
+
       return { newBalance, newAmountPaid };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['pending-invoices'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
       
       toast({
         title: "Paiement enregistré",
@@ -330,12 +409,208 @@ const Comptabilite = () => {
     setShowAccountDialog(false);
   };
 
+  // Mutation pour créer une dépense avec écritures comptables
+  const createExpenseMutation = useMutation({
+    mutationFn: async (formData: typeof expenseFormData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile) throw new Error('Profile not found');
+
+      const amount = parseFloat(formData.amount);
+      if (!amount || amount <= 0) throw new Error('Montant invalide');
+
+      // 1. Trouver le compte comptable correspondant à la dépense
+      const expenseCategory = expenseCategories.find(c => c.type === formData.description);
+      const accountNumberMatch = expenseCategory?.account.match(/(\d+)/);
+      const chargeAccountNumber = accountNumberMatch ? accountNumberMatch[1] : null;
+
+      if (!chargeAccountNumber) throw new Error('Compte comptable de charge introuvable');
+
+      const { data: chargeAccount } = await supabase
+        .from('chart_of_accounts')
+        .select('id')
+        .eq('account_number', chargeAccountNumber)
+        .maybeSingle();
+
+      if (!chargeAccount) throw new Error(`Compte ${chargeAccountNumber} introuvable dans le plan comptable`);
+
+      // 2. Créer la transaction
+      const { data: transaction, error: txError } = await supabase
+        .from('transactions')
+        .insert({
+          tenant_id: profile.tenant_id,
+          account_id: formData.accountId,
+          transaction_type: 'depense',
+          date: formData.date,
+          amount: amount,
+          description: formData.description,
+          reference: formData.reference || null,
+          notes: formData.notes || null,
+          campagne_id: formData.campagneId && formData.campagneId !== 'none' ? formData.campagneId : null,
+          campagne_phase: formData.campagnePhase || null
+        } as any)
+        .select()
+        .single();
+
+      if (txError) throw txError;
+
+      // 3. Créer les écritures comptables (double entrée)
+      const journalEntries = [
+        {
+          tenant_id: profile.tenant_id,
+          transaction_id: transaction.id,
+          account_id: chargeAccount.id,
+          debit: amount,
+          credit: 0,
+          description: `Dépense: ${formData.description}`
+        },
+        {
+          tenant_id: profile.tenant_id,
+          transaction_id: transaction.id,
+          account_id: formData.accountId,
+          debit: 0,
+          credit: amount,
+          description: `Paiement: ${formData.description}`
+        }
+      ];
+
+      const { error: entriesError } = await supabase
+        .from('journal_entries')
+        .insert(journalEntries as any);
+
+      if (entriesError) throw entriesError;
+
+      return transaction;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      toast({
+        title: "Dépense enregistrée",
+        description: "La dépense et ses écritures comptables ont été enregistrées",
+      });
+      setShowTransactionDialog(false);
+      setExpenseFormData({
+        date: "",
+        accountId: "",
+        campagneId: "",
+        campagnePhase: "",
+        description: "",
+        amount: "",
+        reference: "",
+        notes: ""
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation pour créer un virement avec écritures comptables
+  const createVirementMutation = useMutation({
+    mutationFn: async (formData: typeof virementFormData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile) throw new Error('Profile not found');
+
+      const amount = parseFloat(formData.amount);
+      if (!amount || amount <= 0) throw new Error('Montant invalide');
+      if (formData.fromAccountId === formData.toAccountId) throw new Error('Les comptes source et destination doivent être différents');
+
+      // 1. Créer la transaction
+      const { data: transaction, error: txError } = await supabase
+        .from('transactions')
+        .insert({
+          tenant_id: profile.tenant_id,
+          account_id: formData.fromAccountId,
+          transaction_type: 'virement_interne',
+          date: formData.date,
+          amount: amount,
+          description: 'Virement interne',
+          notes: formData.notes || null
+        } as any)
+        .select()
+        .single();
+
+      if (txError) throw txError;
+
+      // 2. Créer les écritures comptables (double entrée)
+      const journalEntries = [
+        {
+          tenant_id: profile.tenant_id,
+          transaction_id: transaction.id,
+          account_id: formData.toAccountId,
+          debit: amount,
+          credit: 0,
+          description: 'Virement reçu'
+        },
+        {
+          tenant_id: profile.tenant_id,
+          transaction_id: transaction.id,
+          account_id: formData.fromAccountId,
+          debit: 0,
+          credit: amount,
+          description: 'Virement envoyé'
+        }
+      ];
+
+      const { error: entriesError } = await supabase
+        .from('journal_entries')
+        .insert(journalEntries as any);
+
+      if (entriesError) throw entriesError;
+
+      return transaction;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      toast({
+        title: "Virement enregistré",
+        description: "Le virement et ses écritures comptables ont été enregistrés",
+      });
+      setShowTransactionDialog(false);
+      setVirementFormData({
+        date: "",
+        fromAccountId: "",
+        toAccountId: "",
+        amount: "",
+        notes: ""
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleAddTransaction = () => {
-    toast({
-      title: "Transaction enregistrée",
-      description: "La transaction a été enregistrée avec succès",
-    });
-    setShowTransactionDialog(false);
+    if (transactionType === "depense") {
+      createExpenseMutation.mutate(expenseFormData);
+    } else if (transactionType === "virement_interne") {
+      createVirementMutation.mutate(virementFormData);
+    }
   };
 
   const handlePaymentSubmit = () => {
@@ -825,11 +1100,19 @@ const Comptabilite = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="depense-date">Date</Label>
-                        <Input id="depense-date" type="date" />
+                        <Input 
+                          id="depense-date" 
+                          type="date" 
+                          value={expenseFormData.date}
+                          onChange={(e) => setExpenseFormData({...expenseFormData, date: e.target.value})}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="depense-account">Compte</Label>
-                        <Select>
+                        <Select 
+                          value={expenseFormData.accountId}
+                          onValueChange={(value) => setExpenseFormData({...expenseFormData, accountId: value})}
+                        >
                           <SelectTrigger id="depense-account">
                             <SelectValue placeholder="Sélectionnez un compte" />
                           </SelectTrigger>
@@ -846,7 +1129,10 @@ const Comptabilite = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="depense-campagne">Campagne (optionnel)</Label>
-                        <Select>
+                        <Select
+                          value={expenseFormData.campagneId}
+                          onValueChange={(value) => setExpenseFormData({...expenseFormData, campagneId: value})}
+                        >
                           <SelectTrigger id="depense-campagne">
                             <SelectValue placeholder="Sélectionnez une campagne" />
                           </SelectTrigger>
@@ -862,7 +1148,10 @@ const Comptabilite = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="depense-phase">Phase (optionnel)</Label>
-                        <Select>
+                        <Select
+                          value={expenseFormData.campagnePhase}
+                          onValueChange={(value) => setExpenseFormData({...expenseFormData, campagnePhase: value})}
+                        >
                           <SelectTrigger id="depense-phase">
                             <SelectValue placeholder="Sélectionnez une phase" />
                           </SelectTrigger>
@@ -878,7 +1167,10 @@ const Comptabilite = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="depense-description">Type de dépense</Label>
-                      <Select>
+                      <Select
+                        value={expenseFormData.description}
+                        onValueChange={(value) => setExpenseFormData({...expenseFormData, description: value})}
+                      >
                         <SelectTrigger id="depense-description">
                           <SelectValue placeholder="Sélectionnez une catégorie de dépense" />
                         </SelectTrigger>
@@ -896,15 +1188,31 @@ const Comptabilite = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="depense-amount">Montant (FCFA)</Label>
-                      <Input id="depense-amount" type="number" placeholder="0" />
+                      <Input 
+                        id="depense-amount" 
+                        type="number" 
+                        placeholder="0" 
+                        value={expenseFormData.amount}
+                        onChange={(e) => setExpenseFormData({...expenseFormData, amount: e.target.value})}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="depense-reference">Référence (optionnel)</Label>
-                      <Input id="depense-reference" placeholder="Ex: Facture #123" />
+                      <Input 
+                        id="depense-reference" 
+                        placeholder="Ex: Facture #123" 
+                        value={expenseFormData.reference}
+                        onChange={(e) => setExpenseFormData({...expenseFormData, reference: e.target.value})}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="depense-notes">Notes (optionnel)</Label>
-                      <Textarea id="depense-notes" placeholder="Notes supplémentaires..." />
+                      <Textarea 
+                        id="depense-notes" 
+                        placeholder="Notes supplémentaires..." 
+                        value={expenseFormData.notes}
+                        onChange={(e) => setExpenseFormData({...expenseFormData, notes: e.target.value})}
+                      />
                     </div>
                   </>
                 )}
@@ -913,11 +1221,19 @@ const Comptabilite = () => {
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="virement-date">Date</Label>
-                      <Input id="virement-date" type="date" />
+                      <Input 
+                        id="virement-date" 
+                        type="date" 
+                        value={virementFormData.date}
+                        onChange={(e) => setVirementFormData({...virementFormData, date: e.target.value})}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="virement-from">Compte source</Label>
-                      <Select>
+                      <Select
+                        value={virementFormData.fromAccountId}
+                        onValueChange={(value) => setVirementFormData({...virementFormData, fromAccountId: value})}
+                      >
                         <SelectTrigger id="virement-from">
                           <SelectValue placeholder="Sélectionnez le compte source" />
                         </SelectTrigger>
@@ -932,7 +1248,10 @@ const Comptabilite = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="virement-to">Compte destination</Label>
-                      <Select>
+                      <Select
+                        value={virementFormData.toAccountId}
+                        onValueChange={(value) => setVirementFormData({...virementFormData, toAccountId: value})}
+                      >
                         <SelectTrigger id="virement-to">
                           <SelectValue placeholder="Sélectionnez le compte destination" />
                         </SelectTrigger>
@@ -947,11 +1266,22 @@ const Comptabilite = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="virement-amount">Montant (FCFA)</Label>
-                      <Input id="virement-amount" type="number" placeholder="0" />
+                      <Input 
+                        id="virement-amount" 
+                        type="number" 
+                        placeholder="0" 
+                        value={virementFormData.amount}
+                        onChange={(e) => setVirementFormData({...virementFormData, amount: e.target.value})}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="virement-notes">Notes (optionnel)</Label>
-                      <Textarea id="virement-notes" placeholder="Notes supplémentaires..." />
+                      <Textarea 
+                        id="virement-notes" 
+                        placeholder="Notes supplémentaires..." 
+                        value={virementFormData.notes}
+                        onChange={(e) => setVirementFormData({...virementFormData, notes: e.target.value})}
+                      />
                     </div>
                   </>
                 )}
