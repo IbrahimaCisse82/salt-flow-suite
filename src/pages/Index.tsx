@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/Layout/Sidebar";
 import { StatsCard } from "@/components/Dashboard/StatsCard";
 import { BassinOverview } from "@/components/Dashboard/BassinOverview";
 import { ProductionChart } from "@/components/Dashboard/ProductionChart";
+import { AdminDashboard } from "@/components/Admin/AdminDashboard";
 import { 
   Droplets, 
   TrendingUp, 
@@ -14,8 +15,28 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { UserRole } from "@/utils/permissions";
 
 const Index = () => {
+  // Récupérer le rôle de l'utilisateur
+  const { data: userRole } = useQuery({
+    queryKey: ['user-role'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      return profile?.role as UserRole;
+    }
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -24,6 +45,11 @@ const Index = () => {
         <Sidebar />
         
         <main className="flex-1 p-6 space-y-6 md:ml-64">
+          {/* Afficher le dashboard admin si l'utilisateur est admin */}
+          {userRole === 'admin' ? (
+            <AdminDashboard />
+          ) : (
+            <>
           {/* Hero Section */}
           <div className="rounded-2xl bg-gradient-to-br from-primary via-primary to-accent p-8 text-primary-foreground shadow-elevated">
             <div className="flex items-start justify-between">
@@ -139,6 +165,8 @@ const Index = () => {
               </div>
             </CardContent>
           </Card>
+          </>
+          )}
         </main>
       </div>
     </div>
