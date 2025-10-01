@@ -23,7 +23,7 @@ const Index = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-6 space-y-6">
+        <main className="flex-1 p-6 space-y-6 md:ml-64">
           {/* Hero Section */}
           <div className="rounded-2xl bg-gradient-to-br from-primary via-primary to-accent p-8 text-primary-foreground shadow-elevated">
             <div className="flex items-start justify-between">

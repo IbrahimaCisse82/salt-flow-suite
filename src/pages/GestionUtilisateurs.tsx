@@ -198,7 +198,7 @@ const GestionUtilisateurs = () => {
         <Header />
         <div className="flex">
           <Sidebar />
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 md:ml-64">
             <Card>
               <CardContent className="p-6">
                 <p className="text-center text-muted-foreground">
@@ -220,7 +220,7 @@ const GestionUtilisateurs = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-6 space-y-6">
+        <main className="flex-1 p-6 space-y-6 md:ml-64">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Gestion des utilisateurs</h1>
