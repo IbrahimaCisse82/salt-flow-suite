@@ -12,8 +12,33 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { hasAccessToPage, UserRole } from "@/utils/permissions";
+import {
+  LayoutDashboard,
+  Droplets,
+  Calendar,
+  Package,
+  Users,
+  TrendingUp,
+  FileText,
+  Settings,
+  Database,
+  Wallet,
+  UserCog,
+  Building2 as BuildingIcon,
+  BookOpen,
+  X
+} from "lucide-react";
 import saltLogo from "@/assets/salt-logo.png";
 
 const mockNotifications = [
@@ -43,11 +68,54 @@ const mockNotifications = [
   }
 ];
 
+const adminNavItems = [
+  { icon: LayoutDashboard, label: "Tableau de bord", href: "/admin" },
+  { icon: BuildingIcon, label: "Entreprises", href: "/admin/tenants" },
+  { icon: BookOpen, label: "Plan comptable", href: "/admin/chart-of-accounts" },
+  { icon: Settings, label: "Paramètres", href: "/parametres" },
+];
+
+const salinesNavItems = [
+  { icon: LayoutDashboard, label: "Tableau de bord", href: "/" },
+  { icon: Droplets, label: "Bassins salants", href: "/bassins" },
+  { icon: Calendar, label: "Plan de campagne", href: "/campagne" },
+  { icon: Database, label: "Production", href: "/production" },
+  { icon: Package, label: "Stocks", href: "/stocks" },
+  { icon: Users, label: "Équipes", href: "/equipes" },
+  { icon: TrendingUp, label: "Commercial", href: "/commercial" },
+  { icon: Wallet, label: "Comptabilité", href: "/comptabilite" },
+  { icon: FileText, label: "Rapports", href: "/rapports" },
+  { icon: UserCog, label: "Utilisateurs", href: "/utilisateurs" },
+  { icon: Settings, label: "Paramètres", href: "/parametres" },
+];
+
 export const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile, tenant } = useAuth();
   const [notifications, setNotifications] = useState(mockNotifications);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { data: userRole } = useQuery({
+    queryKey: ['user-role'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      return profile?.role as UserRole;
+    }
+  });
+
+  const navItems = userRole === 'admin' ? adminNavItems : salinesNavItems;
+  const visibleNavItems = navItems.filter(item => 
+    hasAccessToPage(userRole || null, item.href)
+  );
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -84,7 +152,12 @@ export const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="md:hidden">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(true)}
+          >
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
@@ -222,6 +295,37 @@ export const Header = () => {
           </DropdownMenu>
         </div>
       </div>
+
+      <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <DrawerContent>
+          <DrawerHeader className="border-b">
+            <div className="flex items-center justify-between">
+              <DrawerTitle>Menu</DrawerTitle>
+              <DrawerClose asChild>
+                <Button variant="ghost" size="icon">
+                  <X className="h-5 w-5" />
+                </Button>
+              </DrawerClose>
+            </div>
+          </DrawerHeader>
+          <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
+            {visibleNavItems.map((item) => (
+              <Button
+                key={item.href}
+                variant="ghost"
+                className="w-full justify-start gap-3"
+                onClick={() => {
+                  navigate(item.href);
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <item.icon className="h-5 w-5" />
+                <span>{item.label}</span>
+              </Button>
+            ))}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </header>
   );
 };
