@@ -76,7 +76,7 @@ export const Header = () => {
       if (!userProfile?.tenant_id) return null;
       const { data, error } = await supabase
         .from('tenants')
-        .select('name')
+        .select('name, logo_url')
         .eq('id', userProfile.tenant_id)
         .maybeSingle();
       if (error) throw error;
@@ -139,7 +139,11 @@ export const Header = () => {
         <div className="flex items-center gap-4">
           {userProfile && (
             <div className="hidden md:flex items-center gap-3 px-4 py-2 rounded-lg bg-muted/50">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
+              {tenant?.logo_url ? (
+                <img src={tenant.logo_url} alt="Logo entreprise" className="h-8 w-8 rounded object-contain" />
+              ) : (
+                <Building2 className="h-5 w-5 text-muted-foreground" />
+              )}
               <div className="flex flex-col">
                 {tenant?.name && (
                   <span className="text-xs font-medium text-foreground">{tenant.name}</span>
