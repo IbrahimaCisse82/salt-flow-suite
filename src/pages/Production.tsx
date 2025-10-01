@@ -74,6 +74,7 @@ const Production = () => {
   const { toast } = useToast();
 
   const handleNewHarvest = () => {
+    console.log("Button clicked - handleNewHarvest called");
     toast({
       title: "Nouvelle récolte",
       description: "Fonctionnalité d'ajout de récolte à venir",
