@@ -349,8 +349,8 @@ const Auth = () => {
           © {new Date().getFullYear()} Grow Hub Sarl. Tous droits réservés.
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          <a href="mailto:contact@growhubsenegal.com" className="hover:text-primary transition-colors">
-            contact@growhubsenegal.com
+          <a href="mailto:support@g-suiteapp.com" className="hover:text-primary transition-colors">
+            support@g-suiteapp.com
           </a>
         </p>
       </footer>
