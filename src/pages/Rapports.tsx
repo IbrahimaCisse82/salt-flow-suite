@@ -5,6 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { BudgetTrackingTab } from "@/components/Campaign/BudgetTrackingTab";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,6 +122,7 @@ const recentReports = [
 const Rapports = () => {
   const { toast } = useToast();
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
 
   // Récupérer les données pour les rapports
   const { data: campagnes = [] } = useQuery({
@@ -552,6 +569,19 @@ const Rapports = () => {
     });
   };
 
+  const handleScheduleReport = () => {
+    setIsScheduleDialogOpen(true);
+  };
+
+  const handleScheduleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Rapport planifié",
+      description: "Le rapport sera généré automatiquement selon le calendrier défini",
+    });
+    setIsScheduleDialogOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -560,6 +590,88 @@ const Rapports = () => {
         <Sidebar />
         
         <main className="flex-1 p-6 space-y-6 md:ml-64">
+          {/* Dialog Planifier rapport */}
+          <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Planifier un rapport automatique</DialogTitle>
+                <DialogDescription>
+                  Configurez la génération automatique de vos rapports
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleScheduleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reportType">Type de rapport</Label>
+                  <Select required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="campagne">Rapport de campagne</SelectItem>
+                      <SelectItem value="financier">États financiers</SelectItem>
+                      <SelectItem value="production">Analyse production</SelectItem>
+                      <SelectItem value="rh">Performance RH</SelectItem>
+                      <SelectItem value="commercial">Analyse commerciale</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="frequency">Fréquence</Label>
+                  <Select required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner la fréquence" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Quotidien</SelectItem>
+                      <SelectItem value="weekly">Hebdomadaire</SelectItem>
+                      <SelectItem value="monthly">Mensuel</SelectItem>
+                      <SelectItem value="quarterly">Trimestriel</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="startDate">Date de début</Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="time">Heure</Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      defaultValue="09:00"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email de notification</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="exemple@email.com"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsScheduleDialogOpen(false)} className="flex-1">
+                    Annuler
+                  </Button>
+                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">
+                    Planifier
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Rapports & Analyses</h1>
@@ -567,7 +679,7 @@ const Rapports = () => {
                 Générez et consultez vos rapports d'activité
               </p>
             </div>
-            <Button className="gap-2 bg-gradient-to-r from-primary to-accent">
+            <Button onClick={handleScheduleReport} className="gap-2 bg-gradient-to-r from-primary to-accent">
               <Calendar className="h-4 w-4" />
               Planifier rapport
             </Button>
