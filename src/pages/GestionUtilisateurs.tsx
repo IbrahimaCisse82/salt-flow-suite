@@ -250,7 +250,7 @@ const GestionUtilisateurs = () => {
           </div>
 
           {/* Statistiques */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {Object.entries(roleLabels).map(([role, info]) => {
               const count = users.filter(u => u.role === role).length;
               return (

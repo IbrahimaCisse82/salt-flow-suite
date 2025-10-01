@@ -892,10 +892,10 @@ const Comptabilite = () => {
           </div>
 
           {/* Vue d'ensemble des comptes */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card className="border-l-4 border-l-primary">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="text-sm md:text-base flex items-center gap-2">
                   <Wallet className="h-4 w-4 text-primary" />
                   Solde Total
                 </CardTitle>

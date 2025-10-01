@@ -279,9 +279,9 @@ const Production = () => {
           </div>
 
           {/* KPIs Production */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 md:p-6">
                 <div className="flex items-center justify-between mb-3">
                   <Database className="h-8 w-8 text-primary" />
                   <TrendingUp className="h-5 w-5 text-green-600" />

@@ -314,7 +314,7 @@ const Campagne = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-6 space-y-6 md:ml-64">
+        <main className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6 md:ml-64">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Plan de Campagne 2025</h1>
@@ -397,7 +397,7 @@ const Campagne = () => {
           </Card>
 
           {/* Objectifs principaux */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">

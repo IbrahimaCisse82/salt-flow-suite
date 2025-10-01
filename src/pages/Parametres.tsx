@@ -436,13 +436,13 @@ const Parametres = () => {
           {/* Informations entreprise */}
           {isGerant && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="h-5 w-5 text-primary" />
-                  Informations entreprise
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                  <Building className="h-5 w-5 text-primary flex-shrink-0" />
+                  <span className="truncate">Informations entreprise</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-4 md:p-6 space-y-4">
                 {/* Section Logo */}
                 <div className="space-y-2">
                   <Label>Logo de l'entreprise</Label>
@@ -556,7 +556,7 @@ const Parametres = () => {
                 Compte utilisateur
               </CardTitle>
             </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-4 md:p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nom complet</Label>
@@ -697,13 +697,13 @@ const Parametres = () => {
 
           {/* Sécurité */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Sécurité
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <Shield className="h-5 w-5 text-primary flex-shrink-0" />
+                <span className="truncate">Sécurité</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-4 md:p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Authentification à deux facteurs (2FA)</p>

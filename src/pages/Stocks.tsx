@@ -628,9 +628,9 @@ const Stocks = () => {
           </div>
 
           {/* Vue d'ensemble */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 md:p-6">
                 <div className="flex items-center justify-between mb-3">
                   <Package className="h-8 w-8 text-primary" />
                 </div>
@@ -773,8 +773,8 @@ const Stocks = () => {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <CardContent className="p-4 md:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {warehouses.map((warehouse, index) => (
                   <Card key={index} className="border-2">
                     <CardContent className="p-4">

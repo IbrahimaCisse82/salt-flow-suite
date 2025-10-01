@@ -511,9 +511,9 @@ const Equipes = () => {
           </div>
 
           {/* Stats RH */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 md:p-6">
                 <div className="flex items-center justify-between mb-3">
                   <Users className="h-8 w-8 text-primary" />
                 </div>
@@ -571,7 +571,7 @@ const Equipes = () => {
                 Personnel permanent
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {permanents.map((person, index) => (
                   <div 
@@ -678,8 +678,8 @@ const Equipes = () => {
           {/* Pointage journalier */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Pointage du jour</CardTitle>
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="text-sm md:text-base truncate">Pointage du jour</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center p-3 rounded-lg bg-green-50 border border-green-200">

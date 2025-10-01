@@ -209,7 +209,7 @@ const Bassins = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-6 space-y-6 md:ml-64">
+        <main className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6 md:ml-64">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Gestion des Bassins Salants</h1>
@@ -287,13 +287,13 @@ const Bassins = () => {
           </div>
 
           {/* Liste des bassins */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {bassins.map((bassin) => (
               <Card key={bassin.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl">{bassin.name}</CardTitle>
+                <CardHeader className="p-4 md:p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-lg md:text-xl break-words">{bassin.name}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <p className="text-sm text-muted-foreground">
                           <MapPin className="h-3 w-3 inline mr-1" />
@@ -310,7 +310,7 @@ const Bassins = () => {
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 p-4 md:p-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Surface</p>

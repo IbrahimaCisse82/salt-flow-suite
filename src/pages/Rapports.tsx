@@ -693,8 +693,8 @@ const Rapports = () => {
             </TabsList>
 
             <TabsContent value="rapports" className="space-y-6">
-              {/* Types de rapports */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Types de rapports */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {reportTypes.map((report, index) => (
                   <Card 
                     key={index}
@@ -790,7 +790,7 @@ const Rapports = () => {
                   <CardTitle>Indicateurs de performance - Mars 2025</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     <div className="space-y-4">
                       <h3 className="font-semibold text-sm text-muted-foreground">Production</h3>
                       <div className="space-y-2">
