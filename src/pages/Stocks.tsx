@@ -143,13 +143,35 @@ const statusConfig = {
 
 const Stocks = () => {
   const { toast } = useToast();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [isMovementDialogOpen, setIsMovementDialogOpen] = useState(false);
+  const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
+  const [isWarehouseDialogOpen, setIsWarehouseDialogOpen] = useState(false);
+  
+  const [movementFormData, setMovementFormData] = useState({
     movementType: "",
     date: "",
     saltType: "",
     warehouse: "",
     quantity: "",
+    notes: ""
+  });
+
+  const [stockFormData, setStockFormData] = useState({
+    saltType: "",
+    quantity: "",
+    warehouse: "",
+    harvestDate: "",
+    qualityGrade: "",
+    unitCost: "",
+    lotNumber: "",
+    notes: ""
+  });
+
+  const [warehouseFormData, setWarehouseFormData] = useState({
+    name: "",
+    code: "",
+    capacity: "",
+    location: "",
     notes: ""
   });
 
@@ -159,23 +181,68 @@ const Stocks = () => {
   );
 
   const handleNewMovement = () => {
-    setIsDialogOpen(true);
+    setIsMovementDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleNewStock = () => {
+    setIsStockDialogOpen(true);
+  };
+
+  const handleNewWarehouse = () => {
+    setIsWarehouseDialogOpen(true);
+  };
+
+  const handleMovementSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Stock movement submitted:", formData);
+    console.log("Stock movement submitted:", movementFormData);
     toast({
       title: "Mouvement enregistré",
-      description: `${formData.movementType} de ${formData.quantity} tonnes de ${formData.saltType}`,
+      description: `${movementFormData.movementType} de ${movementFormData.quantity} tonnes de ${movementFormData.saltType}`,
     });
-    setIsDialogOpen(false);
-    setFormData({
+    setIsMovementDialogOpen(false);
+    setMovementFormData({
       movementType: "",
       date: "",
       saltType: "",
       warehouse: "",
       quantity: "",
+      notes: ""
+    });
+  };
+
+  const handleStockSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("New stock submitted:", stockFormData);
+    toast({
+      title: "Stock ajouté",
+      description: `${stockFormData.quantity} tonnes de ${stockFormData.saltType} ajoutées`,
+    });
+    setIsStockDialogOpen(false);
+    setStockFormData({
+      saltType: "",
+      quantity: "",
+      warehouse: "",
+      harvestDate: "",
+      qualityGrade: "",
+      unitCost: "",
+      lotNumber: "",
+      notes: ""
+    });
+  };
+
+  const handleWarehouseSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("New warehouse submitted:", warehouseFormData);
+    toast({
+      title: "Entrepôt créé",
+      description: `L'entrepôt ${warehouseFormData.name} a été créé avec succès`,
+    });
+    setIsWarehouseDialogOpen(false);
+    setWarehouseFormData({
+      name: "",
+      code: "",
+      capacity: "",
+      location: "",
       notes: ""
     });
   };
@@ -188,7 +255,8 @@ const Stocks = () => {
         <Sidebar />
         
         <main className="flex-1 p-6 space-y-6">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          {/* Dialog Mouvement de stock */}
+          <Dialog open={isMovementDialogOpen} onOpenChange={setIsMovementDialogOpen}>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Nouveau mouvement de stock</DialogTitle>
@@ -196,12 +264,12 @@ const Stocks = () => {
                   Enregistrer une entrée ou sortie de stock
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleMovementSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="movementType">Type de mouvement</Label>
                   <Select 
-                    value={formData.movementType} 
-                    onValueChange={(value) => setFormData({...formData, movementType: value})}
+                    value={movementFormData.movementType} 
+                    onValueChange={(value) => setMovementFormData({...movementFormData, movementType: value})}
                     required
                   >
                     <SelectTrigger>
@@ -229,8 +297,8 @@ const Stocks = () => {
                   <Input
                     id="date"
                     type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({...formData, date: e.target.value})}
+                    value={movementFormData.date}
+                    onChange={(e) => setMovementFormData({...movementFormData, date: e.target.value})}
                     required
                   />
                 </div>
@@ -238,8 +306,8 @@ const Stocks = () => {
                 <div className="space-y-2">
                   <Label htmlFor="saltType">Type de sel</Label>
                   <Select 
-                    value={formData.saltType} 
-                    onValueChange={(value) => setFormData({...formData, saltType: value})}
+                    value={movementFormData.saltType} 
+                    onValueChange={(value) => setMovementFormData({...movementFormData, saltType: value})}
                     required
                   >
                     <SelectTrigger>
@@ -258,8 +326,8 @@ const Stocks = () => {
                 <div className="space-y-2">
                   <Label htmlFor="warehouse">Entrepôt</Label>
                   <Select 
-                    value={formData.warehouse} 
-                    onValueChange={(value) => setFormData({...formData, warehouse: value})}
+                    value={movementFormData.warehouse} 
+                    onValueChange={(value) => setMovementFormData({...movementFormData, warehouse: value})}
                     required
                   >
                     <SelectTrigger>
@@ -279,8 +347,8 @@ const Stocks = () => {
                     id="quantity"
                     type="number"
                     step="0.1"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({...formData, quantity: e.target.value})}
+                    value={movementFormData.quantity}
+                    onChange={(e) => setMovementFormData({...movementFormData, quantity: e.target.value})}
                     placeholder="Ex: 25.5"
                     required
                   />
@@ -290,19 +358,236 @@ const Stocks = () => {
                   <Label htmlFor="notes">Notes (optionnel)</Label>
                   <Textarea
                     id="notes"
-                    value={formData.notes}
-                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                    value={movementFormData.notes}
+                    onChange={(e) => setMovementFormData({...movementFormData, notes: e.target.value})}
                     placeholder="Informations complémentaires..."
                     rows={3}
                   />
                 </div>
 
                 <div className="flex gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
+                  <Button type="button" variant="outline" onClick={() => setIsMovementDialogOpen(false)} className="flex-1">
                     Annuler
                   </Button>
                   <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">
                     Enregistrer
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Nouveau Stock */}
+          <Dialog open={isStockDialogOpen} onOpenChange={setIsStockDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Ajouter un stock</DialogTitle>
+                <DialogDescription>
+                  Enregistrer un nouveau stock par catégorie
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleStockSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="stockSaltType">Type de sel</Label>
+                  <Select 
+                    value={stockFormData.saltType} 
+                    onValueChange={(value) => setStockFormData({...stockFormData, saltType: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le type de sel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Sel gros">Sel gros</SelectItem>
+                      <SelectItem value="Sel fin">Sel fin</SelectItem>
+                      <SelectItem value="Sel iodé">Sel iodé</SelectItem>
+                      <SelectItem value="Sel industriel">Sel industriel</SelectItem>
+                      <SelectItem value="Sel export">Sel export</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="stockQuantity">Quantité (tonnes)</Label>
+                  <Input
+                    id="stockQuantity"
+                    type="number"
+                    step="0.1"
+                    value={stockFormData.quantity}
+                    onChange={(e) => setStockFormData({...stockFormData, quantity: e.target.value})}
+                    placeholder="Ex: 50.5"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="stockWarehouse">Entrepôt</Label>
+                  <Select 
+                    value={stockFormData.warehouse} 
+                    onValueChange={(value) => setStockFormData({...stockFormData, warehouse: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner l'entrepôt" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Entrepôt A">Entrepôt A</SelectItem>
+                      <SelectItem value="Entrepôt B">Entrepôt B</SelectItem>
+                      <SelectItem value="Entrepôt C">Entrepôt C</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="harvestDate">Date de récolte</Label>
+                  <Input
+                    id="harvestDate"
+                    type="date"
+                    value={stockFormData.harvestDate}
+                    onChange={(e) => setStockFormData({...stockFormData, harvestDate: e.target.value})}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="qualityGrade">Qualité</Label>
+                  <Select 
+                    value={stockFormData.qualityGrade} 
+                    onValueChange={(value) => setStockFormData({...stockFormData, qualityGrade: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner la qualité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Grade 1 (A+)</SelectItem>
+                      <SelectItem value="2">Grade 2 (A)</SelectItem>
+                      <SelectItem value="3">Grade 3 (B)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="unitCost">Coût unitaire (FCFA/tonne)</Label>
+                  <Input
+                    id="unitCost"
+                    type="number"
+                    step="0.01"
+                    value={stockFormData.unitCost}
+                    onChange={(e) => setStockFormData({...stockFormData, unitCost: e.target.value})}
+                    placeholder="Ex: 150"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="lotNumber">Numéro de lot</Label>
+                  <Input
+                    id="lotNumber"
+                    type="text"
+                    value={stockFormData.lotNumber}
+                    onChange={(e) => setStockFormData({...stockFormData, lotNumber: e.target.value})}
+                    placeholder="Ex: LOT-2025-001"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="stockNotes">Notes (optionnel)</Label>
+                  <Textarea
+                    id="stockNotes"
+                    value={stockFormData.notes}
+                    onChange={(e) => setStockFormData({...stockFormData, notes: e.target.value})}
+                    placeholder="Informations complémentaires..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsStockDialogOpen(false)} className="flex-1">
+                    Annuler
+                  </Button>
+                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">
+                    Ajouter le stock
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Nouvel Entrepôt */}
+          <Dialog open={isWarehouseDialogOpen} onOpenChange={setIsWarehouseDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Créer un entrepôt</DialogTitle>
+                <DialogDescription>
+                  Ajouter un nouveau lieu de stockage
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleWarehouseSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="warehouseName">Nom de l'entrepôt</Label>
+                  <Input
+                    id="warehouseName"
+                    type="text"
+                    value={warehouseFormData.name}
+                    onChange={(e) => setWarehouseFormData({...warehouseFormData, name: e.target.value})}
+                    placeholder="Ex: Entrepôt D"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="warehouseCode">Code</Label>
+                  <Input
+                    id="warehouseCode"
+                    type="text"
+                    value={warehouseFormData.code}
+                    onChange={(e) => setWarehouseFormData({...warehouseFormData, code: e.target.value})}
+                    placeholder="Ex: ENT-D"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="capacity">Capacité (tonnes)</Label>
+                  <Input
+                    id="capacity"
+                    type="number"
+                    step="1"
+                    value={warehouseFormData.capacity}
+                    onChange={(e) => setWarehouseFormData({...warehouseFormData, capacity: e.target.value})}
+                    placeholder="Ex: 500"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="location">Localisation</Label>
+                  <Input
+                    id="location"
+                    type="text"
+                    value={warehouseFormData.location}
+                    onChange={(e) => setWarehouseFormData({...warehouseFormData, location: e.target.value})}
+                    placeholder="Ex: Zone Nord"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="warehouseNotes">Notes (optionnel)</Label>
+                  <Textarea
+                    id="warehouseNotes"
+                    value={warehouseFormData.notes}
+                    onChange={(e) => setWarehouseFormData({...warehouseFormData, notes: e.target.value})}
+                    placeholder="Informations complémentaires..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsWarehouseDialogOpen(false)} className="flex-1">
+                    Annuler
+                  </Button>
+                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">
+                    Créer l'entrepôt
                   </Button>
                 </div>
               </form>
@@ -390,10 +675,16 @@ const Stocks = () => {
           {/* Stocks par catégorie */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5 text-primary" />
-                Stocks par catégorie
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5 text-primary" />
+                  Stocks par catégorie
+                </CardTitle>
+                <Button onClick={handleNewStock} size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Nouveau stock
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -451,10 +742,16 @@ const Stocks = () => {
           {/* Entrepôts */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Warehouse className="h-5 w-5 text-primary" />
-                État des entrepôts
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Warehouse className="h-5 w-5 text-primary" />
+                  État des entrepôts
+                </CardTitle>
+                <Button onClick={handleNewWarehouse} size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Nouvel entrepôt
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
