@@ -176,24 +176,17 @@ const Parametres = () => {
         throw new Error('Le nom complet est obligatoire');
       }
       
-      console.log('Updating profile for user:', user.id);
-      console.log('Profile data:', { full_name: profileData.full_name, phone: profileData.phone });
-      
-      const { data: updatedProfile, error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          full_name: profileData.full_name.trim(),
-          phone: profileData.phone || null
-        })
-        .eq('id', user.id)
-        .select();
+      // Use the secure update function that prevents role escalation
+      const { error: profileError } = await supabase.rpc('update_own_profile', {
+        _full_name: profileData.full_name.trim(),
+        _phone: profileData.phone || null,
+        _avatar_url: null // Keep existing avatar
+      });
       
       if (profileError) {
         console.error('Profile update error:', profileError);
         throw new Error(profileError.message || 'Erreur lors de la mise à jour du profil');
       }
-
-      console.log('Profile updated successfully:', updatedProfile);
 
       // Mettre à jour le mot de passe si fourni
       if (profileData.password && profileData.password.length >= 6) {

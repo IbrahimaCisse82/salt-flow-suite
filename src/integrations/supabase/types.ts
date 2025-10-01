@@ -868,6 +868,42 @@ export type Database = {
           },
         ]
       }
+      security_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_value: Json | null
+          old_value: Json | null
+          target_user_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_value?: Json | null
+          old_value?: Json | null
+          target_user_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_value?: Json | null
+          old_value?: Json | null
+          target_user_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       stocks: {
         Row: {
           created_at: string | null
@@ -1168,12 +1204,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      safe_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          tenant_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          tenant_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      admin_update_user_role: {
+        Args: {
+          _new_role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       current_tenant_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      update_own_profile: {
+        Args: { _avatar_url?: string; _full_name?: string; _phone?: string }
+        Returns: undefined
       }
     }
     Enums: {
