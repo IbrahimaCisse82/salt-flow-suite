@@ -23,28 +23,28 @@ const Index = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-6 space-y-6 md:ml-64">
+        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
           {/* Hero Section */}
-          <div className="rounded-2xl bg-gradient-to-br from-primary via-primary to-accent p-8 text-primary-foreground shadow-elevated">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-3xl font-bold mb-2">Bienvenue sur G-Suite Sel</h2>
-                <p className="text-primary-foreground/90 mb-4">
+          <div className="rounded-2xl bg-gradient-to-br from-primary via-primary to-accent p-4 sm:p-8 text-primary-foreground shadow-elevated">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 break-words">Bienvenue sur G-Suite Sel</h2>
+                <p className="text-sm sm:text-base text-primary-foreground/90 mb-4 break-words">
                   Campagne de production 2025 - Saison sèche en cours
                 </p>
-                <div className="flex gap-3">
-                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
+                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm">
                     <Sun className="h-3 w-3 mr-1" />
                     Météo favorable
                   </Badge>
-                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm">
                     4 bassins actifs
                   </Badge>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-primary-foreground/80 mb-1">Température</p>
-                <p className="text-4xl font-bold">32°C</p>
+              <div className="text-left sm:text-right">
+                <p className="text-xs sm:text-sm text-primary-foreground/80 mb-1">Température</p>
+                <p className="text-3xl sm:text-4xl font-bold">32°C</p>
               </div>
             </div>
           </div>
@@ -81,16 +81,16 @@ const Index = () => {
 
           {/* Alerts */}
           <Card className="border-l-4 border-l-yellow-500">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-semibold text-sm mb-1">Alerte météorologique</p>
-                  <p className="text-sm text-muted-foreground">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-xs sm:text-sm mb-1 break-words">Alerte météorologique</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground break-words">
                     Risque de pluie prévu dans 3 jours. Planifier la récolte du Bassin Nord B avant mercredi.
                   </p>
                 </div>
-                <Badge variant="outline" className="text-yellow-700 border-yellow-600">
+                <Badge variant="outline" className="text-yellow-700 border-yellow-600 text-xs flex-shrink-0">
                   Moyenne
                 </Badge>
               </div>
@@ -106,13 +106,13 @@ const Index = () => {
           {/* Weather Forecast */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sun className="h-5 w-5 text-primary" />
-                Prévisions météorologiques - 7 prochains jours
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base break-words">
+                <Sun className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                <span>Prévisions météo - 7 jours</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-7 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-7 gap-2 sm:gap-3">
                 {[
                   { day: "Lun", temp: "32°", icon: Sun, rain: 0 },
                   { day: "Mar", temp: "34°", icon: Sun, rain: 0 },
@@ -124,15 +124,15 @@ const Index = () => {
                 ].map((day, i) => (
                   <div 
                     key={i}
-                    className="text-center p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                    className="text-center p-2 sm:p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                   >
-                    <p className="text-xs font-medium mb-2">{day.day}</p>
-                    <day.icon className={`h-6 w-6 mx-auto mb-2 ${
+                    <p className="text-[10px] sm:text-xs font-medium mb-1 sm:mb-2 truncate">{day.day}</p>
+                    <day.icon className={`h-4 w-4 sm:h-6 sm:w-6 mx-auto mb-1 sm:mb-2 ${
                       day.icon === Sun ? "text-yellow-500" : "text-blue-500"
                     }`} />
-                    <p className="text-sm font-bold mb-1">{day.temp}</p>
+                    <p className="text-xs sm:text-sm font-bold mb-0.5 sm:mb-1">{day.temp}</p>
                     {day.rain > 0 && (
-                      <p className="text-xs text-blue-600">{day.rain}%</p>
+                      <p className="text-[10px] sm:text-xs text-blue-600">{day.rain}%</p>
                     )}
                   </div>
                 ))}
