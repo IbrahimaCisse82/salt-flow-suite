@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
 import saltLogo from "@/assets/salt-logo.png";
+import saltMarshesBg from "@/assets/salt-marshes-bg.jpg";
 
 const emailSchema = z.string().email("Email invalide");
 const passwordSchema = z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères");
@@ -207,8 +208,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex flex-col items-center justify-center p-4 relative">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${saltMarshesBg})` }}>
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
+      <Card className="w-full max-w-md relative z-10">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center p-3">
@@ -342,7 +344,7 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
-      <footer className="absolute bottom-4 left-0 right-0 text-center">
+      <footer className="absolute bottom-4 left-0 right-0 text-center z-10">
         <p className="text-sm text-muted-foreground">
           © {new Date().getFullYear()} Grow Hub Sarl. Tous droits réservés.
         </p>
