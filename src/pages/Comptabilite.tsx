@@ -118,7 +118,7 @@ const Comptabilite = () => {
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
-  const [transactionType, setTransactionType] = useState<"depense" | "virement_interne" | "divers">("depense");
+  const [transactionType, setTransactionType] = useState<"achat" | "salaire" | "virement_interne" | "divers">("achat");
   const [paymentFormData, setPaymentFormData] = useState({
     accountId: "",
     paymentDate: "",
@@ -126,7 +126,7 @@ const Comptabilite = () => {
     canBeDelivered: false
   });
   
-  // État pour le formulaire de dépense
+  // État pour le formulaire d'achat (anciennement dépense)
   const [expenseFormData, setExpenseFormData] = useState({
     date: "",
     accountId: "",
@@ -137,6 +137,17 @@ const Comptabilite = () => {
     reference: "",
     notes: ""
   });
+
+  // État pour le formulaire de salaire
+  const [salaryFormData, setSalaryFormData] = useState({
+    date: "",
+    accountId: "",
+    employeeType: "" as "permanent" | "saisonnier" | "journalier" | "",
+    employeeId: "",
+    amount: "",
+    period: "",
+    notes: ""
+  });
   
   // État pour le formulaire de virement
   const [virementFormData, setVirementFormData] = useState({
@@ -145,6 +156,34 @@ const Comptabilite = () => {
     toAccountId: "",
     amount: "",
     notes: ""
+  });
+
+  // Récupérer les employés et journaliers
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('is_active', true)
+        .order('last_name');
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const { data: dailyWorkers = [] } = useQuery({
+    queryKey: ['daily-workers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('daily_workers')
+        .select('*')
+        .order('last_name');
+      
+      if (error) throw error;
+      return data || [];
+    }
   });
 
   // Récupérer les comptes depuis Supabase
@@ -424,7 +463,7 @@ const Comptabilite = () => {
     setShowAccountDialog(false);
   };
 
-  // Mutation pour créer une dépense avec écritures comptables
+  // Mutation pour créer un achat (anciennement dépense) avec écritures comptables
   const createExpenseMutation = useMutation({
     mutationFn: async (formData: typeof expenseFormData) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -441,7 +480,7 @@ const Comptabilite = () => {
       const amount = parseFloat(formData.amount);
       if (!amount || amount <= 0) throw new Error('Montant invalide');
 
-      // 1. Trouver le compte comptable correspondant à la dépense
+      // 1. Trouver le compte comptable correspondant à l'achat
       const expenseCategory = expenseCategories.find(c => c.type === formData.description);
       const accountNumberMatch = expenseCategory?.account.match(/(\d+)/);
       const chargeAccountNumber = accountNumberMatch ? accountNumberMatch[1] : null;
@@ -500,7 +539,7 @@ const Comptabilite = () => {
           account_id: chargeAccount.id,
           debit: amount,
           credit: 0,
-          description: `Dépense: ${formData.description}`
+          description: `Achat: ${formData.description}`
         },
         {
           tenant_id: profile.tenant_id,
@@ -524,8 +563,8 @@ const Comptabilite = () => {
       queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       toast({
-        title: "Dépense enregistrée",
-        description: "La dépense et ses écritures comptables ont été enregistrées",
+        title: "Achat enregistré",
+        description: "L'achat et ses écritures comptables ont été enregistrés",
       });
       setShowTransactionDialog(false);
       setExpenseFormData({
@@ -536,6 +575,135 @@ const Comptabilite = () => {
         description: "",
         amount: "",
         reference: "",
+        notes: ""
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation pour créer un paiement de salaire
+  const createSalaryMutation = useMutation({
+    mutationFn: async (formData: typeof salaryFormData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile) throw new Error('Profile not found');
+
+      const amount = parseFloat(formData.amount);
+      if (!amount || amount <= 0) throw new Error('Montant invalide');
+
+      // 1. Trouver le compte comptable de charge de personnel (661 - Salaires)
+      const { data: salaryAccount } = await supabase
+        .from('chart_of_accounts')
+        .select('id')
+        .eq('account_number', '661')
+        .maybeSingle();
+
+      if (!salaryAccount) throw new Error('Compte 661 (Salaires) introuvable dans le plan comptable');
+
+      // 2. Générer le numéro de document avec code journal SAL
+      const journalCode = 'SAL';
+      const dateFormatted = formData.date.replace(/-/g, '');
+      
+      const { data: existingTx } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('journal_code', journalCode)
+        .eq('date', formData.date);
+      
+      const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
+      const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
+
+      // 3. Récupérer le nom de l'employé/journalier
+      let employeeName = '';
+      if (formData.employeeType === 'journalier') {
+        const worker = dailyWorkers.find(w => w.id === formData.employeeId);
+        employeeName = worker ? `${worker.first_name} ${worker.last_name}` : 'Journalier';
+      } else {
+        const emp = employees.find(e => e.id === formData.employeeId);
+        employeeName = emp ? `${emp.first_name} ${emp.last_name}` : 'Employé';
+      }
+
+      const employeeTypeLabel = 
+        formData.employeeType === 'permanent' ? 'Permanent' :
+        formData.employeeType === 'saisonnier' ? 'Saisonnier' :
+        'Journalier';
+
+      // 4. Créer la transaction
+      const { data: transaction, error: txError } = await supabase
+        .from('transactions')
+        .insert({
+          tenant_id: profile.tenant_id,
+          account_id: formData.accountId,
+          transaction_type: 'depense',
+          journal_code: journalCode,
+          date: formData.date,
+          amount: amount,
+          description: `Salaire ${employeeTypeLabel} - ${employeeName}`,
+          reference: documentNumber,
+          notes: formData.notes || null
+        } as any)
+        .select()
+        .single();
+
+      if (txError) throw txError;
+
+      // 5. Créer les écritures comptables (double entrée)
+      const journalEntries = [
+        {
+          tenant_id: profile.tenant_id,
+          transaction_id: transaction.id,
+          account_id: salaryAccount.id,
+          debit: amount,
+          credit: 0,
+          description: `Salaire ${employeeTypeLabel} - ${employeeName} - ${formData.period}`
+        },
+        {
+          tenant_id: profile.tenant_id,
+          transaction_id: transaction.id,
+          account_id: formData.accountId,
+          debit: 0,
+          credit: amount,
+          description: `Paiement salaire - ${employeeName}`
+        }
+      ];
+
+      const { error: entriesError } = await supabase
+        .from('journal_entries')
+        .insert(journalEntries as any);
+
+      if (entriesError) throw entriesError;
+
+      return transaction;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      toast({
+        title: "Salaire enregistré",
+        description: "Le paiement de salaire et ses écritures comptables ont été enregistrés",
+      });
+      setShowTransactionDialog(false);
+      setSalaryFormData({
+        date: "",
+        accountId: "",
+        employeeType: "",
+        employeeId: "",
+        amount: "",
+        period: "",
         notes: ""
       });
     },
@@ -654,8 +822,10 @@ const Comptabilite = () => {
   });
 
   const handleAddTransaction = () => {
-    if (transactionType === "depense") {
+    if (transactionType === "achat") {
       createExpenseMutation.mutate(expenseFormData);
+    } else if (transactionType === "salaire") {
+      createSalaryMutation.mutate(salaryFormData);
     } else if (transactionType === "virement_interne") {
       createVirementMutation.mutate(virementFormData);
     }
@@ -793,28 +963,29 @@ const Comptabilite = () => {
           </Card>
 
           {/* Onglets principaux */}
-          <Tabs defaultValue="depenses" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="depenses">Dépenses</TabsTrigger>
+          <Tabs defaultValue="achats" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="achats">Achats</TabsTrigger>
+              <TabsTrigger value="salaires">Salaires</TabsTrigger>
               <TabsTrigger value="vente">Vente</TabsTrigger>
               <TabsTrigger value="virement">Virement interne</TabsTrigger>
               <TabsTrigger value="divers">Divers</TabsTrigger>
               <TabsTrigger value="plan-comptable">Plan comptable</TabsTrigger>
             </TabsList>
 
-            {/* Onglet Dépenses */}
-            <TabsContent value="depenses" className="space-y-4">
+            {/* Onglet Achats (anciennement Dépenses) */}
+            <TabsContent value="achats" className="space-y-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Dépenses</h2>
+                <h2 className="text-xl font-semibold">Achats</h2>
                 <Button 
                   className="gap-2 bg-gradient-to-r from-primary to-accent"
                   onClick={() => {
-                    setTransactionType("depense");
+                    setTransactionType("achat");
                     setShowTransactionDialog(true);
                   }}
                 >
                   <Plus className="h-4 w-4" />
-                  Nouvelle transaction
+                  Nouvel achat
                 </Button>
               </div>
 
@@ -824,7 +995,7 @@ const Comptabilite = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {recentTransactions.filter(t => t.type === "depense").map((transaction) => (
+                    {recentTransactions.filter(t => t.type === "depense" && !t.description.includes('Salaire')).map((transaction) => (
                       <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg border">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -848,6 +1019,61 @@ const Comptabilite = () => {
                         </p>
                       </div>
                     ))}
+                    {recentTransactions.filter(t => t.type === "depense" && !t.description.includes('Salaire')).length === 0 && (
+                      <p className="text-center text-muted-foreground py-4">
+                        Aucun achat enregistré
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Onglet Salaires */}
+            <TabsContent value="salaires" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Salaires</h2>
+                <Button 
+                  className="gap-2 bg-gradient-to-r from-primary to-accent"
+                  onClick={() => {
+                    setTransactionType("salaire");
+                    setShowTransactionDialog(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Nouveau paiement de salaire
+                </Button>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Paiements de salaires récents</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {recentTransactions.filter(t => t.type === "depense" && t.description.includes('Salaire')).map((transaction) => (
+                      <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg border">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <TrendingDown className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-semibold">{transaction.description}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {transaction.date} • {transaction.account}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-lg font-bold text-blue-600">
+                          -{transaction.amount.toLocaleString()} FCFA
+                        </p>
+                      </div>
+                    ))}
+                    {recentTransactions.filter(t => t.type === "depense" && t.description.includes('Salaire')).length === 0 && (
+                      <p className="text-center text-muted-foreground py-4">
+                        Aucun paiement de salaire enregistré
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1131,19 +1357,21 @@ const Comptabilite = () => {
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
-                  {transactionType === "depense" && "Enregistrer une dépense"}
+                  {transactionType === "achat" && "Enregistrer un achat"}
+                  {transactionType === "salaire" && "Enregistrer un paiement de salaire"}
                   {transactionType === "virement_interne" && "Enregistrer un virement interne"}
                   {transactionType === "divers" && "Enregistrer une écriture diverse"}
                 </DialogTitle>
                 <DialogDescription>
-                  {transactionType === "depense" && "Ajoutez une nouvelle dépense"}
+                  {transactionType === "achat" && "Ajoutez un nouvel achat"}
+                  {transactionType === "salaire" && "Enregistrer le paiement d'un salaire"}
                   {transactionType === "virement_interne" && "Transférer des fonds entre comptes"}
                   {transactionType === "divers" && "Enregistrer une régularisation comptable"}
                 </DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4">
-                {transactionType === "depense" && (
+                {transactionType === "achat" && (
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -1260,6 +1488,114 @@ const Comptabilite = () => {
                         placeholder="Notes supplémentaires..." 
                         value={expenseFormData.notes}
                         onChange={(e) => setExpenseFormData({...expenseFormData, notes: e.target.value})}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {transactionType === "salaire" && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="salaire-date">Date de paiement</Label>
+                        <Input 
+                          id="salaire-date" 
+                          type="date" 
+                          value={salaryFormData.date}
+                          onChange={(e) => setSalaryFormData({...salaryFormData, date: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="salaire-account">Compte de paiement</Label>
+                        <Select 
+                          value={salaryFormData.accountId}
+                          onValueChange={(value) => setSalaryFormData({...salaryFormData, accountId: value})}
+                        >
+                          <SelectTrigger id="salaire-account">
+                            <SelectValue placeholder="Sélectionnez un compte" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50">
+                            {accounts.map((account) => (
+                              <SelectItem key={account.id} value={account.id}>
+                                {account.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="salaire-type">Type d'employé</Label>
+                      <Select
+                        value={salaryFormData.employeeType}
+                        onValueChange={(value: any) => setSalaryFormData({...salaryFormData, employeeType: value, employeeId: ""})}
+                      >
+                        <SelectTrigger id="salaire-type">
+                          <SelectValue placeholder="Sélectionnez le type" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          <SelectItem value="permanent">Permanent</SelectItem>
+                          <SelectItem value="saisonnier">Saisonnier</SelectItem>
+                          <SelectItem value="journalier">Journalier</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {salaryFormData.employeeType && (
+                      <div className="space-y-2">
+                        <Label htmlFor="salaire-employee">
+                          {salaryFormData.employeeType === 'journalier' ? 'Journalier' : 'Employé'}
+                        </Label>
+                        <Select
+                          value={salaryFormData.employeeId}
+                          onValueChange={(value) => setSalaryFormData({...salaryFormData, employeeId: value})}
+                        >
+                          <SelectTrigger id="salaire-employee">
+                            <SelectValue placeholder="Sélectionnez la personne" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50">
+                            {salaryFormData.employeeType === 'journalier' 
+                              ? dailyWorkers.map((worker) => (
+                                  <SelectItem key={worker.id} value={worker.id}>
+                                    {worker.first_name} {worker.last_name}
+                                  </SelectItem>
+                                ))
+                              : employees.filter(e => e.employee_type === salaryFormData.employeeType).map((emp) => (
+                                  <SelectItem key={emp.id} value={emp.id}>
+                                    {emp.first_name} {emp.last_name} - {emp.position || 'N/A'}
+                                  </SelectItem>
+                                ))
+                            }
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="salaire-period">Période</Label>
+                      <Input 
+                        id="salaire-period" 
+                        type="text"
+                        placeholder="Ex: Janvier 2025 ou Semaine 1" 
+                        value={salaryFormData.period}
+                        onChange={(e) => setSalaryFormData({...salaryFormData, period: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="salaire-amount">Montant (FCFA)</Label>
+                      <Input 
+                        id="salaire-amount" 
+                        type="number" 
+                        placeholder="0" 
+                        value={salaryFormData.amount}
+                        onChange={(e) => setSalaryFormData({...salaryFormData, amount: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="salaire-notes">Notes (optionnel)</Label>
+                      <Textarea 
+                        id="salaire-notes" 
+                        placeholder="Notes supplémentaires..." 
+                        value={salaryFormData.notes}
+                        onChange={(e) => setSalaryFormData({...salaryFormData, notes: e.target.value})}
                       />
                     </div>
                   </>
