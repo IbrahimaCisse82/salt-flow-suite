@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -105,6 +107,7 @@ const teams = [
 
 const Equipes = () => {
   const { toast } = useToast();
+  const { isOpen } = useSidebar();
   const [isAddEmployeeDialogOpen, setIsAddEmployeeDialogOpen] = useState(false);
   const [isManageTeamDialogOpen, setIsManageTeamDialogOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
@@ -260,7 +263,10 @@ const Equipes = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
+        <main className={cn(
+          "flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
           {/* Dialog Ajouter employé */}
           <Dialog open={isAddEmployeeDialogOpen} onOpenChange={setIsAddEmployeeDialogOpen}>
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto max-w-[95vw]">

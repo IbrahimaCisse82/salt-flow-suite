@@ -2,6 +2,8 @@ import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -86,6 +88,7 @@ const generateDeliveryNumber = () => {
 const Commercial = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isOpen } = useSidebar();
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
@@ -448,7 +451,10 @@ const Commercial = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
+        <main className={cn(
+          "flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
           {/* Dialog Nouvelle commande */}
           <Dialog open={isNewOrderDialogOpen} onOpenChange={setIsNewOrderDialogOpen}>
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto max-w-[95vw]">

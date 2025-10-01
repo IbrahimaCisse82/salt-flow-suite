@@ -3,6 +3,8 @@ import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -114,6 +116,7 @@ const expenseCategories = [
 const Comptabilite = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isOpen } = useSidebar();
   const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -873,7 +876,10 @@ const Comptabilite = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64 overflow-x-hidden">
+        <main className={cn(
+          "flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 overflow-x-hidden transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Comptabilité</h1>

@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +36,7 @@ export default function ChartOfAccounts() {
     account_type: ""
   });
   const queryClient = useQueryClient();
+  const { isOpen } = useSidebar();
 
   const { data: accounts, isLoading } = useQuery({
     queryKey: ['admin-chart-of-accounts'],
@@ -128,7 +131,10 @@ export default function ChartOfAccounts() {
       <Header />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 p-6 overflow-auto md:ml-64">
+        <main className={cn(
+          "flex-1 p-6 overflow-auto transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">

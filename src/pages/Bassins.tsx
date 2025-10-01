@@ -3,6 +3,8 @@ import { Sidebar } from "@/components/Layout/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 import { 
   Droplets, 
   Plus, 
@@ -152,6 +154,7 @@ const statusConfig = {
 
 const Bassins = () => {
   const { toast } = useToast();
+  const { isOpen } = useSidebar();
   const [selectedBassin, setSelectedBassin] = useState(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -209,7 +212,10 @@ const Bassins = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6 md:ml-64">
+        <main className={cn(
+          "flex-1 p-4 md:p-6 space-y-4 md:space-y-6 transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Gestion des Bassins Salants</h1>

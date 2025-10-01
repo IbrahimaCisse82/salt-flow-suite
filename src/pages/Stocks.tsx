@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -144,6 +146,7 @@ const statusConfig = {
 
 const Stocks = () => {
   const { toast } = useToast();
+  const { isOpen } = useSidebar();
   const [isMovementDialogOpen, setIsMovementDialogOpen] = useState(false);
   const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
   const [isWarehouseDialogOpen, setIsWarehouseDialogOpen] = useState(false);
@@ -259,7 +262,10 @@ const Stocks = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
+        <main className={cn(
+          "flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
           {/* Dialog Mouvement de stock */}
           <Dialog open={isMovementDialogOpen} onOpenChange={setIsMovementDialogOpen}>
             <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">

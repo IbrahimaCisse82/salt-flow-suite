@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -62,6 +64,7 @@ const roleLabels: Record<string, { label: string; description: string; color: st
 const GestionUtilisateurs = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isOpen } = useSidebar();
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteFullName, setInviteFullName] = useState("");
@@ -210,7 +213,10 @@ const GestionUtilisateurs = () => {
         <Header />
         <div className="flex">
           <Sidebar />
-          <main className="flex-1 p-6 md:ml-64">
+          <main className={cn(
+            "flex-1 p-6 transition-all duration-300",
+            isOpen ? "md:ml-64" : "md:ml-16"
+          )}>
             <Card>
               <CardContent className="p-6">
                 <p className="text-center text-muted-foreground">
@@ -232,7 +238,10 @@ const GestionUtilisateurs = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
+        <main className={cn(
+          "flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Gestion des utilisateurs</h1>

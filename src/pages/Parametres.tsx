@@ -10,6 +10,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@/utils/permissions";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 import { 
   Settings,
   Bell,
@@ -24,6 +26,7 @@ import {
 const Parametres = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isOpen } = useSidebar();
   
   // États pour les formulaires
   const [tenantData, setTenantData] = useState({
@@ -425,7 +428,10 @@ const Parametres = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
+        <main className={cn(
+          "flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
           <div className="min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Paramètres</h1>
             <p className="text-sm sm:text-base text-muted-foreground break-words">

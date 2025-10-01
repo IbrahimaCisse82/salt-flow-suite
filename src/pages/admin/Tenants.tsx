@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -17,6 +19,7 @@ import { toast } from "sonner";
 
 export default function Tenants() {
   const queryClient = useQueryClient();
+  const { isOpen } = useSidebar();
 
   const { data: tenants, isLoading } = useQuery({
     queryKey: ['admin-tenants'],
@@ -55,7 +58,10 @@ export default function Tenants() {
       <Header />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 p-6 overflow-auto md:ml-64">
+        <main className={cn(
+          "flex-1 p-6 overflow-auto transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
