@@ -342,6 +342,16 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
+      <footer className="mt-8 text-center">
+        <p className="text-sm text-muted-foreground">
+          © {new Date().getFullYear()} Grow Hub Sarl. Tous droits réservés.
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          <a href="mailto:contact@growhubsenegal.com" className="hover:text-primary transition-colors">
+            contact@growhubsenegal.com
+          </a>
+        </p>
+      </footer>
     </div>
   );
 };
