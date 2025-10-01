@@ -121,19 +121,22 @@ const GestionUtilisateurs = () => {
         throw new Error('Le mot de passe doit contenir au moins 6 caractères');
       }
 
-      // Créer l'utilisateur
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: inviteEmail,
-        password: invitePassword,
-        email_confirm: true,
-        user_metadata: {
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Session non trouvée');
+
+      // Appeler la Edge Function pour créer l'utilisateur
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: {
+          email: inviteEmail,
+          password: invitePassword,
           full_name: inviteFullName.trim(),
-          tenant_id: currentUser.profile.tenant_id,
           role: inviteRole
         }
       });
 
       if (error) throw error;
+      if (data.error) throw new Error(data.error);
       return data;
     },
     onSuccess: () => {
@@ -160,8 +163,17 @@ const GestionUtilisateurs = () => {
   // Mutation pour supprimer un utilisateur
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Session non trouvée');
+
+      // Appeler la Edge Function pour supprimer l'utilisateur
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
+
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenant-users'] });
