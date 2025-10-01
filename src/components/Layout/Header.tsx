@@ -1,4 +1,4 @@
-import { Waves, Menu, Bell, User, LogOut, CheckCircle2, AlertCircle } from "lucide-react";
+import { Waves, Menu, Bell, User, LogOut, CheckCircle2, AlertCircle, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import saltLogo from "@/assets/salt-logo.png";
 
 const mockNotifications = [
@@ -46,6 +47,43 @@ export const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState(mockNotifications);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id || null);
+    });
+  }, []);
+
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, tenant_id')
+        .eq('id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+
+  const { data: tenant } = useQuery({
+    queryKey: ['tenant', userProfile?.tenant_id],
+    queryFn: async () => {
+      if (!userProfile?.tenant_id) return null;
+      const { data, error } = await supabase
+        .from('tenants')
+        .select('name')
+        .eq('id', userProfile.tenant_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userProfile?.tenant_id,
+  });
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -98,7 +136,21 @@ export const Header = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          {userProfile && (
+            <div className="hidden md:flex items-center gap-3 px-4 py-2 rounded-lg bg-muted/50">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <div className="flex flex-col">
+                {tenant?.name && (
+                  <span className="text-xs font-medium text-foreground">{tenant.name}</span>
+                )}
+                {userProfile.full_name && (
+                  <span className="text-xs text-muted-foreground">{userProfile.full_name}</span>
+                )}
+              </div>
+            </div>
+          )}
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
