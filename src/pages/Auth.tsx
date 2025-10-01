@@ -121,7 +121,36 @@ const Auth = () => {
       
       setLoading(true);
 
-      // Créer d'abord le tenant sans SELECT pour éviter les problèmes RLS sur RETURNING
+      // 1) Créer l'utilisateur d'abord pour obtenir une session (RLS)
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: signupEmail,
+        password: signupPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: signupFullName.trim(),
+            role: 'gerant'
+          }
+        }
+      });
+
+      if (signUpError) {
+        if (signUpError.message.includes("User already registered")) {
+          throw new Error("Cet email est déjà utilisé");
+        }
+        throw signUpError;
+      }
+
+      // Si la confirmation d'email est activée, pas de session -> ne pas créer de tenant maintenant
+      if (!signUpData.session) {
+        toast({
+          title: "Vérification requise",
+          description: "Veuillez vérifier votre email pour activer votre compte. Vous pourrez finaliser la création de l'entreprise après connexion.",
+        });
+        return;
+      }
+
+      // 2) Avec la session, créer le tenant (RLS: INSERT autorisé pour authenticated)
       const tenantId = crypto.randomUUID();
 
       const slugify = (str: string) =>
@@ -159,7 +188,6 @@ const Auth = () => {
           break;
         }
 
-        // If unique constraint on subdomain, retry once with random suffix
         if (
           attempt === 0 &&
           (error.code === '23505' || (error.message || '').includes('tenants_subdomain_key'))
@@ -175,39 +203,20 @@ const Auth = () => {
 
       if (tenantError) throw tenantError;
 
-      // Créer l'utilisateur avec les métadonnées (Gérant = propriétaire du compte)
-      const { data, error } = await supabase.auth.signUp({
-        email: signupEmail,
-        password: signupPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: signupFullName.trim(),
-            tenant_id: tenantId,
-            role: 'gerant'
-          }
-        }
+      // 3) Lier le profil utilisateur au tenant et s'assurer du rôle 'gerant'
+      const user = signUpData.session.user;
+      const { error: profileUpdateError } = await supabase
+        .from('profiles')
+        .update({ tenant_id: tenantId, role: 'gerant', full_name: signupFullName.trim(), email: signupEmail })
+        .eq('id', user.id);
+
+      if (profileUpdateError) throw profileUpdateError;
+
+      toast({
+        title: "Inscription réussie",
+        description: "Votre entreprise et votre compte ont été créés",
       });
-
-      if (error) {
-        if (error.message.includes("User already registered")) {
-          throw new Error("Cet email est déjà utilisé");
-        }
-        throw error;
-      }
-
-      if (data.session) {
-        toast({
-          title: "Inscription réussie",
-          description: "Votre compte a été créé avec succès",
-        });
-        navigate("/");
-      } else {
-        toast({
-          title: "Vérification requise",
-          description: "Veuillez vérifier votre email pour activer votre compte",
-        });
-      }
+      navigate("/");
     } catch (error: any) {
       console.error("Signup error:", error);
       toast({
