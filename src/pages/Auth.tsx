@@ -108,14 +108,55 @@ const Auth = () => {
 
       // Créer d'abord le tenant sans SELECT pour éviter les problèmes RLS sur RETURNING
       const tenantId = crypto.randomUUID();
-      const { error: tenantError } = await supabase
-        .from('tenants')
-        .insert({
-          id: tenantId,
-          name: signupTenantName.trim(),
-          subdomain: signupTenantName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-          contact_email: signupEmail
-        });
+
+      const slugify = (str: string) =>
+        str
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '')
+          .slice(0, 48);
+
+      const genSuffix = () => {
+        const bytes = new Uint8Array(3);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes)
+          .map((b) => (b % 36).toString(36))
+          .join('');
+      };
+
+      const baseSubdomain = slugify(signupTenantName.trim());
+      let subdomain = baseSubdomain || `tenant-${genSuffix()}`;
+
+      // Try inserting tenant, handle duplicate subdomain by retrying with a unique suffix
+      let tenantError: any | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const { error } = await supabase
+          .from('tenants')
+          .insert({
+            id: tenantId,
+            name: signupTenantName.trim(),
+            subdomain,
+            contact_email: signupEmail,
+          });
+
+        if (!error) {
+          tenantError = null;
+          break;
+        }
+
+        // If unique constraint on subdomain, retry once with random suffix
+        if (
+          attempt === 0 &&
+          (error.code === '23505' || (error.message || '').includes('tenants_subdomain_key'))
+        ) {
+          subdomain = `${baseSubdomain}-${genSuffix()}`;
+          tenantError = error;
+          continue;
+        }
+
+        tenantError = error;
+        break;
+      }
 
       if (tenantError) throw tenantError;
 
