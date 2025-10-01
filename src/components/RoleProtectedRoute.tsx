@@ -72,6 +72,14 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
     return <Navigate to="/auth" replace />;
   }
 
+  // Redirections automatiques selon le rôle
+  if (userRole === 'admin' && location.pathname === '/') {
+    return <Navigate to="/admin" replace />;
+  }
+  if (userRole !== 'admin' && location.pathname.startsWith('/admin')) {
+    return <Navigate to="/" replace />;
+  }
+
   // Vérifier si l'utilisateur a accès à cette page
   const hasAccess = hasAccessToPage(userRole, location.pathname);
 
