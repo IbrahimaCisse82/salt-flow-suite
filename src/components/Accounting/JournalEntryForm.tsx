@@ -154,10 +154,10 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
       // Compter les transactions du même type pour la même date
       const { data: existingTx } = await supabase
         .from('transactions')
-        .select('id')
+        .select('id', { count: 'exact', head: false })
         .eq('tenant_id', profile.tenant_id)
         .eq('journal_code', journalCode)
-        .eq('date', date);
+        .eq('transaction_date', date);
       
       const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
       const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;

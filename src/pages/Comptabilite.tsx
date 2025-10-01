@@ -258,18 +258,18 @@ const Comptabilite = () => {
           account:accounts(name),
           campagne:campagnes(name)
         `)
-        .order('date', { ascending: false })
+        .order('transaction_date', { ascending: false })
         .limit(10);
       
       if (error) throw error;
       
       return (data || []).map(t => ({
         id: t.id,
-        date: t.date,
+        date: t.transaction_date,
         type: t.transaction_type,
         description: t.description,
         amount: Number(t.amount),
-        account: t.account?.name || 'N/A',
+        account: 'N/A', // Will be handled separately
         campagne: t.campagne?.name || null,
         campagnePhase: t.campagne_phase || null
       }));
@@ -363,10 +363,10 @@ const Comptabilite = () => {
       // Compter les transactions du même type pour la même date
       const { data: existingTx } = await supabase
         .from('transactions')
-        .select('id')
+        .select('id', { count: 'exact', head: false })
         .eq('tenant_id', profile.tenant_id)
         .eq('journal_code', journalCode)
-        .eq('date', payment_date);
+        .eq('transaction_date', payment_date);
       
       const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
       const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
@@ -505,10 +505,10 @@ const Comptabilite = () => {
       // Compter les transactions du même type pour la même date
       const { data: existingTx } = await supabase
         .from('transactions')
-        .select('id')
+        .select('id', { count: 'exact', head: false })
         .eq('tenant_id', profile.tenant_id)
         .eq('journal_code', journalCode)
-        .eq('date', formData.date);
+        .eq('transaction_date', formData.date);
       
       const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
       const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
@@ -622,10 +622,10 @@ const Comptabilite = () => {
       
       const { data: existingTx } = await supabase
         .from('transactions')
-        .select('id')
+        .select('id', { count: 'exact', head: false })
         .eq('tenant_id', profile.tenant_id)
         .eq('journal_code', journalCode)
-        .eq('date', formData.date);
+        .eq('transaction_date', formData.date);
       
       const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
       const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
@@ -634,10 +634,10 @@ const Comptabilite = () => {
       let employeeName = '';
       if (formData.employeeType === 'journalier') {
         const worker = dailyWorkers.find(w => w.id === formData.employeeId);
-        employeeName = worker ? `${worker.first_name} ${worker.last_name}` : 'Journalier';
+        employeeName = worker ? worker.full_name : 'Journalier';
       } else {
         const emp = employees.find(e => e.id === formData.employeeId);
-        employeeName = emp ? `${emp.first_name} ${emp.last_name}` : 'Employé';
+        employeeName = emp ? emp.full_name : 'Employé';
       }
 
       const employeeTypeLabel = 
@@ -744,10 +744,10 @@ const Comptabilite = () => {
       // Compter les transactions du même type pour la même date
       const { data: existingTx } = await supabase
         .from('transactions')
-        .select('id')
+        .select('id', { count: 'exact', head: false })
         .eq('tenant_id', profile.tenant_id)
         .eq('journal_code', journalCode)
-        .eq('date', formData.date);
+        .eq('transaction_date', formData.date);
       
       const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
       const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
@@ -956,10 +956,10 @@ const Comptabilite = () => {
                             <Wallet className="h-5 w-5 text-primary" />
                           )}
                         </div>
-                        <div>
-                          <p className="font-semibold">{account.name}</p>
-                          <p className="text-sm text-muted-foreground capitalize">{account.account_type}</p>
-                        </div>
+                          <div>
+                            <p className="font-semibold">{account.account_name}</p>
+                            <p className="text-sm text-muted-foreground capitalize">{account.account_type}</p>
+                          </div>
                       </div>
                     <p className="text-lg font-bold">{account.balance.toLocaleString()} FCFA</p>
                   </div>
@@ -1244,7 +1244,7 @@ const Comptabilite = () => {
                             <div>
                               <p className="font-semibold">{entry.description}</p>
                               <p className="text-sm text-muted-foreground">
-                                {entry.date} {entry.reference && `• Réf: ${entry.reference}`}
+                                {entry.transaction_date} {entry.reference && `• Réf: ${entry.reference}`}
                               </p>
                             </div>
                             <div className="text-right">
@@ -1401,7 +1401,7 @@ const Comptabilite = () => {
                           <SelectContent className="bg-background z-50">
                             {accounts.map((account) => (
                               <SelectItem key={account.id} value={account.id}>
-                                {account.name}
+                                {account.account_name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1523,7 +1523,7 @@ const Comptabilite = () => {
                           <SelectContent className="bg-background z-50">
                             {accounts.map((account) => (
                               <SelectItem key={account.id} value={account.id}>
-                                {account.name}
+                                {account.account_name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1562,12 +1562,12 @@ const Comptabilite = () => {
                             {salaryFormData.employeeType === 'journalier' 
                               ? dailyWorkers.map((worker) => (
                                   <SelectItem key={worker.id} value={worker.id}>
-                                    {worker.first_name} {worker.last_name}
+                                    {worker.full_name}
                                   </SelectItem>
                                 ))
                               : employees.filter(e => e.employee_type === salaryFormData.employeeType).map((emp) => (
                                   <SelectItem key={emp.id} value={emp.id}>
-                                    {emp.first_name} {emp.last_name} - {emp.position || 'N/A'}
+                                    {emp.full_name} - {emp.position || 'N/A'}
                                   </SelectItem>
                                 ))
                             }
@@ -1630,7 +1630,7 @@ const Comptabilite = () => {
                         <SelectContent className="bg-background z-50">
                           {accounts.map((account) => (
                             <SelectItem key={account.id} value={account.id}>
-                              {account.name} ({account.balance.toLocaleString()} FCFA)
+                              {account.account_name} ({account.balance.toLocaleString()} FCFA)
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -1648,7 +1648,7 @@ const Comptabilite = () => {
                         <SelectContent className="bg-background z-50">
                           {accounts.map((account) => (
                             <SelectItem key={account.id} value={account.id}>
-                              {account.name}
+                              {account.account_name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -1748,7 +1748,7 @@ const Comptabilite = () => {
                       <SelectContent className="bg-background z-50">
                         {accounts.map((account) => (
                           <SelectItem key={account.id} value={account.id}>
-                            {account.name} ({account.account_type})
+                            {account.account_name} ({account.account_type})
                           </SelectItem>
                         ))}
                       </SelectContent>

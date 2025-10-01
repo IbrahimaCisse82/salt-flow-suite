@@ -318,7 +318,7 @@ const Rapports = () => {
           startY: yPos,
           head: [['Date', 'Type', 'Description', 'Montant (FCFA)']],
           body: transactions.slice(0, 20).map(t => [
-            t.date || 'N/A',
+            t.transaction_date || 'N/A',
             t.transaction_type || 'N/A',
             t.description || 'N/A',
             Number(t.amount || 0).toLocaleString()
@@ -383,7 +383,7 @@ const Rapports = () => {
           startY: yPos,
           head: [['Date', 'Bassin', 'Type', 'Quantité (t)', 'Qualité']],
           body: productionRecords.slice(0, 25).map(p => [
-            p.date || 'N/A',
+            p.production_date || 'N/A',
             p.bassin?.name || 'N/A',
             p.salt_type || 'N/A',
             Number(p.quantity || 0).toFixed(2),
@@ -444,10 +444,9 @@ const Rapports = () => {
         
         autoTable(doc, {
           startY: yPos,
-          head: [['Nom', 'Prénom', 'Poste', 'Type', 'Salaire']],
+          head: [['Nom', 'Poste', 'Type', 'Salaire']],
           body: employees.map(e => [
-            e.last_name || 'N/A',
-            e.first_name || 'N/A',
+            e.full_name || 'N/A',
             e.position || 'N/A',
             e.employee_type || 'N/A',
             `${Number(e.salary || 0).toLocaleString()} FCFA`
@@ -871,7 +870,7 @@ const Rapports = () => {
                   {(() => {
                     // Calculer les flux de trésorerie par mois
                     const cashFlowByMonth = transactions.reduce((acc: any, transaction) => {
-                      const date = new Date(transaction.date);
+                      const date = new Date(transaction.transaction_date);
                       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                       
                       if (!acc[monthKey]) {
