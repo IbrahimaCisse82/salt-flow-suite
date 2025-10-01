@@ -25,8 +25,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { BudgetTrackingTab } from "@/components/Campaign/BudgetTrackingTab";
-import { 
+import {
   Wallet,
   Plus,
   TrendingUp,
@@ -449,12 +448,11 @@ const Comptabilite = () => {
 
           {/* Onglets principaux */}
           <Tabs defaultValue="depenses" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="depenses">Dépenses</TabsTrigger>
               <TabsTrigger value="vente">Vente</TabsTrigger>
               <TabsTrigger value="virement">Virement interne</TabsTrigger>
               <TabsTrigger value="divers">Divers</TabsTrigger>
-              <TabsTrigger value="suivi-budget">Suivi budgétaire</TabsTrigger>
             </TabsList>
 
             {/* Onglet Dépenses */}
@@ -662,11 +660,6 @@ const Comptabilite = () => {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            {/* Onglet Suivi budgétaire */}
-            <TabsContent value="suivi-budget" className="space-y-4">
-              <BudgetTrackingTab />
             </TabsContent>
           </Tabs>
 
