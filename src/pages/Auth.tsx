@@ -215,7 +215,7 @@ const Auth = () => {
               <img src={saltLogo} alt="G-Suite Sel Logo" className="h-full w-full object-contain" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Gestion Salines</CardTitle>
+          <CardTitle className="text-2xl">G-Suite Sel</CardTitle>
           <CardDescription>
             Système de gestion intégré pour l'exploitation saline
           </CardDescription>
