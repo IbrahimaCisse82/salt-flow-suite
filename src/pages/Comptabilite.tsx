@@ -25,6 +25,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { BudgetTrackingTab } from "@/components/Campaign/BudgetTrackingTab";
 import { 
   Wallet,
   Plus,
@@ -168,6 +169,20 @@ const Comptabilite = () => {
     }
   });
 
+  // Récupérer les campagnes actives
+  const { data: campagnes = [] } = useQuery({
+    queryKey: ['campagnes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('campagnes')
+        .select('*')
+        .order('year', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
   // Récupérer les transactions récentes
   const { data: recentTransactions = [] } = useQuery({
     queryKey: ['recent-transactions'],
@@ -176,7 +191,8 @@ const Comptabilite = () => {
         .from('transactions')
         .select(`
           *,
-          account:accounts(name)
+          account:accounts(name),
+          campagne:campagnes(name)
         `)
         .order('date', { ascending: false })
         .limit(10);
@@ -189,7 +205,9 @@ const Comptabilite = () => {
         type: t.transaction_type,
         description: t.description,
         amount: Number(t.amount),
-        account: t.account?.name || 'N/A'
+        account: t.account?.name || 'N/A',
+        campagne: t.campagne?.name || null,
+        campagnePhase: t.campagne_phase || null
       }));
     }
   });
@@ -431,11 +449,12 @@ const Comptabilite = () => {
 
           {/* Onglets principaux */}
           <Tabs defaultValue="depenses" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="depenses">Dépenses</TabsTrigger>
               <TabsTrigger value="vente">Vente</TabsTrigger>
               <TabsTrigger value="virement">Virement interne</TabsTrigger>
               <TabsTrigger value="divers">Divers</TabsTrigger>
+              <TabsTrigger value="suivi-budget">Suivi budgétaire</TabsTrigger>
             </TabsList>
 
             {/* Onglet Dépenses */}
@@ -470,6 +489,12 @@ const Comptabilite = () => {
                             <p className="font-semibold">{transaction.description}</p>
                             <p className="text-sm text-muted-foreground">
                               {transaction.date} • {transaction.account}
+                              {transaction.campagne && (
+                                <>
+                                  {' '}• {transaction.campagne}
+                                  {transaction.campagnePhase && ` (${transaction.campagnePhase})`}
+                                </>
+                              )}
                             </p>
                           </div>
                         </div>
@@ -638,6 +663,11 @@ const Comptabilite = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Onglet Suivi budgétaire */}
+            <TabsContent value="suivi-budget" className="space-y-4">
+              <BudgetTrackingTab />
+            </TabsContent>
           </Tabs>
 
           {/* Dialog Nouveau Compte */}
@@ -729,6 +759,39 @@ const Comptabilite = () => {
                                 {account.name}
                               </SelectItem>
                             ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="depense-campagne">Campagne (optionnel)</Label>
+                        <Select>
+                          <SelectTrigger id="depense-campagne">
+                            <SelectValue placeholder="Sélectionnez une campagne" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50">
+                            <SelectItem value="none">Aucune campagne</SelectItem>
+                            {campagnes.map((campagne) => (
+                              <SelectItem key={campagne.id} value={campagne.id}>
+                                {campagne.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="depense-phase">Phase (optionnel)</Label>
+                        <Select>
+                          <SelectTrigger id="depense-phase">
+                            <SelectValue placeholder="Sélectionnez une phase" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50">
+                            <SelectItem value="preparation-bassins">Préparation des bassins</SelectItem>
+                            <SelectItem value="mise-en-eau">Mise en eau</SelectItem>
+                            <SelectItem value="evaporation">Évaporation</SelectItem>
+                            <SelectItem value="recolte-principale">Récolte principale</SelectItem>
+                            <SelectItem value="traitement-stockage">Traitement et stockage</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

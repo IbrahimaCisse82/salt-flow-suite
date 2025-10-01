@@ -118,6 +118,47 @@ export type Database = {
           },
         ]
       }
+      campagne_phase_budgets: {
+        Row: {
+          budgeted_amount: number
+          campagne_id: string
+          created_at: string
+          expense_type: string
+          id: string
+          phase: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          budgeted_amount?: number
+          campagne_id: string
+          created_at?: string
+          expense_type: string
+          id?: string
+          phase: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          budgeted_amount?: number
+          campagne_id?: string
+          created_at?: string
+          expense_type?: string
+          id?: string
+          phase?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campagne_phase_budgets_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campagnes: {
         Row: {
           actual_production: number | null
@@ -832,6 +873,8 @@ export type Database = {
         Row: {
           account_id: string
           amount: number
+          campagne_id: string | null
+          campagne_phase: string | null
           created_at: string
           date: string
           description: string
@@ -845,6 +888,8 @@ export type Database = {
         Insert: {
           account_id: string
           amount: number
+          campagne_id?: string | null
+          campagne_phase?: string | null
           created_at?: string
           date: string
           description: string
@@ -858,6 +903,8 @@ export type Database = {
         Update: {
           account_id?: string
           amount?: number
+          campagne_id?: string | null
+          campagne_phase?: string | null
           created_at?: string
           date?: string
           description?: string
@@ -874,6 +921,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
             referencedColumns: ["id"]
           },
         ]

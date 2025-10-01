@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { BudgetPhaseTab, BudgetExpense } from "@/components/Campaign/BudgetPhaseTab";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,9 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { BudgetPhaseTab, BudgetExpense } from "@/components/Campaign/BudgetPhaseTab";
-import { 
+import {
   Calendar, 
   Target,
   TrendingUp,
@@ -87,12 +88,79 @@ const Campagne = () => {
     }, 0);
   };
 
-  const handleSaveBudget = () => {
-    toast({
-      title: "Budget enregistré",
-      description: `Le budget prévisionnel de ${calculateTotalBudget().toLocaleString()} FCFA a été enregistré avec succès`,
-    });
-    setShowBudgetDialog(false);
+  const handleSaveBudget = async () => {
+    try {
+      // Get tenant_id from profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile) throw new Error('Profile not found');
+
+      // Créer d'abord une campagne fictive (pour l'exemple)
+      // Dans une vraie application, vous devriez créer la campagne avec les données du formulaire
+      const { data: campagne, error: campagneError } = await supabase
+        .from('campagnes')
+        .insert({
+          tenant_id: profile.tenant_id,
+          name: 'Campagne 2025',
+          year: 2025,
+          start_date: '2025-01-01',
+          end_date: '2025-11-30',
+          status: 'planification',
+          budget_total: calculateTotalBudget()
+        })
+        .select()
+        .single();
+
+      if (campagneError) throw campagneError;
+
+      // Sauvegarder tous les budgets par phase
+      const budgetEntries = Object.entries(phaseExpenses).flatMap(([phase, expenses]) =>
+        expenses.map(expense => ({
+          tenant_id: profile.tenant_id,
+          campagne_id: campagne.id,
+          phase,
+          expense_type: expense.description,
+          budgeted_amount: expense.amount
+        }))
+      );
+
+      if (budgetEntries.length > 0) {
+        const { error: budgetError } = await supabase
+          .from('campagne_phase_budgets')
+          .insert(budgetEntries);
+
+        if (budgetError) throw budgetError;
+      }
+
+      toast({
+        title: "Budget enregistré",
+        description: `Le budget prévisionnel de ${calculateTotalBudget().toLocaleString()} FCFA a été enregistré avec succès`,
+      });
+      
+      setShowBudgetDialog(false);
+      // Réinitialiser les dépenses
+      setPhaseExpenses({
+        'preparation-bassins': [],
+        'mise-en-eau': [],
+        'evaporation': [],
+        'recolte-principale': [],
+        'traitement-stockage': []
+      });
+    } catch (error) {
+      console.error('Error saving budget:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'enregistrer le budget",
+        variant: "destructive"
+      });
+    }
   };
 
   const getPhaseStatus = (index: number) => {
