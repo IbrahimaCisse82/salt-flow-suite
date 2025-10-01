@@ -802,8 +802,12 @@ const Commercial = () => {
             </Button>
           </div>
 
-          <Tabs defaultValue="commandes" className="space-y-6">
+          <Tabs defaultValue="clients" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="clients" className="gap-2">
+                <Users className="h-4 w-4" />
+                Clients
+              </TabsTrigger>
               <TabsTrigger value="commandes" className="gap-2">
                 <ShoppingCart className="h-4 w-4" />
                 Commandes
@@ -816,11 +820,70 @@ const Commercial = () => {
                 <Truck className="h-4 w-4" />
                 Livraison
               </TabsTrigger>
-              <TabsTrigger value="clients" className="gap-2">
-                <Users className="h-4 w-4" />
-                Clients
-              </TabsTrigger>
             </TabsList>
+
+            {/* Onglet Clients */}
+            <TabsContent value="clients" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Liste des clients</CardTitle>
+                    <Button onClick={() => setIsNewClientDialogOpen(true)} size="sm" className="gap-2 bg-gradient-to-r from-primary to-accent">
+                      <Plus className="h-4 w-4" />
+                      Nouveau client
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {clients.map((client) => (
+                      <div key={client.id} className="p-4 border rounded-lg space-y-3 hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-lg">{client.name}</p>
+                            <p className="text-sm text-muted-foreground">{client.email}</p>
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <Badge variant="outline">
+                              {client.type === "local" ? "Local" : "Export"}
+                            </Badge>
+                            <Badge variant={client.status === "actif" ? "default" : "outline"}>
+                              {client.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Téléphone</p>
+                            <p className="font-medium">{client.phone}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Commandes</p>
+                            <p className="font-medium">{client.totalOrders}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">CA Total</p>
+                            <p className="font-medium text-primary">{client.totalRevenue.toLocaleString()} FCFA</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Paiement</p>
+                            <p className="font-medium">{client.paymentTerms}</p>
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => handleViewClientDetails(client)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                        >
+                          Voir détails
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             {/* Onglet Commandes */}
             <TabsContent value="commandes" className="space-y-4">
@@ -999,69 +1062,6 @@ const Commercial = () => {
                         Aucune commande prête à être livrée
                       </p>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Onglet Clients */}
-            <TabsContent value="clients" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Liste des clients</CardTitle>
-                    <Button onClick={() => setIsNewClientDialogOpen(true)} size="sm" className="gap-2 bg-gradient-to-r from-primary to-accent">
-                      <Plus className="h-4 w-4" />
-                      Nouveau client
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {clients.map((client) => (
-                      <div key={client.id} className="p-4 border rounded-lg space-y-3 hover:bg-muted/30 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-lg">{client.name}</p>
-                            <p className="text-sm text-muted-foreground">{client.email}</p>
-                          </div>
-                          <div className="flex gap-2 items-center">
-                            <Badge variant="outline">
-                              {client.type === "local" ? "Local" : "Export"}
-                            </Badge>
-                            <Badge variant={client.status === "actif" ? "default" : "outline"}>
-                              {client.status}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">Téléphone</p>
-                            <p className="font-medium">{client.phone}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Commandes</p>
-                            <p className="font-medium">{client.totalOrders}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">CA Total</p>
-                            <p className="font-medium text-primary">{client.totalRevenue.toLocaleString()} FCFA</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Paiement</p>
-                            <p className="font-medium">{client.paymentTerms}</p>
-                          </div>
-                        </div>
-                        <Button 
-                          onClick={() => handleViewClientDetails(client)}
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                        >
-                          Voir détails
-                        </Button>
-                      </div>
-                    ))}
                   </div>
                 </CardContent>
               </Card>
