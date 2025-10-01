@@ -38,6 +38,9 @@ import {
 
 type Order = {
   id: string;
+  orderNumber: string;
+  invoiceNumber: string;
+  deliveryNumber: string;
   client: string;
   clientType: string;
   saltType: string;
@@ -57,6 +60,27 @@ type Order = {
   delivered: boolean;
 };
 
+// Fonctions de génération de numéros
+const generateClientNumber = (existingClients: any[]) => {
+  const count = existingClients.length + 1;
+  return `CLI-${count.toString().padStart(4, '0')}`;
+};
+
+const generateOrderNumber = (existingOrders: Order[]) => {
+  const count = existingOrders.length + 1;
+  return `CMD-${count.toString().padStart(4, '0')}`;
+};
+
+const generateInvoiceNumber = () => {
+  const timestamp = Date.now().toString().slice(-6);
+  return `FAC-${timestamp}`;
+};
+
+const generateDeliveryNumber = () => {
+  const timestamp = Date.now().toString().slice(-6);
+  return `LIV-${timestamp}`;
+};
+
 const Commercial = () => {
   const { toast } = useToast();
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
@@ -69,6 +93,7 @@ const Commercial = () => {
   const [clients, setClients] = useState([
     {
       id: "1",
+      clientNumber: "CLI-0001",
       name: "Grossiste Dakar",
       type: "local",
       email: "contact@grossistedakar.sn",
@@ -81,6 +106,7 @@ const Commercial = () => {
     },
     {
       id: "2",
+      clientNumber: "CLI-0002",
       name: "Export Maroc",
       type: "export",
       email: "export@marocsel.ma",
@@ -93,6 +119,7 @@ const Commercial = () => {
     },
     {
       id: "3",
+      clientNumber: "CLI-0003",
       name: "Industrie Chimique SN",
       type: "local",
       email: "achats@chimiesn.com",
@@ -119,6 +146,9 @@ const Commercial = () => {
   const [orders, setOrders] = useState<Order[]>([
     {
       id: "1",
+      orderNumber: "CMD-0001",
+      invoiceNumber: "",
+      deliveryNumber: "",
       client: "Grossiste Dakar",
       clientType: "local",
       saltType: "Sel gros",
@@ -172,8 +202,13 @@ const Commercial = () => {
     e.preventDefault();
     const totalAmount = (parseFloat(orderFormData.quantity) * parseFloat(orderFormData.unitPrice)) - (parseFloat(orderFormData.discount) || 0);
     
+    const orderNumber = generateOrderNumber(orders);
+    
     const newOrder: Order = {
       id: Date.now().toString(),
+      orderNumber: orderNumber,
+      invoiceNumber: "",
+      deliveryNumber: "",
       client: orderFormData.clientName,
       clientType: orderFormData.clientType,
       saltType: orderFormData.saltType,
@@ -196,7 +231,7 @@ const Commercial = () => {
     setOrders([...orders, newOrder]);
     toast({
       title: "Commande créée",
-      description: `Commande pour ${orderFormData.clientName} d'un montant de ${totalAmount.toLocaleString()} FCFA`,
+      description: `Commande ${orderNumber} pour ${orderFormData.clientName} d'un montant de ${totalAmount.toLocaleString()} FCFA`,
     });
     setIsNewOrderDialogOpen(false);
     setOrderFormData({
@@ -239,12 +274,14 @@ const Commercial = () => {
   const handleInvoiceSubmit = () => {
     if (!selectedOrder) return;
     
+    const invoiceNumber = generateInvoiceNumber();
+    
     setOrders(orders.map(order => 
-      order.id === selectedOrder.id ? { ...order, invoiced: true } : order
+      order.id === selectedOrder.id ? { ...order, invoiced: true, invoiceNumber: invoiceNumber } : order
     ));
     toast({
       title: "Facture créée",
-      description: "La facture a été générée avec succès",
+      description: `Facture ${invoiceNumber} générée avec succès`,
     });
     setIsInvoiceDialogOpen(false);
     setSelectedOrder(null);
@@ -271,20 +308,26 @@ const Commercial = () => {
       return;
     }
 
+    const deliveryNumber = generateDeliveryNumber();
+
     setOrders(orders.map(o => 
-      o.id === orderId ? { ...o, delivered: true } : o
+      o.id === orderId ? { ...o, delivered: true, deliveryNumber: deliveryNumber } : o
     ));
     
     toast({
       title: "Livraison effectuée",
-      description: "Le stock a été automatiquement décrémenté",
+      description: `Livraison ${deliveryNumber} - Le stock a été automatiquement décrémenté`,
     });
   };
 
   const handleClientSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const clientNumber = generateClientNumber(clients);
+    
     const newClient = {
       id: Date.now().toString(),
+      clientNumber: clientNumber,
       name: clientFormData.name,
       type: clientFormData.type,
       email: clientFormData.email,
@@ -299,7 +342,7 @@ const Commercial = () => {
     setClients([...clients, newClient]);
     toast({
       title: "Client créé",
-      description: `${clientFormData.name} a été ajouté avec succès`,
+      description: `${clientFormData.name} (${clientNumber}) a été ajouté avec succès`,
     });
     setIsNewClientDialogOpen(false);
     setClientFormData({
@@ -669,7 +712,8 @@ const Commercial = () => {
                   <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
                     <div>
                       <p className="font-semibold text-lg">{selectedClient.name}</p>
-                      <Badge variant="outline" className="mt-1">
+                      <p className="text-sm text-muted-foreground mb-1">Client {selectedClient.clientNumber}</p>
+                      <Badge variant="outline">
                         {selectedClient.type === "local" ? "Local" : "Export"}
                       </Badge>
                     </div>
@@ -773,7 +817,7 @@ const Commercial = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-semibold text-lg">{client.name}</p>
-                            <p className="text-sm text-muted-foreground">{client.email}</p>
+                            <p className="text-sm text-muted-foreground">{client.clientNumber} - {client.email}</p>
                           </div>
                           <div className="flex gap-2 items-center">
                             <Badge variant="outline">
@@ -836,7 +880,9 @@ const Commercial = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-semibold text-lg">{order.client}</p>
-                            <p className="text-sm text-muted-foreground">{order.date}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {order.invoiceNumber ? `Facture ${order.invoiceNumber}` : `Commande ${order.orderNumber}`} - {order.date}
+                            </p>
                           </div>
                           <Badge variant={order.validated ? "default" : "outline"}>
                             {order.validated ? "Validée" : "En attente"}
@@ -883,10 +929,10 @@ const Commercial = () => {
                     {orders.filter(o => o.validated).map((order) => (
                       <div key={order.id} className="p-4 border rounded-lg space-y-3">
                         <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-lg">{order.client}</p>
-                            <p className="text-sm text-muted-foreground">{order.date}</p>
-                          </div>
+                      <div>
+                        <p className="font-semibold text-lg">{order.client}</p>
+                        <p className="text-sm text-muted-foreground">Commande {order.orderNumber} - {order.date}</p>
+                      </div>
                           <div className="flex gap-2">
                             {order.invoiced && (
                               <Badge variant={order.invoiceValidated ? "default" : "outline"}>
@@ -964,7 +1010,9 @@ const Commercial = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-semibold text-lg">{order.client}</p>
-                            <p className="text-sm text-muted-foreground">Livraison prévue: {order.deliveryDate}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {order.deliveryNumber ? `Livraison ${order.deliveryNumber}` : `Commande ${order.orderNumber}`} - Prévue: {order.deliveryDate}
+                            </p>
                           </div>
                           <Badge variant={order.delivered ? "default" : "outline"}>
                             {order.delivered ? "Livrée" : "À livrer"}
