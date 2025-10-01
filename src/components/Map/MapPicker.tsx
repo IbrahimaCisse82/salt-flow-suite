@@ -19,7 +19,7 @@ const MapPicker: React.FC<MapPickerProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
+  const [mapboxToken] = useState<string>('pk.eyJ1IjoiaWJyYWhpbWFjaXNzZTgyIiwiYSI6ImNtY3ptMng5ZTBydmwyaXNhenBkMnhmaGIifQ.FKspbOsYB0bacbstqVUyMA');
   const [coordinates, setCoordinates] = useState({ lat: initialLat, lng: initialLng });
 
   useEffect(() => {
@@ -66,40 +66,6 @@ const MapPicker: React.FC<MapPickerProps> = ({
       map.current?.remove();
     };
   }, [mapboxToken, initialLat, initialLng, onLocationChange]);
-
-  if (!mapboxToken) {
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg border">
-          <MapPin className="h-5 w-5 text-primary" />
-          <div className="flex-1">
-            <p className="text-sm font-medium">Token Mapbox requis</p>
-            <p className="text-xs text-muted-foreground">
-              Obtenez votre token sur{' '}
-              <a 
-                href="https://mapbox.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                mapbox.com
-              </a>
-            </p>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="mapbox-token">Token Mapbox Public</Label>
-          <Input
-            id="mapbox-token"
-            type="text"
-            placeholder="pk.eyJ1..."
-            value={mapboxToken}
-            onChange={(e) => setMapboxToken(e.target.value)}
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-3">
