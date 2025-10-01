@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import MapPicker from "@/components/Map/MapPicker";
 import { 
   Package,
   Plus,
@@ -172,6 +173,8 @@ const Stocks = () => {
     code: "",
     capacity: "",
     location: "",
+    latitude: 14.7167,
+    longitude: -17.4677,
     notes: ""
   });
 
@@ -235,7 +238,7 @@ const Stocks = () => {
     console.log("New warehouse submitted:", warehouseFormData);
     toast({
       title: "Entrepôt créé",
-      description: `L'entrepôt ${warehouseFormData.name} a été créé avec succès`,
+      description: `L'entrepôt ${warehouseFormData.name} a été créé avec succès à la position (${warehouseFormData.latitude.toFixed(6)}, ${warehouseFormData.longitude.toFixed(6)})`,
     });
     setIsWarehouseDialogOpen(false);
     setWarehouseFormData({
@@ -243,6 +246,8 @@ const Stocks = () => {
       code: "",
       capacity: "",
       location: "",
+      latitude: 14.7167,
+      longitude: -17.4677,
       notes: ""
     });
   };
@@ -515,11 +520,11 @@ const Stocks = () => {
 
           {/* Dialog Nouvel Entrepôt */}
           <Dialog open={isWarehouseDialogOpen} onOpenChange={setIsWarehouseDialogOpen}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Créer un entrepôt</DialogTitle>
                 <DialogDescription>
-                  Ajouter un nouveau lieu de stockage
+                  Ajouter un nouveau lieu de stockage avec sa localisation
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleWarehouseSubmit} className="space-y-4">
@@ -568,6 +573,21 @@ const Stocks = () => {
                     value={warehouseFormData.location}
                     onChange={(e) => setWarehouseFormData({...warehouseFormData, location: e.target.value})}
                     placeholder="Ex: Zone Nord"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Position GPS</Label>
+                  <MapPicker
+                    initialLat={warehouseFormData.latitude}
+                    initialLng={warehouseFormData.longitude}
+                    onLocationChange={(lat, lng) => {
+                      setWarehouseFormData({
+                        ...warehouseFormData,
+                        latitude: lat,
+                        longitude: lng
+                      });
+                    }}
                   />
                 </div>
 

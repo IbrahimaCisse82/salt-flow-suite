@@ -157,6 +157,7 @@ const Bassins = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showManageDialog, setShowManageDialog] = useState(false);
   const [newBassinLocation, setNewBassinLocation] = useState({ lat: 14.7167, lng: -17.4677 });
+  const [manageBassinLocation, setManageBassinLocation] = useState({ lat: 14.7167, lng: -17.4677 });
 
   const handleViewDetails = (bassin) => {
     setSelectedBassin(bassin);
@@ -165,13 +166,18 @@ const Bassins = () => {
 
   const handleManage = (bassin) => {
     setSelectedBassin(bassin);
+    // Initialize location if bassin has coordinates, otherwise use default
+    setManageBassinLocation({ 
+      lat: bassin.latitude || 14.7167, 
+      lng: bassin.longitude || -17.4677 
+    });
     setShowManageDialog(true);
   };
 
   const handleSaveManage = () => {
     toast({
       title: "Modifications enregistrées",
-      description: `Les modifications du bassin ${selectedBassin?.name} ont été enregistrées`,
+      description: `Les modifications du bassin ${selectedBassin?.name} ont été enregistrées à (${manageBassinLocation.lat.toFixed(6)}, ${manageBassinLocation.lng.toFixed(6)})`,
     });
     setShowManageDialog(false);
   };
@@ -190,6 +196,10 @@ const Bassins = () => {
 
   const handleLocationChange = (lat: number, lng: number) => {
     setNewBassinLocation({ lat, lng });
+  };
+
+  const handleManageLocationChange = (lat: number, lng: number) => {
+    setManageBassinLocation({ lat, lng });
   };
 
   return (
@@ -510,6 +520,15 @@ const Bassins = () => {
                       </div>
                     </div>
                   )}
+
+                  <div className="space-y-2">
+                    <Label>Localisation GPS</Label>
+                    <MapPicker 
+                      onLocationChange={handleManageLocationChange}
+                      initialLat={manageBassinLocation.lat}
+                      initialLng={manageBassinLocation.lng}
+                    />
+                  </div>
 
                   <div className="flex gap-2 pt-4 border-t">
                     <Button 
