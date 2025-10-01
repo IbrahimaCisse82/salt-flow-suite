@@ -315,35 +315,36 @@ const Campagne = () => {
         <Sidebar />
         
         <main className="flex-1 p-6 space-y-6 md:ml-64">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Plan de Campagne 2025</h1>
-              <p className="text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Plan de Campagne 2025</h1>
+              <p className="text-sm sm:text-base text-muted-foreground break-words">
                 Planification et suivi de la campagne saline en cours
               </p>
             </div>
             <Button 
-              className="gap-2 bg-gradient-to-r from-primary to-accent"
+              className="gap-2 bg-gradient-to-r from-primary to-accent flex-shrink-0"
               onClick={() => setShowNewCampagneDialog(true)}
             >
               <Calendar className="h-4 w-4" />
-              Nouvelle campagne
+              <span className="hidden sm:inline">Nouvelle campagne</span>
+              <span className="sm:hidden">Nouvelle</span>
             </Button>
           </div>
 
           {/* Vue d'ensemble */}
           <Card className="border-l-4 border-l-primary">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Période</p>
-                  <p className="text-lg font-semibold">
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1 truncate">Période</p>
+                  <p className="text-sm sm:text-lg font-semibold break-words">
                     {campagneStats?.campagne?.start_date ? 
                       `${new Date(campagneStats.campagne.start_date).toLocaleDateString('fr-FR', { month: 'short' })} - ${new Date(campagneStats.campagne.end_date).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}` 
                       : 'Jan - Nov 2025'
                     }
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1 truncate">
                     {campagneStats?.campagne?.status === 'en_cours' ? 'En cours' : 
                      campagneStats?.campagne?.status === 'terminee' ? 'Terminée' : 
                      'Planification'}

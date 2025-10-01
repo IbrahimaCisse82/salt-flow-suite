@@ -259,10 +259,10 @@ const Stocks = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-6 space-y-6 md:ml-64">
+        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
           {/* Dialog Mouvement de stock */}
           <Dialog open={isMovementDialogOpen} onOpenChange={setIsMovementDialogOpen}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nouveau mouvement de stock</DialogTitle>
                 <DialogDescription>

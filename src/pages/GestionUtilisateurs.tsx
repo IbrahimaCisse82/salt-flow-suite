@@ -232,11 +232,11 @@ const GestionUtilisateurs = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-6 space-y-6 md:ml-64">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Gestion des utilisateurs</h1>
-              <p className="text-muted-foreground">
+        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Gestion des utilisateurs</h1>
+              <p className="text-sm sm:text-base text-muted-foreground break-words">
                 Gérez les membres de votre équipe et leurs accès
               </p>
             </div>
@@ -277,7 +277,7 @@ const GestionUtilisateurs = () => {
                 Utilisateurs ({users.length})
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>

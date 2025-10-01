@@ -425,10 +425,10 @@ const Parametres = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-6 space-y-6 md:ml-64">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Paramètres</h1>
-            <p className="text-muted-foreground">
+        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Paramètres</h1>
+            <p className="text-sm sm:text-base text-muted-foreground break-words">
               Configurez votre compte et l'application
             </p>
           </div>

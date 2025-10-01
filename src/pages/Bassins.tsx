@@ -210,33 +210,34 @@ const Bassins = () => {
         <Sidebar />
         
         <main className="flex-1 p-6 space-y-6 md:ml-64">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Gestion des Bassins Salants</h1>
-              <p className="text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Gestion des Bassins Salants</h1>
+              <p className="text-sm sm:text-base text-muted-foreground break-words">
                 Vue d'ensemble et suivi de vos {bassins.length} bassins de production
               </p>
             </div>
             <Button 
               onClick={handleAddBassin}
-              className="gap-2 bg-gradient-to-r from-primary to-accent"
+              className="gap-2 bg-gradient-to-r from-primary to-accent flex-shrink-0"
             >
               <Plus className="h-4 w-4" />
-              Nouveau bassin
+              <span className="hidden sm:inline">Nouveau bassin</span>
+              <span className="sm:hidden">Nouveau</span>
             </Button>
           </div>
 
           {/* Stats rapides */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Actifs</p>
-                    <p className="text-2xl font-bold text-green-600">4</p>
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Actifs</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-600">4</p>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                    <Droplets className="h-6 w-6 text-green-600" />
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                    <Droplets className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                   </div>
                 </div>
               </CardContent>

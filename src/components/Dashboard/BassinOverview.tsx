@@ -34,51 +34,51 @@ export const BassinOverview = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Droplets className="h-5 w-5 text-primary" />
-          Vue d'ensemble des bassins
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <Droplets className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+          <span className="truncate">Vue d'ensemble des bassins</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+      <CardContent className="p-3 sm:p-6">
+        <div className="space-y-2 sm:space-y-3">
           {bassins.map((bassin) => (
             <div 
               key={bassin.id}
-              className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors"
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors gap-3"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="font-semibold text-lg">{bassin.name}</span>
-                  <Badge className={statusLabels[bassin.status].className}>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                  <span className="font-semibold text-base sm:text-lg truncate">{bassin.name}</span>
+                  <Badge className={`${statusLabels[bassin.status].className} flex-shrink-0`}>
                     {statusLabels[bassin.status].label}
                   </Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+                  <p className="text-muted-foreground">
                     Surface: {bassin.surface} ha
                   </p>
                   <span className="text-muted-foreground">•</span>
-                  <span className="text-sm font-medium text-primary">
+                  <span className="font-medium text-primary break-words">
                     {bassinTypeLabels[bassin.type]}
                   </span>
                 </div>
               </div>
               
               {bassin.status === "active" && (
-                <div className="flex gap-6 text-sm">
+                <div className="flex gap-4 sm:gap-6 text-xs sm:text-sm justify-start sm:justify-end">
                   <div className="text-center">
                     <div className="flex items-center gap-1 text-primary mb-1">
-                      <ThermometerSun className="h-4 w-4" />
+                      <ThermometerSun className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="font-semibold">{bassin.salinity}%</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Salinité</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Salinité</p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center gap-1 text-accent mb-1">
-                      <Droplets className="h-4 w-4" />
+                      <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="font-semibold">{bassin.waterLevel}%</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Niveau</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Niveau</p>
                   </div>
                 </div>
               )}

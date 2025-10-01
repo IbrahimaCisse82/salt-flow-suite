@@ -130,9 +130,9 @@ const Production = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-6 space-y-6 md:ml-64">
+        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nouvelle récolte</DialogTitle>
                 <DialogDescription>
@@ -265,10 +265,10 @@ const Production = () => {
               </form>
             </DialogContent>
           </Dialog>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Suivi de Production</h1>
-              <p className="text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Suivi de Production</h1>
+              <p className="text-sm sm:text-base text-muted-foreground break-words">
                 Gestion et traçabilité de la production saline
               </p>
             </div>

@@ -30,13 +30,13 @@ export const ProductionChart = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          Production mensuelle (tonnes)
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+          <span className="break-words">Production mensuelle (tonnes)</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+      <CardContent className="p-3 sm:p-6">
+        <ResponsiveContainer width="100%" height={250}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis 
