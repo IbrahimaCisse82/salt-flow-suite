@@ -207,7 +207,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex flex-col items-center justify-center p-4 relative">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -342,7 +342,7 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
-      <footer className="mt-8 text-center">
+      <footer className="absolute bottom-4 left-0 right-0 text-center">
         <p className="text-sm text-muted-foreground">
           © {new Date().getFullYear()} Grow Hub Sarl. Tous droits réservés.
         </p>
