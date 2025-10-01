@@ -15,39 +15,27 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
   const location = useLocation();
 
   useEffect(() => {
-    const checkAuthAndRole = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
+    let cancelled = false;
+
+    // Filet de sécurité: éviter un loader infini si auth traîne en iframe
+    const timer = setTimeout(() => {
+      if (!cancelled) {
         setIsAuthenticated(false);
         setLoading(false);
-        return;
       }
+    }, 4000);
 
-      setIsAuthenticated(true);
+    const checkAuthAndRole = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setIsAuthenticated(false);
+          return;
+        }
 
-      // Récupérer le rôle de l'utilisateur (fallback sur user_metadata)
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .maybeSingle();
-
-      const derivedRole = (profile?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || null;
-      setUserRole(derivedRole);
-      setLoading(false);
-    };
-
-    checkAuthAndRole();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!session) {
-        setIsAuthenticated(false);
-        setUserRole(null);
-      } else {
         setIsAuthenticated(true);
-        
-        // Récupérer le rôle (fallback sur user_metadata)
+
+        // Récupérer le rôle de l'utilisateur (fallback sur user_metadata)
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
@@ -56,10 +44,43 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
 
         const derivedRole = (profile?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || null;
         setUserRole(derivedRole);
+      } catch (e) {
+        console.error('Auth check failed', e);
+        setIsAuthenticated(false);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+          clearTimeout(timer);
+        }
+      }
+    };
+
+    checkAuthAndRole();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
+        if (!session) {
+          setIsAuthenticated(false);
+          setUserRole(null);
+        } else {
+          setIsAuthenticated(true);
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          const derivedRole = (profile?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || null;
+          setUserRole(derivedRole);
+        }
+      } catch (e) {
+        console.error('Auth state change error', e);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => { cancelled = true; clearTimeout(timer); subscription.unsubscribe(); };
   }, []);
 
   if (loading) {
