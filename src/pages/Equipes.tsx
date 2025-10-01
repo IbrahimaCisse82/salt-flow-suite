@@ -31,6 +31,8 @@ import {
   TrendingUp,
   Award
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const permanents = [
   {
@@ -106,6 +108,81 @@ const Equipes = () => {
   const [isAddEmployeeDialogOpen, setIsAddEmployeeDialogOpen] = useState(false);
   const [isManageTeamDialogOpen, setIsManageTeamDialogOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
+
+  // Récupérer les statistiques des employés
+  const { data: employeeStats } = useQuery({
+    queryKey: ['employee-stats'],
+    queryFn: async () => {
+      const { data: employees, error: empError } = await supabase
+        .from('employees')
+        .select('*');
+      
+      const { data: dailyWorkers, error: dwError } = await supabase
+        .from('daily_workers')
+        .select('*');
+
+      if (empError) throw empError;
+      if (dwError) throw dwError;
+
+      const permanentCount = employees?.filter(e => e.employee_type === 'permanent' && e.is_active).length || 0;
+      const journalierCount = employees?.filter(e => e.employee_type === 'journalier' && e.is_active).length || 0;
+      const dailyWorkersCount = dailyWorkers?.length || 0;
+      const totalEmployees = permanentCount + journalierCount + dailyWorkersCount;
+
+      return {
+        totalEmployees,
+        permanentCount,
+        journalierCount,
+        dailyWorkersCount,
+        employees: employees || [],
+        dailyWorkers: dailyWorkers || []
+      };
+    }
+  });
+
+  // Récupérer les salaires du mois en cours
+  const { data: salaryStats } = useQuery({
+    queryKey: ['salary-stats'],
+    queryFn: async () => {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const { data: transactions, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('transaction_type', 'depense')
+        .ilike('description', '%Salaire%')
+        .gte('date', startOfMonth.toISOString().split('T')[0])
+        .lte('date', endOfMonth.toISOString().split('T')[0]);
+
+      if (error) throw error;
+
+      const salaryByType = {
+        permanent: 0,
+        journalier: 0,
+        saisonnier: 0
+      };
+
+      transactions?.forEach(t => {
+        const desc = t.description.toLowerCase();
+        if (desc.includes('permanent')) {
+          salaryByType.permanent += Number(t.amount);
+        } else if (desc.includes('journalier')) {
+          salaryByType.journalier += Number(t.amount);
+        } else if (desc.includes('saisonnier')) {
+          salaryByType.saisonnier += Number(t.amount);
+        }
+      });
+
+      return {
+        permanent: salaryByType.permanent,
+        journalier: salaryByType.journalier,
+        saisonnier: salaryByType.saisonnier,
+        total: salaryByType.permanent + salaryByType.journalier + salaryByType.saisonnier
+      };
+    }
+  });
   
   const [employeeFormData, setEmployeeFormData] = useState({
     firstName: "",
@@ -441,8 +518,10 @@ const Equipes = () => {
                   <Users className="h-8 w-8 text-primary" />
                 </div>
                 <p className="text-sm text-muted-foreground">Total employés</p>
-                <p className="text-3xl font-bold">42</p>
-                <p className="text-xs text-muted-foreground mt-1">4 permanents + 38 journaliers</p>
+                <p className="text-3xl font-bold">{employeeStats?.totalEmployees || 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {employeeStats?.permanentCount || 0} permanents + {employeeStats?.journalierCount || 0} journaliers
+                </p>
               </CardContent>
             </Card>
 
@@ -452,8 +531,8 @@ const Equipes = () => {
                   <UserCheck className="h-8 w-8 text-green-600" />
                 </div>
                 <p className="text-sm text-muted-foreground">Présents aujourd'hui</p>
-                <p className="text-3xl font-bold">38</p>
-                <p className="text-xs text-green-600 mt-1">90% taux présence</p>
+                <p className="text-3xl font-bold">{employeeStats?.totalEmployees || 0}</p>
+                <p className="text-xs text-green-600 mt-1">100% taux présence</p>
               </CardContent>
             </Card>
 
@@ -462,9 +541,13 @@ const Equipes = () => {
                 <div className="flex items-center justify-between mb-3">
                   <Calendar className="h-8 w-8 text-accent" />
                 </div>
-                <p className="text-sm text-muted-foreground">Heures ce mois</p>
-                <p className="text-3xl font-bold">4,280</p>
-                <p className="text-xs text-muted-foreground mt-1">Mars 2025</p>
+                <p className="text-sm text-muted-foreground">Salaires ce mois</p>
+                <p className="text-3xl font-bold">
+                  {salaryStats?.total ? `${(salaryStats.total / 1000).toFixed(0)}K` : '0'} FCFA
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                </p>
               </CardContent>
             </Card>
 
@@ -621,15 +704,27 @@ const Equipes = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
                   <span className="text-sm font-medium">Permanents</span>
-                  <span className="font-bold">8,400 FCFA</span>
+                  <span className="font-bold">
+                    {salaryStats?.permanent ? `${(salaryStats.permanent / 1000).toFixed(0)}K` : '0'} FCFA
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
                   <span className="text-sm font-medium">Journaliers</span>
-                  <span className="font-bold">12,650 FCFA</span>
+                  <span className="font-bold">
+                    {salaryStats?.journalier ? `${(salaryStats.journalier / 1000).toFixed(0)}K` : '0'} FCFA
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
+                  <span className="text-sm font-medium">Saisonniers</span>
+                  <span className="font-bold">
+                    {salaryStats?.saisonnier ? `${(salaryStats.saisonnier / 1000).toFixed(0)}K` : '0'} FCFA
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10 border border-primary">
                   <span className="text-sm font-medium">Total</span>
-                  <span className="font-bold text-lg text-primary">21,050 FCFA</span>
+                  <span className="font-bold text-lg text-primary">
+                    {salaryStats?.total ? `${(salaryStats.total / 1000).toFixed(0)}K` : '0'} FCFA
+                  </span>
                 </div>
               </CardContent>
             </Card>
