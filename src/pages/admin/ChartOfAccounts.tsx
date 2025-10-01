@@ -38,20 +38,27 @@ export default function ChartOfAccounts() {
   const { data: accounts, isLoading } = useQuery({
     queryKey: ['admin-chart-of-accounts'],
     queryFn: async () => {
+      const { data: authUser } = await supabase.auth.getUser();
+      const user = authUser?.user;
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id, role')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
+        .eq('id', user?.id)
+        .maybeSingle();
+
+      const role = profile?.role || (user?.user_metadata?.role as string);
+      const tenantId = profile?.tenant_id || (role === 'admin' ? '00000000-0000-0000-0000-000000000001' : undefined);
 
       // Les admins peuvent voir tous les comptes
       let query = supabase
         .from('chart_of_accounts')
         .select('*');
       
-      // Si ce n'est pas un admin, filtrer par tenant
-      if (profile?.role !== 'admin') {
-        query = query.eq('tenant_id', profile?.tenant_id);
+      // Si ce n'est pas un admin, filtrer par tenant. Si pas de tenant, renvoyer []
+      if (role !== 'admin') {
+        if (!tenantId) return [];
+        query = query.eq('tenant_id', tenantId);
       }
 
       const { data, error } = await query.order('account_number');
@@ -63,14 +70,18 @@ export default function ChartOfAccounts() {
 
   const addAccount = useMutation({
     mutationFn: async () => {
+      const { data: authUser } = await supabase.auth.getUser();
+      const user = authUser?.user;
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tenant_id')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
+        .select('tenant_id, role')
+        .eq('id', user?.id)
+        .maybeSingle();
 
-      // Pour les admins, utiliser un tenant_id fictif ou null
-      const tenantId = profile?.tenant_id || '00000000-0000-0000-0000-000000000000';
+      const role = profile?.role || (user?.user_metadata?.role as string);
+      const tenantId = profile?.tenant_id || (role === 'admin' ? '00000000-0000-0000-0000-000000000001' : undefined);
+
+      if (!tenantId) throw new Error("Aucun tenant associé à l'utilisateur");
 
       const { error } = await supabase
         .from('chart_of_accounts')

@@ -26,14 +26,15 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
 
       setIsAuthenticated(true);
 
-      // Récupérer le rôle de l'utilisateur
+      // Récupérer le rôle de l'utilisateur (fallback sur user_metadata)
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle();
 
-      setUserRole(profile?.role as UserRole || null);
+      const derivedRole = (profile?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || null;
+      setUserRole(derivedRole);
       setLoading(false);
     };
 
@@ -46,14 +47,15 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
       } else {
         setIsAuthenticated(true);
         
-        // Récupérer le rôle
+        // Récupérer le rôle (fallback sur user_metadata)
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
 
-        setUserRole(profile?.role as UserRole || null);
+        const derivedRole = (profile?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || null;
+        setUserRole(derivedRole);
       }
     });
 
