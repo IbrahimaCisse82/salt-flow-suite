@@ -4,6 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState } from "react";
 import { 
   Database,
   Plus,
@@ -72,12 +89,37 @@ const recentHarvests = [
 
 const Production = () => {
   const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    date: "",
+    bassin: "",
+    quantity: "",
+    type: "",
+    quality: "",
+    team: "",
+    status: "completed"
+  });
 
   const handleNewHarvest = () => {
-    console.log("Button clicked - handleNewHarvest called");
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Form submitted:", formData);
     toast({
-      title: "Nouvelle récolte",
-      description: "Fonctionnalité d'ajout de récolte à venir",
+      title: "Récolte enregistrée",
+      description: `${formData.quantity} tonnes de ${formData.type} enregistrées avec succès`,
+    });
+    setIsDialogOpen(false);
+    setFormData({
+      date: "",
+      bassin: "",
+      quantity: "",
+      type: "",
+      quality: "",
+      team: "",
+      status: "completed"
     });
   };
 
@@ -89,6 +131,140 @@ const Production = () => {
         <Sidebar />
         
         <main className="flex-1 p-6 space-y-6">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Nouvelle récolte</DialogTitle>
+                <DialogDescription>
+                  Enregistrer une nouvelle récolte de sel
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date de récolte</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({...formData, date: e.target.value})}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="bassin">Bassin</Label>
+                  <Select 
+                    value={formData.bassin} 
+                    onValueChange={(value) => setFormData({...formData, bassin: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un bassin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Bassin Nord A">Bassin Nord A</SelectItem>
+                      <SelectItem value="Bassin Nord B">Bassin Nord B</SelectItem>
+                      <SelectItem value="Bassin Est A">Bassin Est A</SelectItem>
+                      <SelectItem value="Bassin Est B">Bassin Est B</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantité (tonnes)</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    step="0.1"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({...formData, quantity: e.target.value})}
+                    placeholder="Ex: 15.5"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type de sel</Label>
+                  <Select 
+                    value={formData.type} 
+                    onValueChange={(value) => setFormData({...formData, type: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Sel gros">Sel gros</SelectItem>
+                      <SelectItem value="Sel fin">Sel fin</SelectItem>
+                      <SelectItem value="Sel iodé">Sel iodé</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="quality">Qualité</Label>
+                  <Select 
+                    value={formData.quality} 
+                    onValueChange={(value) => setFormData({...formData, quality: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner la qualité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="A+">A+</SelectItem>
+                      <SelectItem value="A">A</SelectItem>
+                      <SelectItem value="B">B</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="team">Équipe</Label>
+                  <Select 
+                    value={formData.team} 
+                    onValueChange={(value) => setFormData({...formData, team: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner l'équipe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Équipe Alpha">Équipe Alpha</SelectItem>
+                      <SelectItem value="Équipe Beta">Équipe Beta</SelectItem>
+                      <SelectItem value="Équipe Gamma">Équipe Gamma</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="status">Statut</Label>
+                  <Select 
+                    value={formData.status} 
+                    onValueChange={(value) => setFormData({...formData, status: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="completed">Complété</SelectItem>
+                      <SelectItem value="processing">En traitement</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
+                    Annuler
+                  </Button>
+                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">
+                    Enregistrer
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Suivi de Production</h1>
