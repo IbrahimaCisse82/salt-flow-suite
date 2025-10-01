@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Waves } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { z } from "zod";
+import saltLogo from "@/assets/salt-logo.png";
 
 const emailSchema = z.string().email("Email invalide");
 const passwordSchema = z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères");
@@ -210,8 +211,8 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Waves className="h-8 w-8 text-white" />
+            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center p-3">
+              <img src={saltLogo} alt="G-Suite Sel Logo" className="h-full w-full object-contain" />
             </div>
           </div>
           <CardTitle className="text-2xl">Gestion Salines</CardTitle>
