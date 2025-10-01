@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,13 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BudgetTrackingTab } from "@/components/Campaign/BudgetTrackingTab";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
   FileText,
   Download,
   Calendar,
   TrendingUp,
   BarChart3,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Loader2
 } from "lucide-react";
 
 const reportTypes = [
@@ -97,6 +104,454 @@ const recentReports = [
 ];
 
 const Rapports = () => {
+  const { toast } = useToast();
+  const [generatingReport, setGeneratingReport] = useState<string | null>(null);
+
+  // Récupérer les données pour les rapports
+  const { data: campagnes = [] } = useQuery({
+    queryKey: ['campagnes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('campagnes')
+        .select('*')
+        .order('year', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const { data: productionRecords = [] } = useQuery({
+    queryKey: ['production-records'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('production_records')
+        .select(`
+          *,
+          bassin:bassins(name, code),
+          campagne:campagnes(name)
+        `)
+        .order('date', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ['transactions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          account:accounts(name)
+        `)
+        .order('date', { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const { data: sales = [] } = useQuery({
+    queryKey: ['sales'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sales')
+        .select(`
+          *,
+          client:clients(name, client_type)
+        `)
+        .order('sale_date', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('is_active', true);
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const generateCampaignReport = () => {
+    setGeneratingReport("campagne");
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // En-tête
+      doc.setFontSize(20);
+      doc.setTextColor(40, 40, 40);
+      doc.text("Rapport de Campagne Saline", pageWidth / 2, 20, { align: "center" });
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, 28, { align: "center" });
+      
+      let yPos = 40;
+      
+      // Statistiques générales
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.text("Vue d'ensemble", 14, yPos);
+      yPos += 10;
+      
+      const totalProduction = productionRecords.reduce((sum, p) => sum + Number(p.quantity || 0), 0);
+      const totalRevenue = sales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0);
+      
+      doc.setFontSize(10);
+      doc.text(`Nombre de campagnes: ${campagnes.length}`, 14, yPos);
+      yPos += 6;
+      doc.text(`Production totale: ${totalProduction.toFixed(2)} tonnes`, 14, yPos);
+      yPos += 6;
+      doc.text(`Chiffre d'affaires: ${totalRevenue.toLocaleString()} FCFA`, 14, yPos);
+      yPos += 6;
+      doc.text(`Nombre d'employés: ${employees.length}`, 14, yPos);
+      yPos += 15;
+      
+      // Tableau des campagnes
+      if (campagnes.length > 0) {
+        doc.setFontSize(14);
+        doc.text("Détail des campagnes", 14, yPos);
+        yPos += 5;
+        
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Nom', 'Année', 'Statut', 'Production cible', 'Production réelle']],
+          body: campagnes.map(c => [
+            c.name || 'N/A',
+            c.year || 'N/A',
+            c.status || 'N/A',
+            `${Number(c.target_production || 0).toFixed(2)} t`,
+            `${Number(c.actual_production || 0).toFixed(2)} t`
+          ]),
+          theme: 'striped',
+          headStyles: { fillColor: [59, 130, 246] },
+        });
+      }
+      
+      doc.save(`rapport-campagne-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "Rapport généré",
+        description: "Le rapport de campagne a été téléchargé",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le rapport",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateFinancialReport = () => {
+    setGeneratingReport("financier");
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      doc.setFontSize(20);
+      doc.text("États Financiers SYSCOHADA", pageWidth / 2, 20, { align: "center" });
+      
+      doc.setFontSize(10);
+      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, 28, { align: "center" });
+      
+      let yPos = 40;
+      
+      // Statistiques financières
+      const totalExpenses = transactions.filter(t => t.transaction_type === 'depense').reduce((sum, t) => sum + Number(t.amount || 0), 0);
+      const totalRevenue = transactions.filter(t => ['vente_locale', 'vente_export'].includes(t.transaction_type)).reduce((sum, t) => sum + Number(t.amount || 0), 0);
+      const netResult = totalRevenue - totalExpenses;
+      
+      doc.setFontSize(14);
+      doc.text("Compte de résultat", 14, yPos);
+      yPos += 10;
+      
+      doc.setFontSize(10);
+      doc.text(`Total des produits: ${totalRevenue.toLocaleString()} FCFA`, 14, yPos);
+      yPos += 6;
+      doc.text(`Total des charges: ${totalExpenses.toLocaleString()} FCFA`, 14, yPos);
+      yPos += 6;
+      doc.setFont(undefined, 'bold');
+      doc.text(`Résultat net: ${netResult.toLocaleString()} FCFA`, 14, yPos);
+      doc.setFont(undefined, 'normal');
+      yPos += 15;
+      
+      // Tableau des transactions récentes
+      if (transactions.length > 0) {
+        doc.setFontSize(14);
+        doc.text("Transactions récentes", 14, yPos);
+        yPos += 5;
+        
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Date', 'Type', 'Description', 'Montant (FCFA)']],
+          body: transactions.slice(0, 20).map(t => [
+            t.date || 'N/A',
+            t.transaction_type || 'N/A',
+            t.description || 'N/A',
+            Number(t.amount || 0).toLocaleString()
+          ]),
+          theme: 'striped',
+          headStyles: { fillColor: [34, 197, 94] },
+        });
+      }
+      
+      doc.save(`etats-financiers-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "Rapport généré",
+        description: "Les états financiers ont été téléchargés",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le rapport",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateProductionReport = () => {
+    setGeneratingReport("production");
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      doc.setFontSize(20);
+      doc.text("Analyse de Production", pageWidth / 2, 20, { align: "center" });
+      
+      doc.setFontSize(10);
+      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, 28, { align: "center" });
+      
+      let yPos = 40;
+      
+      const totalProduction = productionRecords.reduce((sum, p) => sum + Number(p.quantity || 0), 0);
+      const avgQuality = productionRecords.reduce((sum, p) => sum + Number(p.quality_grade || 0), 0) / (productionRecords.length || 1);
+      
+      doc.setFontSize(14);
+      doc.text("Statistiques de production", 14, yPos);
+      yPos += 10;
+      
+      doc.setFontSize(10);
+      doc.text(`Production totale: ${totalProduction.toFixed(2)} tonnes`, 14, yPos);
+      yPos += 6;
+      doc.text(`Qualité moyenne: ${avgQuality.toFixed(1)}/10`, 14, yPos);
+      yPos += 6;
+      doc.text(`Nombre d'enregistrements: ${productionRecords.length}`, 14, yPos);
+      yPos += 15;
+      
+      if (productionRecords.length > 0) {
+        doc.setFontSize(14);
+        doc.text("Détail de la production", 14, yPos);
+        yPos += 5;
+        
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Date', 'Bassin', 'Type', 'Quantité (t)', 'Qualité']],
+          body: productionRecords.slice(0, 25).map(p => [
+            p.date || 'N/A',
+            p.bassin?.name || 'N/A',
+            p.salt_type || 'N/A',
+            Number(p.quantity || 0).toFixed(2),
+            p.quality_grade || 'N/A'
+          ]),
+          theme: 'striped',
+          headStyles: { fillColor: [249, 115, 22] },
+        });
+      }
+      
+      doc.save(`analyse-production-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "Rapport généré",
+        description: "L'analyse de production a été téléchargée",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le rapport",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateHRReport = () => {
+    setGeneratingReport("rh");
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      doc.setFontSize(20);
+      doc.text("Performance Ressources Humaines", pageWidth / 2, 20, { align: "center" });
+      
+      doc.setFontSize(10);
+      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, 28, { align: "center" });
+      
+      let yPos = 40;
+      
+      const totalSalary = employees.reduce((sum, e) => sum + Number(e.salary || 0), 0);
+      
+      doc.setFontSize(14);
+      doc.text("Vue d'ensemble RH", 14, yPos);
+      yPos += 10;
+      
+      doc.setFontSize(10);
+      doc.text(`Nombre d'employés actifs: ${employees.length}`, 14, yPos);
+      yPos += 6;
+      doc.text(`Masse salariale totale: ${totalSalary.toLocaleString()} FCFA`, 14, yPos);
+      yPos += 15;
+      
+      if (employees.length > 0) {
+        doc.setFontSize(14);
+        doc.text("Liste des employés", 14, yPos);
+        yPos += 5;
+        
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Nom', 'Prénom', 'Poste', 'Type', 'Salaire']],
+          body: employees.map(e => [
+            e.last_name || 'N/A',
+            e.first_name || 'N/A',
+            e.position || 'N/A',
+            e.employee_type || 'N/A',
+            `${Number(e.salary || 0).toLocaleString()} FCFA`
+          ]),
+          theme: 'striped',
+          headStyles: { fillColor: [168, 85, 247] },
+        });
+      }
+      
+      doc.save(`performance-rh-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "Rapport généré",
+        description: "Le rapport RH a été téléchargé",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le rapport",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateCommercialReport = () => {
+    setGeneratingReport("commercial");
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      doc.setFontSize(20);
+      doc.text("Analyse Commerciale", pageWidth / 2, 20, { align: "center" });
+      
+      doc.setFontSize(10);
+      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, 28, { align: "center" });
+      
+      let yPos = 40;
+      
+      const totalRevenue = sales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0);
+      const totalQuantity = sales.reduce((sum, s) => sum + Number(s.quantity || 0), 0);
+      
+      doc.setFontSize(14);
+      doc.text("Statistiques commerciales", 14, yPos);
+      yPos += 10;
+      
+      doc.setFontSize(10);
+      doc.text(`Nombre de ventes: ${sales.length}`, 14, yPos);
+      yPos += 6;
+      doc.text(`Chiffre d'affaires: ${totalRevenue.toLocaleString()} FCFA`, 14, yPos);
+      yPos += 6;
+      doc.text(`Quantité totale vendue: ${totalQuantity.toFixed(2)} tonnes`, 14, yPos);
+      yPos += 15;
+      
+      if (sales.length > 0) {
+        doc.setFontSize(14);
+        doc.text("Détail des ventes", 14, yPos);
+        yPos += 5;
+        
+        autoTable(doc, {
+          startY: yPos,
+          head: [['Date', 'Client', 'Type sel', 'Quantité (t)', 'Montant']],
+          body: sales.slice(0, 25).map(s => [
+            s.sale_date || 'N/A',
+            s.client?.name || 'N/A',
+            s.salt_type || 'N/A',
+            Number(s.quantity || 0).toFixed(2),
+            `${Number(s.total_amount || 0).toLocaleString()} FCFA`
+          ]),
+          theme: 'striped',
+          headStyles: { fillColor: [37, 99, 235] },
+        });
+      }
+      
+      doc.save(`analyse-commerciale-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "Rapport généré",
+        description: "L'analyse commerciale a été téléchargée",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le rapport",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const handleGenerateReport = (reportTitle: string) => {
+    switch(reportTitle) {
+      case "Rapport de campagne":
+        generateCampaignReport();
+        break;
+      case "États financiers":
+        generateFinancialReport();
+        break;
+      case "Analyse production":
+        generateProductionReport();
+        break;
+      case "Performance RH":
+        generateHRReport();
+        break;
+      case "Analyse commerciale":
+        generateCommercialReport();
+        break;
+      default:
+        toast({
+          title: "Non disponible",
+          description: "Ce rapport sera bientôt disponible",
+        });
+    }
+  };
+
+  const handleDownloadRecent = (report: any) => {
+    toast({
+      title: "Téléchargement simulé",
+      description: `Téléchargement de ${report.name}`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -143,9 +598,23 @@ const Rapports = () => {
                         {report.description}
                       </p>
                       {report.available ? (
-                        <Button variant="outline" className="w-full gap-2">
-                          <Download className="h-4 w-4" />
-                          Générer
+                        <Button 
+                          variant="outline" 
+                          className="w-full gap-2"
+                          onClick={() => handleGenerateReport(report.title)}
+                          disabled={generatingReport === report.title.toLowerCase().split(' ')[0]}
+                        >
+                          {generatingReport === report.title.toLowerCase().split(' ')[0] ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Génération...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="h-4 w-4" />
+                              Générer PDF
+                            </>
+                          )}
                         </Button>
                       ) : (
                         <Badge variant="outline" className="w-full justify-center">
@@ -186,7 +655,12 @@ const Rapports = () => {
 
                         <div className="flex items-center gap-3">
                           <Badge variant="outline">{report.format}</Badge>
-                          <Button variant="outline" size="sm" className="gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="gap-2"
+                            onClick={() => handleDownloadRecent(report)}
+                          >
                             <Download className="h-4 w-4" />
                             Télécharger
                           </Button>
