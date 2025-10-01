@@ -154,22 +154,41 @@ const Parametres = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       
-      const { error: profileError } = await supabase
+      // Validation des champs
+      if (!profileData.full_name || profileData.full_name.trim() === '') {
+        throw new Error('Le nom complet est obligatoire');
+      }
+      
+      console.log('Updating profile for user:', user.id);
+      console.log('Profile data:', { full_name: profileData.full_name, phone: profileData.phone });
+      
+      const { data: updatedProfile, error: profileError } = await supabase
         .from('profiles')
         .update({
-          full_name: profileData.full_name,
-          phone: profileData.phone
+          full_name: profileData.full_name.trim(),
+          phone: profileData.phone || null
         })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select();
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        throw new Error(profileError.message || 'Erreur lors de la mise à jour du profil');
+      }
+
+      console.log('Profile updated successfully:', updatedProfile);
 
       // Mettre à jour le mot de passe si fourni
-      if (profileData.password) {
+      if (profileData.password && profileData.password.length >= 6) {
         const { error: passwordError } = await supabase.auth.updateUser({
           password: profileData.password
         });
-        if (passwordError) throw passwordError;
+        if (passwordError) {
+          console.error('Password update error:', passwordError);
+          throw new Error(passwordError.message || 'Erreur lors de la mise à jour du mot de passe');
+        }
+      } else if (profileData.password && profileData.password.length < 6) {
+        throw new Error('Le mot de passe doit contenir au moins 6 caractères');
       }
     },
     onSuccess: () => {
@@ -180,10 +199,11 @@ const Parametres = () => {
       });
       setProfileData(prev => ({ ...prev, password: "" }));
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Update profile mutation error:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour le profil",
+        description: error?.message || "Impossible de mettre à jour le profil",
         variant: "destructive"
       });
     }
