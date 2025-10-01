@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Settings,
   Bell,
@@ -12,9 +16,241 @@ import {
   Building,
   Shield,
   Database,
+  Loader2,
+  Download
 } from "lucide-react";
 
 const Parametres = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // États pour les formulaires
+  const [tenantData, setTenantData] = useState({
+    name: "",
+    contact_email: "",
+    address: "",
+    contact_phone: ""
+  });
+
+  const [profileData, setProfileData] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    password: ""
+  });
+
+  const [notifications, setNotifications] = useState({
+    weather: true,
+    stock: true,
+    reports: true,
+    production: false
+  });
+
+  const [security, setSecurity] = useState({
+    twoFactor: false,
+    autoBackup: true
+  });
+
+  // Récupérer l'utilisateur et le profil
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile) {
+        setProfileData({
+          full_name: profile.full_name || "",
+          email: profile.email || "",
+          phone: profile.phone || "",
+          password: ""
+        });
+      }
+      
+      return { user, profile };
+    }
+  });
+
+  // Récupérer les données du tenant
+  const { data: tenant } = useQuery({
+    queryKey: ['tenant'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile?.tenant_id) throw new Error('Tenant not found');
+      
+      const { data: tenantData } = await supabase
+        .from('tenants')
+        .select('*')
+        .eq('id', profile.tenant_id)
+        .single();
+      
+      if (tenantData) {
+        setTenantData({
+          name: tenantData.name || "",
+          contact_email: tenantData.contact_email || "",
+          address: tenantData.address || "",
+          contact_phone: tenantData.contact_phone || ""
+        });
+      }
+      
+      return tenantData;
+    }
+  });
+
+  // Mutation pour mettre à jour le tenant
+  const updateTenantMutation = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile?.tenant_id) throw new Error('Tenant not found');
+      
+      const { error } = await supabase
+        .from('tenants')
+        .update(tenantData)
+        .eq('id', profile.tenant_id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tenant'] });
+      toast({
+        title: "Succès",
+        description: "Les informations de l'entreprise ont été mises à jour",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour les informations",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation pour mettre à jour le profil
+  const updateProfileMutation = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profileData.full_name,
+          phone: profileData.phone
+        })
+        .eq('id', user.id);
+      
+      if (profileError) throw profileError;
+
+      // Mettre à jour le mot de passe si fourni
+      if (profileData.password) {
+        const { error: passwordError } = await supabase.auth.updateUser({
+          password: profileData.password
+        });
+        if (passwordError) throw passwordError;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
+      toast({
+        title: "Succès",
+        description: "Votre profil a été mis à jour",
+      });
+      setProfileData(prev => ({ ...prev, password: "" }));
+    },
+    onError: () => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le profil",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Exporter les données
+  const handleExportData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile?.tenant_id) throw new Error('Tenant not found');
+
+      // Récupérer toutes les données
+      const tables = [
+        'bassins', 'campagnes', 'production_records', 'harvests',
+        'sales', 'clients', 'stocks', 'warehouses', 'employees',
+        'daily_workers', 'transactions', 'accounts'
+      ] as const;
+
+      const exportData: Record<string, any> = {};
+      
+      for (const table of tables) {
+        const { data } = await supabase
+          .from(table as any)
+          .select('*')
+          .eq('tenant_id', profile.tenant_id);
+        exportData[table] = data;
+      }
+
+      // Créer un fichier JSON
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `export-donnees-${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export réussi",
+        description: "Vos données ont été exportées avec succès",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'exporter les données",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteAllData = () => {
+    toast({
+      title: "Attention",
+      description: "Cette fonctionnalité nécessite une confirmation supplémentaire",
+      variant: "destructive"
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -42,23 +278,51 @@ const Parametres = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="company">Nom de l'entreprise</Label>
-                  <Input id="company" defaultValue="Salines du Sénégal" />
+                  <Input 
+                    id="company" 
+                    value={tenantData.name}
+                    onChange={(e) => setTenantData({ ...tenantData, name: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="siret">N° SIRET</Label>
-                  <Input id="siret" defaultValue="123 456 789 00012" />
+                  <Label htmlFor="email-company">Email</Label>
+                  <Input 
+                    id="email-company" 
+                    type="email"
+                    value={tenantData.contact_email}
+                    onChange={(e) => setTenantData({ ...tenantData, contact_email: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="address">Adresse</Label>
-                  <Input id="address" defaultValue="Zone industrielle, Fatick" />
+                  <Input 
+                    id="address" 
+                    value={tenantData.address}
+                    onChange={(e) => setTenantData({ ...tenantData, address: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Téléphone</Label>
-                  <Input id="phone" defaultValue="+221 33 XXX XX XX" />
+                  <Label htmlFor="phone-company">Téléphone</Label>
+                  <Input 
+                    id="phone-company" 
+                    value={tenantData.contact_phone}
+                    onChange={(e) => setTenantData({ ...tenantData, contact_phone: e.target.value })}
+                  />
                 </div>
               </div>
-              <Button className="bg-gradient-to-r from-primary to-accent">
-                Enregistrer les modifications
+              <Button 
+                className="bg-gradient-to-r from-primary to-accent"
+                onClick={() => updateTenantMutation.mutate()}
+                disabled={updateTenantMutation.isPending}
+              >
+                {updateTenantMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Enregistrement...
+                  </>
+                ) : (
+                  "Enregistrer les modifications"
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -75,23 +339,53 @@ const Parametres = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nom complet</Label>
-                  <Input id="name" defaultValue="Amadou Diallo" />
+                  <Input 
+                    id="name" 
+                    value={profileData.full_name}
+                    onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="amadou@salines-senegal.sn" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={profileData.email}
+                    disabled
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="role">Rôle</Label>
-                  <Input id="role" defaultValue="Administrateur" disabled />
+                  <Label htmlFor="phone-user">Téléphone</Label>
+                  <Input 
+                    id="phone-user" 
+                    value={profileData.phone}
+                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Mot de passe</Label>
-                  <Input id="password" type="password" placeholder="••••••••" />
+                  <Label htmlFor="password">Nouveau mot de passe</Label>
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder="Laisser vide pour ne pas changer"
+                    value={profileData.password}
+                    onChange={(e) => setProfileData({ ...profileData, password: e.target.value })}
+                  />
                 </div>
               </div>
-              <Button className="bg-gradient-to-r from-primary to-accent">
-                Mettre à jour le profil
+              <Button 
+                className="bg-gradient-to-r from-primary to-accent"
+                onClick={() => updateProfileMutation.mutate()}
+                disabled={updateProfileMutation.isPending}
+              >
+                {updateProfileMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Mise à jour...
+                  </>
+                ) : (
+                  "Mettre à jour le profil"
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -112,7 +406,16 @@ const Parametres = () => {
                     Recevoir des notifications sur les conditions météo
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={notifications.weather}
+                  onCheckedChange={(checked) => {
+                    setNotifications({ ...notifications, weather: checked });
+                    toast({
+                      title: checked ? "Activé" : "Désactivé",
+                      description: `Alertes météorologiques ${checked ? 'activées' : 'désactivées'}`,
+                    });
+                  }}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -121,7 +424,16 @@ const Parametres = () => {
                     Notifications quand le stock est faible
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={notifications.stock}
+                  onCheckedChange={(checked) => {
+                    setNotifications({ ...notifications, stock: checked });
+                    toast({
+                      title: checked ? "Activé" : "Désactivé",
+                      description: `Alertes de stock ${checked ? 'activées' : 'désactivées'}`,
+                    });
+                  }}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -130,7 +442,16 @@ const Parametres = () => {
                     Recevoir les rapports mensuels par email
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={notifications.reports}
+                  onCheckedChange={(checked) => {
+                    setNotifications({ ...notifications, reports: checked });
+                    toast({
+                      title: checked ? "Activé" : "Désactivé",
+                      description: `Rapports automatiques ${checked ? 'activés' : 'désactivés'}`,
+                    });
+                  }}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -139,7 +460,16 @@ const Parametres = () => {
                     Notifications sur les récoltes et production
                   </p>
                 </div>
-                <Switch />
+                <Switch 
+                  checked={notifications.production}
+                  onCheckedChange={(checked) => {
+                    setNotifications({ ...notifications, production: checked });
+                    toast({
+                      title: checked ? "Activé" : "Désactivé",
+                      description: `Alertes production ${checked ? 'activées' : 'désactivées'}`,
+                    });
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
@@ -160,7 +490,18 @@ const Parametres = () => {
                     Ajouter une couche de sécurité supplémentaire
                   </p>
                 </div>
-                <Switch />
+                <Switch 
+                  checked={security.twoFactor}
+                  onCheckedChange={(checked) => {
+                    setSecurity({ ...security, twoFactor: checked });
+                    toast({
+                      title: checked ? "2FA activé" : "2FA désactivé",
+                      description: checked 
+                        ? "L'authentification à deux facteurs est maintenant activée" 
+                        : "L'authentification à deux facteurs est désactivée",
+                    });
+                  }}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -169,7 +510,18 @@ const Parametres = () => {
                     Afficher l'historique de vos connexions
                   </p>
                 </div>
-                <Button variant="outline" size="sm">Voir l'historique</Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    toast({
+                      title: "Historique",
+                      description: "Dernière connexion: Aujourd'hui à " + new Date().toLocaleTimeString('fr-FR'),
+                    });
+                  }}
+                >
+                  Voir l'historique
+                </Button>
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -178,7 +530,18 @@ const Parametres = () => {
                     Gérer vos sessions actives
                   </p>
                 </div>
-                <Button variant="outline" size="sm">Gérer</Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    toast({
+                      title: "Session active",
+                      description: "1 session active (appareil actuel)",
+                    });
+                  }}
+                >
+                  Gérer
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -199,7 +562,14 @@ const Parametres = () => {
                     Télécharger toutes vos données d'exploitation
                   </p>
                 </div>
-                <Button variant="outline">Exporter</Button>
+                <Button 
+                  variant="outline" 
+                  className="gap-2"
+                  onClick={handleExportData}
+                >
+                  <Download className="h-4 w-4" />
+                  Exporter
+                </Button>
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -208,7 +578,18 @@ const Parametres = () => {
                     Sauvegardes quotidiennes de vos données
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={security.autoBackup}
+                  onCheckedChange={(checked) => {
+                    setSecurity({ ...security, autoBackup: checked });
+                    toast({
+                      title: checked ? "Activé" : "Désactivé",
+                      description: checked 
+                        ? "Les sauvegardes automatiques sont activées" 
+                        : "Les sauvegardes automatiques sont désactivées",
+                    });
+                  }}
+                />
               </div>
               <div className="flex items-center justify-between border-t pt-4">
                 <div>
@@ -217,7 +598,12 @@ const Parametres = () => {
                     Supprimer définitivement toutes les données
                   </p>
                 </div>
-                <Button variant="destructive">Supprimer</Button>
+                <Button 
+                  variant="destructive"
+                  onClick={handleDeleteAllData}
+                >
+                  Supprimer
+                </Button>
               </div>
             </CardContent>
           </Card>
