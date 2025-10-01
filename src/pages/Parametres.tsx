@@ -13,7 +13,6 @@ import {
   Shield,
   Database,
 } from "lucide-react";
-import { ChartOfAccountsTable } from "@/components/Accounting/ChartOfAccountsTable";
 
 const Parametres = () => {
   return (
@@ -63,9 +62,6 @@ const Parametres = () => {
               </Button>
             </CardContent>
           </Card>
-
-          {/* Plan comptable */}
-          <ChartOfAccountsTable />
 
           {/* Compte utilisateur */}
           <Card>
