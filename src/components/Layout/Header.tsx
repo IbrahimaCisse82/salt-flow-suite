@@ -1,4 +1,4 @@
-import { Waves, Menu, Bell, User, LogOut, CheckCircle2, AlertCircle, Building2 } from "lucide-react";
+import { Waves, Menu, Bell, User, LogOut, CheckCircle2, AlertCircle, Building2, PanelLeft, PanelLeftClose } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +23,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
+import { useSidebar } from "@/contexts/SidebarContext";
 import {
   LayoutDashboard,
   Droplets,
@@ -95,6 +96,7 @@ export const Header = () => {
   const { profile, tenant } = useAuth();
   const [notifications, setNotifications] = useState(mockNotifications);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { toggle: toggleSidebar, isOpen: sidebarOpen } = useSidebar();
 
   const { data: userRole } = useQuery({
     queryKey: ['user-role'],
@@ -159,6 +161,19 @@ export const Header = () => {
             onClick={() => setMobileMenuOpen(true)}
           >
             <Menu className="h-5 w-5" />
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hidden md:flex"
+            onClick={toggleSidebar}
+          >
+            {sidebarOpen ? (
+              <PanelLeftClose className="h-5 w-5" />
+            ) : (
+              <PanelLeft className="h-5 w-5" />
+            )}
           </Button>
           <div className="flex items-center gap-2 min-w-0">
             <div className="rounded-lg bg-gradient-to-br from-primary to-primary-glow p-1.5 sm:p-2 flex-shrink-0">

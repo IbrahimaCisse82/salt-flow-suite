@@ -19,6 +19,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
+import { useSidebar } from "@/contexts/SidebarContext";
 
 interface NavItem {
   icon: React.ElementType;
@@ -50,6 +51,7 @@ const salinesNavItems: NavItem[] = [
 export const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isOpen } = useSidebar();
 
   // Récupérer le rôle de l'utilisateur actuel
   const { data: userRole } = useQuery({
@@ -77,7 +79,10 @@ export const Sidebar = () => {
   );
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r bg-card fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-40">
+    <aside className={cn(
+      "hidden md:flex w-64 flex-col border-r bg-card fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-40 transition-transform duration-300",
+      !isOpen && "-translate-x-full"
+    )}>
       <nav className="flex-1 space-y-1 p-4">
         {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.href;
