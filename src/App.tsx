@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Bassins from "./pages/Bassins";
@@ -28,17 +28,17 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          <Route path="/bassins" element={<ProtectedRoute><Bassins /></ProtectedRoute>} />
-          <Route path="/campagne" element={<ProtectedRoute><Campagne /></ProtectedRoute>} />
-          <Route path="/production" element={<ProtectedRoute><Production /></ProtectedRoute>} />
-          <Route path="/stocks" element={<ProtectedRoute><Stocks /></ProtectedRoute>} />
-          <Route path="/equipes" element={<ProtectedRoute><Equipes /></ProtectedRoute>} />
-          <Route path="/commercial" element={<ProtectedRoute><Commercial /></ProtectedRoute>} />
-          <Route path="/rapports" element={<ProtectedRoute><Rapports /></ProtectedRoute>} />
-          <Route path="/parametres" element={<ProtectedRoute><Parametres /></ProtectedRoute>} />
-          <Route path="/comptabilite" element={<ProtectedRoute><Comptabilite /></ProtectedRoute>} />
-          <Route path="/utilisateurs" element={<ProtectedRoute><GestionUtilisateurs /></ProtectedRoute>} />
+          <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
+          <Route path="/bassins" element={<RoleProtectedRoute><Bassins /></RoleProtectedRoute>} />
+          <Route path="/campagne" element={<RoleProtectedRoute><Campagne /></RoleProtectedRoute>} />
+          <Route path="/production" element={<RoleProtectedRoute><Production /></RoleProtectedRoute>} />
+          <Route path="/stocks" element={<RoleProtectedRoute><Stocks /></RoleProtectedRoute>} />
+          <Route path="/equipes" element={<RoleProtectedRoute><Equipes /></RoleProtectedRoute>} />
+          <Route path="/commercial" element={<RoleProtectedRoute><Commercial /></RoleProtectedRoute>} />
+          <Route path="/rapports" element={<RoleProtectedRoute><Rapports /></RoleProtectedRoute>} />
+          <Route path="/parametres" element={<RoleProtectedRoute><Parametres /></RoleProtectedRoute>} />
+          <Route path="/comptabilite" element={<RoleProtectedRoute><Comptabilite /></RoleProtectedRoute>} />
+          <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

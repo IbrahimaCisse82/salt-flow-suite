@@ -16,12 +16,12 @@ import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { hasAccessToPage, UserRole } from "@/utils/permissions";
 
 interface NavItem {
   icon: React.ElementType;
   label: string;
   href: string;
-  roleRequired?: string;
 }
 
 const navItems: NavItem[] = [
@@ -34,7 +34,7 @@ const navItems: NavItem[] = [
   { icon: TrendingUp, label: "Commercial", href: "/commercial" },
   { icon: Wallet, label: "Comptabilité", href: "/comptabilite" },
   { icon: FileText, label: "Rapports", href: "/rapports" },
-  { icon: UserCog, label: "Utilisateurs", href: "/utilisateurs", roleRequired: "gerant" },
+  { icon: UserCog, label: "Utilisateurs", href: "/utilisateurs" },
   { icon: Settings, label: "Paramètres", href: "/parametres" },
 ];
 
@@ -55,15 +55,14 @@ export const Sidebar = () => {
         .eq('id', user.id)
         .single();
       
-      return profile?.role;
+      return profile?.role as UserRole;
     }
   });
 
-  // Filtrer les items de navigation selon le rôle
-  const visibleNavItems = navItems.filter(item => {
-    if (!item.roleRequired) return true;
-    return userRole === item.roleRequired;
-  });
+  // Filtrer les items de navigation selon les permissions du rôle
+  const visibleNavItems = navItems.filter(item => 
+    hasAccessToPage(userRole || null, item.href)
+  );
 
   return (
     <aside className="hidden md:flex w-64 flex-col border-r bg-card sticky top-0 h-screen overflow-y-auto">
