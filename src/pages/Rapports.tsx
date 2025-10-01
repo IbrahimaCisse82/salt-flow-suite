@@ -574,9 +574,10 @@ const Rapports = () => {
           </div>
 
           <Tabs defaultValue="rapports" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsList className="grid w-full grid-cols-3 max-w-2xl">
               <TabsTrigger value="rapports">Rapports</TabsTrigger>
               <TabsTrigger value="suivi-budget">Suivi budgétaire</TabsTrigger>
+              <TabsTrigger value="flux-tresorerie">Flux de trésorerie</TabsTrigger>
             </TabsList>
 
             <TabsContent value="rapports" className="space-y-6">
@@ -738,6 +739,130 @@ const Rapports = () => {
 
             <TabsContent value="suivi-budget">
               <BudgetTrackingTab />
+            </TabsContent>
+
+            <TabsContent value="flux-tresorerie">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    Tableau de flux de trésorerie mensuels
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    // Calculer les flux de trésorerie par mois
+                    const cashFlowByMonth = transactions.reduce((acc: any, transaction) => {
+                      const date = new Date(transaction.date);
+                      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                      
+                      if (!acc[monthKey]) {
+                        acc[monthKey] = {
+                          month: monthKey,
+                          entrees: 0,
+                          sorties: 0,
+                          solde: 0
+                        };
+                      }
+                      
+                      const amount = Number(transaction.amount || 0);
+                      
+                      if (['vente_locale', 'vente_export'].includes(transaction.transaction_type)) {
+                        acc[monthKey].entrees += amount;
+                      } else if (transaction.transaction_type === 'depense') {
+                        acc[monthKey].sorties += amount;
+                      }
+                      
+                      return acc;
+                    }, {});
+
+                    // Convertir en tableau et calculer le solde cumulé
+                    const cashFlowData = Object.values(cashFlowByMonth)
+                      .sort((a: any, b: any) => a.month.localeCompare(b.month));
+                    
+                    let cumulativeSolde = 0;
+                    cashFlowData.forEach((item: any) => {
+                      item.solde = item.entrees - item.sorties;
+                      cumulativeSolde += item.solde;
+                      item.soldeCumule = cumulativeSolde;
+                    });
+
+                    return (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left p-4 font-semibold">Mois</th>
+                              <th className="text-right p-4 font-semibold text-green-600">Entrées (FCFA)</th>
+                              <th className="text-right p-4 font-semibold text-red-600">Sorties (FCFA)</th>
+                              <th className="text-right p-4 font-semibold">Solde mensuel (FCFA)</th>
+                              <th className="text-right p-4 font-semibold text-primary">Solde cumulé (FCFA)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {cashFlowData.length > 0 ? (
+                              cashFlowData.map((item: any, index: number) => {
+                                const date = new Date(item.month + '-01');
+                                const monthName = date.toLocaleDateString('fr-FR', { 
+                                  month: 'long', 
+                                  year: 'numeric' 
+                                });
+                                
+                                return (
+                                  <tr key={index} className="border-b hover:bg-muted/30 transition-colors">
+                                    <td className="p-4 font-medium capitalize">{monthName}</td>
+                                    <td className="p-4 text-right text-green-600 font-semibold">
+                                      +{item.entrees.toLocaleString()}
+                                    </td>
+                                    <td className="p-4 text-right text-red-600 font-semibold">
+                                      -{item.sorties.toLocaleString()}
+                                    </td>
+                                    <td className={`p-4 text-right font-semibold ${
+                                      item.solde >= 0 ? 'text-green-600' : 'text-red-600'
+                                    }`}>
+                                      {item.solde >= 0 ? '+' : ''}{item.solde.toLocaleString()}
+                                    </td>
+                                    <td className={`p-4 text-right font-bold ${
+                                      item.soldeCumule >= 0 ? 'text-primary' : 'text-red-600'
+                                    }`}>
+                                      {item.soldeCumule >= 0 ? '+' : ''}{item.soldeCumule.toLocaleString()}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            ) : (
+                              <tr>
+                                <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                                  Aucune transaction trouvée
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                          {cashFlowData.length > 0 && (
+                            <tfoot className="bg-muted/30">
+                              <tr className="border-t-2">
+                                <td className="p-4 font-bold">TOTAL</td>
+                                <td className="p-4 text-right text-green-600 font-bold">
+                                  +{cashFlowData.reduce((sum: number, item: any) => sum + item.entrees, 0).toLocaleString()}
+                                </td>
+                                <td className="p-4 text-right text-red-600 font-bold">
+                                  -{cashFlowData.reduce((sum: number, item: any) => sum + item.sorties, 0).toLocaleString()}
+                                </td>
+                                <td className="p-4 text-right font-bold">
+                                  {cashFlowData.reduce((sum: number, item: any) => sum + item.solde, 0).toLocaleString()}
+                                </td>
+                                <td className="p-4 text-right text-primary font-bold">
+                                  {(cashFlowData[cashFlowData.length - 1] as any)?.soldeCumule?.toLocaleString() || '0'}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          )}
+                        </table>
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </main>
