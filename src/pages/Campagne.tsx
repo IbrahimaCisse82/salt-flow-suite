@@ -3,6 +3,7 @@ import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import { BudgetPhaseTab, BudgetExpense } from "@/components/Campaign/BudgetPhaseTab";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,82 @@ const Campagne = () => {
   ]));
   
   const [activePhaseIndex, setActivePhaseIndex] = useState(2); // Index de la phase en cours (Évaporation)
+
+  // Récupérer les statistiques de la campagne
+  const { data: campagneStats } = useQuery({
+    queryKey: ['campagne-stats'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile) throw new Error('Profile not found');
+
+      // Récupérer la campagne active
+      const { data: campagne } = await supabase
+        .from('campagnes')
+        .select('*')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('year', 2025)
+        .single();
+
+      // Récupérer la production totale
+      const { data: production } = await supabase
+        .from('production_records')
+        .select('quantity, salt_type')
+        .eq('tenant_id', profile.tenant_id);
+
+      // Calculer la production par type
+      const prodByType = production?.reduce((acc, record) => {
+        const type = record.salt_type;
+        acc[type] = (acc[type] || 0) + parseFloat(record.quantity.toString());
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      const totalProduction = production?.reduce((sum, p) => sum + parseFloat(p.quantity.toString()), 0) || 0;
+
+      // Récupérer les revenus
+      const { data: sales } = await supabase
+        .from('sales')
+        .select('total_amount, salt_type')
+        .eq('tenant_id', profile.tenant_id);
+
+      const totalRevenue = sales?.reduce((sum, s) => sum + parseFloat(s.total_amount.toString()), 0) || 0;
+      const localSales = sales?.filter(s => s.salt_type === 'gros' || s.salt_type === 'fin' || s.salt_type === 'iode').reduce((sum, s) => sum + parseFloat(s.total_amount.toString()), 0) || 0;
+      const exportSales = sales?.filter(s => s.salt_type === 'export').reduce((sum, s) => sum + parseFloat(s.total_amount.toString()), 0) || 0;
+
+      // Récupérer les dépenses
+      const { data: expenses } = await supabase
+        .from('transactions')
+        .select('amount, campagne_phase')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('transaction_type', 'depense');
+
+      const expensesByType = expenses?.reduce((acc, exp) => {
+        const phase = exp.campagne_phase || 'other';
+        acc[phase] = (acc[phase] || 0) + parseFloat(exp.amount.toString());
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      const totalExpenses = expenses?.reduce((sum, e) => sum + parseFloat(e.amount.toString()), 0) || 0;
+
+      return {
+        campagne,
+        totalProduction,
+        productionByType: prodByType,
+        totalRevenue,
+        localSales,
+        exportSales,
+        totalExpenses,
+        expensesByType
+      };
+    }
+  });
 
   const handleCreateCampagne = () => {
     setShowNewCampagneDialog(false);
@@ -260,23 +337,59 @@ const Campagne = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Période</p>
-                  <p className="text-lg font-semibold">Jan - Nov 2025</p>
-                  <p className="text-xs text-muted-foreground mt-1">11 mois</p>
+                  <p className="text-lg font-semibold">
+                    {campagneStats?.campagne?.start_date ? 
+                      `${new Date(campagneStats.campagne.start_date).toLocaleDateString('fr-FR', { month: 'short' })} - ${new Date(campagneStats.campagne.end_date).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}` 
+                      : 'Jan - Nov 2025'
+                    }
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {campagneStats?.campagne?.status === 'en_cours' ? 'En cours' : 
+                     campagneStats?.campagne?.status === 'terminee' ? 'Terminée' : 
+                     'Planification'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Progression globale</p>
-                  <p className="text-lg font-semibold">42%</p>
-                  <Progress value={42} className="mt-2" />
+                  <p className="text-lg font-semibold">
+                    {campagneStats?.campagne?.target_production ? 
+                      Math.round((campagneStats.totalProduction / parseFloat(campagneStats.campagne.target_production.toString())) * 100) 
+                      : 42}%
+                  </p>
+                  <Progress 
+                    value={campagneStats?.campagne?.target_production ? 
+                      Math.round((campagneStats.totalProduction / parseFloat(campagneStats.campagne.target_production.toString())) * 100) 
+                      : 42
+                    } 
+                    className="mt-2" 
+                  />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Objectif production</p>
-                  <p className="text-lg font-semibold">1,200 tonnes</p>
-                  <p className="text-xs text-green-600 mt-1">438 t réalisées (36%)</p>
+                  <p className="text-lg font-semibold">
+                    {campagneStats?.campagne?.target_production ? 
+                      parseFloat(campagneStats.campagne.target_production.toString()).toLocaleString() 
+                      : '1,200'} tonnes
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    {campagneStats?.totalProduction?.toLocaleString() || 0} t réalisées (
+                    {campagneStats?.campagne?.target_production ? 
+                      Math.round((campagneStats.totalProduction / parseFloat(campagneStats.campagne.target_production.toString())) * 100) 
+                      : 0}%)
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Budget prévisionnel</p>
-                  <p className="text-lg font-semibold">{calculateTotalBudget().toLocaleString()} FCFA</p>
-                  <p className="text-xs text-muted-foreground mt-1">Budget total des 4 phases</p>
+                  <p className="text-lg font-semibold">
+                    {(campagneStats?.campagne?.budget_total ? 
+                      parseFloat(campagneStats.campagne.budget_total.toString()) 
+                      : calculateTotalBudget()).toLocaleString()} FCFA
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {campagneStats?.totalExpenses ? 
+                      `${campagneStats.totalExpenses.toLocaleString()} FCFA dépensés` 
+                      : 'Budget total des phases'}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -288,21 +401,33 @@ const Campagne = () => {
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Target className="h-4 w-4 text-primary" />
-                  Objectifs de production
+                  Production réalisée
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Sel gros</span>
-                  <span className="font-semibold">600 t</span>
+                  <span className="font-semibold">
+                    {campagneStats?.productionByType?.sel_gros?.toLocaleString() || 0} t
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Sel fin</span>
-                  <span className="font-semibold">400 t</span>
+                  <span className="font-semibold">
+                    {campagneStats?.productionByType?.sel_fin?.toLocaleString() || 0} t
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Sel iodé</span>
-                  <span className="font-semibold">200 t</span>
+                  <span className="font-semibold">
+                    {campagneStats?.productionByType?.sel_iode?.toLocaleString() || 0} t
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <span className="text-sm font-medium">Total</span>
+                  <span className="font-bold text-lg">
+                    {campagneStats?.totalProduction?.toLocaleString() || 0} t
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -311,21 +436,27 @@ const Campagne = () => {
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-accent" />
-                  Revenus prévisionnels
+                  Revenus réalisés
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Ventes locales</span>
-                  <span className="font-semibold">280,000 FCFA</span>
+                  <span className="font-semibold">
+                    {campagneStats?.localSales?.toLocaleString() || 0} FCFA
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Export</span>
-                  <span className="font-semibold">350,000 FCFA</span>
+                  <span className="font-semibold">
+                    {campagneStats?.exportSales?.toLocaleString() || 0} FCFA
+                  </span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-sm font-medium">Total</span>
-                  <span className="font-bold text-lg">630,000 FCFA</span>
+                  <span className="font-bold text-lg text-green-600">
+                    {campagneStats?.totalRevenue?.toLocaleString() || 0} FCFA
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -334,21 +465,33 @@ const Campagne = () => {
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-primary" />
-                  Coûts prévisionnels
+                  Dépenses réalisées
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Main d'œuvre</span>
-                  <span className="font-semibold">180,000 FCFA</span>
+                  <span className="text-sm">Préparation bassins</span>
+                  <span className="font-semibold">
+                    {campagneStats?.expensesByType?.['preparation-bassins']?.toLocaleString() || 0} FCFA
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Intrants</span>
-                  <span className="font-semibold">120,000 FCFA</span>
+                  <span className="text-sm">Récolte</span>
+                  <span className="font-semibold">
+                    {campagneStats?.expensesByType?.['recolte-principale']?.toLocaleString() || 0} FCFA
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Infrastructure</span>
-                  <span className="font-semibold">150,000 FCFA</span>
+                  <span className="text-sm">Traitement</span>
+                  <span className="font-semibold">
+                    {campagneStats?.expensesByType?.['traitement-stockage']?.toLocaleString() || 0} FCFA
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <span className="text-sm font-medium">Total</span>
+                  <span className="font-bold text-lg text-destructive">
+                    {campagneStats?.totalExpenses?.toLocaleString() || 0} FCFA
+                  </span>
                 </div>
               </CardContent>
             </Card>
