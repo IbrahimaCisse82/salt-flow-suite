@@ -62,8 +62,61 @@ const Commercial = () => {
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
+  const [isClientDetailsDialogOpen, setIsClientDetailsDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
   const [canBeDeliveredChecked, setCanBeDeliveredChecked] = useState(false);
+
+  const [clients, setClients] = useState([
+    {
+      id: "1",
+      name: "Grossiste Dakar",
+      type: "local",
+      email: "contact@grossistedakar.sn",
+      phone: "+221 77 123 45 67",
+      address: "Rue 10, Dakar",
+      totalOrders: 28,
+      totalRevenue: 142000,
+      paymentTerms: "30j",
+      status: "actif"
+    },
+    {
+      id: "2",
+      name: "Export Maroc",
+      type: "export",
+      email: "export@marocsel.ma",
+      phone: "+212 6 12 34 56 78",
+      address: "Casablanca, Maroc",
+      totalOrders: 12,
+      totalRevenue: 185000,
+      paymentTerms: "60j",
+      status: "actif"
+    },
+    {
+      id: "3",
+      name: "Industrie Chimique SN",
+      type: "local",
+      email: "achats@chimiesn.com",
+      phone: "+221 77 987 65 43",
+      address: "Zone Industrielle, Thiès",
+      totalOrders: 8,
+      totalRevenue: 98500,
+      paymentTerms: "45j",
+      status: "actif"
+    }
+  ]);
+
+  const [clientFormData, setClientFormData] = useState({
+    name: "",
+    type: "",
+    email: "",
+    phone: "",
+    address: "",
+    paymentTerms: "",
+    taxId: "",
+    notes: ""
+  });
 
   const [orders, setOrders] = useState<Order[]>([
     {
@@ -248,6 +301,44 @@ const Commercial = () => {
       title: "Livraison effectuée",
       description: "Le stock a été automatiquement décrémenté",
     });
+  };
+
+  const handleClientSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newClient = {
+      id: Date.now().toString(),
+      name: clientFormData.name,
+      type: clientFormData.type,
+      email: clientFormData.email,
+      phone: clientFormData.phone,
+      address: clientFormData.address,
+      totalOrders: 0,
+      totalRevenue: 0,
+      paymentTerms: clientFormData.paymentTerms,
+      status: "actif"
+    };
+
+    setClients([...clients, newClient]);
+    toast({
+      title: "Client créé",
+      description: `${clientFormData.name} a été ajouté avec succès`,
+    });
+    setIsNewClientDialogOpen(false);
+    setClientFormData({
+      name: "",
+      type: "",
+      email: "",
+      phone: "",
+      address: "",
+      paymentTerms: "",
+      taxId: "",
+      notes: ""
+    });
+  };
+
+  const handleViewClientDetails = (client: any) => {
+    setSelectedClient(client);
+    setIsClientDetailsDialogOpen(true);
   };
 
   return (
@@ -503,6 +594,201 @@ const Commercial = () => {
             </DialogContent>
           </Dialog>
 
+          {/* Dialog Nouveau Client */}
+          <Dialog open={isNewClientDialogOpen} onOpenChange={setIsNewClientDialogOpen}>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Nouveau client</DialogTitle>
+                <DialogDescription>
+                  Ajouter un nouveau client
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleClientSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="clientNameForm">Nom du client *</Label>
+                  <Input
+                    id="clientNameForm"
+                    value={clientFormData.name}
+                    onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
+                    placeholder="Ex: Grossiste Dakar"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="clientTypeForm">Type de client *</Label>
+                  <Select 
+                    value={clientFormData.type} 
+                    onValueChange={(value) => setClientFormData({...clientFormData, type: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="local">Local</SelectItem>
+                      <SelectItem value="export">Export</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="clientEmail">Email *</Label>
+                    <Input
+                      id="clientEmail"
+                      type="email"
+                      value={clientFormData.email}
+                      onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})}
+                      placeholder="contact@client.com"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="clientPhone">Téléphone *</Label>
+                    <Input
+                      id="clientPhone"
+                      type="tel"
+                      value={clientFormData.phone}
+                      onChange={(e) => setClientFormData({...clientFormData, phone: e.target.value})}
+                      placeholder="+221 77 123 45 67"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="clientAddress">Adresse</Label>
+                  <Input
+                    id="clientAddress"
+                    value={clientFormData.address}
+                    onChange={(e) => setClientFormData({...clientFormData, address: e.target.value})}
+                    placeholder="Adresse complète"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="clientPaymentTerms">Conditions de paiement</Label>
+                    <Select 
+                      value={clientFormData.paymentTerms} 
+                      onValueChange={(value) => setClientFormData({...clientFormData, paymentTerms: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="comptant">Comptant</SelectItem>
+                        <SelectItem value="30j">30 jours</SelectItem>
+                        <SelectItem value="60j">60 jours</SelectItem>
+                        <SelectItem value="90j">90 jours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="clientTaxId">N° fiscal</Label>
+                    <Input
+                      id="clientTaxId"
+                      value={clientFormData.taxId}
+                      onChange={(e) => setClientFormData({...clientFormData, taxId: e.target.value})}
+                      placeholder="Numéro d'identification"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="clientNotes">Notes</Label>
+                  <Textarea
+                    id="clientNotes"
+                    value={clientFormData.notes}
+                    onChange={(e) => setClientFormData({...clientFormData, notes: e.target.value})}
+                    placeholder="Informations complémentaires..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsNewClientDialogOpen(false)} className="flex-1">
+                    Annuler
+                  </Button>
+                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">
+                    Créer le client
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Détails Client */}
+          <Dialog open={isClientDetailsDialogOpen} onOpenChange={setIsClientDetailsDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Détails du client</DialogTitle>
+                <DialogDescription>
+                  Informations complètes du client
+                </DialogDescription>
+              </DialogHeader>
+              {selectedClient && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                    <div>
+                      <p className="font-semibold text-lg">{selectedClient.name}</p>
+                      <Badge variant="outline" className="mt-1">
+                        {selectedClient.type === "local" ? "Local" : "Export"}
+                      </Badge>
+                    </div>
+                    <Badge variant={selectedClient.status === "actif" ? "default" : "outline"}>
+                      {selectedClient.status}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Email</Label>
+                      <p className="font-medium">{selectedClient.email}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Téléphone</Label>
+                      <p className="font-medium">{selectedClient.phone}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Adresse</Label>
+                    <p className="font-medium">{selectedClient.address}</p>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <Label className="text-xs text-muted-foreground">Statistiques</Label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex justify-between p-2 bg-muted/20 rounded">
+                        <span className="text-sm">Total commandes</span>
+                        <span className="text-sm font-medium">{selectedClient.totalOrders}</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-muted/20 rounded">
+                        <span className="text-sm">Chiffre d'affaires</span>
+                        <span className="text-sm font-medium text-primary">{selectedClient.totalRevenue.toLocaleString()} FCFA</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-muted/20 rounded">
+                        <span className="text-sm">Conditions de paiement</span>
+                        <span className="text-sm font-medium">{selectedClient.paymentTerms}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <Button variant="outline" onClick={() => setIsClientDetailsDialogOpen(false)} className="flex-1">
+                      Fermer
+                    </Button>
+                    <Button className="flex-1 bg-gradient-to-r from-primary to-accent">
+                      Modifier
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Gestion Commerciale</h1>
@@ -517,7 +803,7 @@ const Commercial = () => {
           </div>
 
           <Tabs defaultValue="commandes" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="commandes" className="gap-2">
                 <ShoppingCart className="h-4 w-4" />
                 Commandes
@@ -529,6 +815,10 @@ const Commercial = () => {
               <TabsTrigger value="livraison" className="gap-2">
                 <Truck className="h-4 w-4" />
                 Livraison
+              </TabsTrigger>
+              <TabsTrigger value="clients" className="gap-2">
+                <Users className="h-4 w-4" />
+                Clients
               </TabsTrigger>
             </TabsList>
 
@@ -709,6 +999,69 @@ const Commercial = () => {
                         Aucune commande prête à être livrée
                       </p>
                     )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Onglet Clients */}
+            <TabsContent value="clients" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Liste des clients</CardTitle>
+                    <Button onClick={() => setIsNewClientDialogOpen(true)} size="sm" className="gap-2 bg-gradient-to-r from-primary to-accent">
+                      <Plus className="h-4 w-4" />
+                      Nouveau client
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {clients.map((client) => (
+                      <div key={client.id} className="p-4 border rounded-lg space-y-3 hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-lg">{client.name}</p>
+                            <p className="text-sm text-muted-foreground">{client.email}</p>
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <Badge variant="outline">
+                              {client.type === "local" ? "Local" : "Export"}
+                            </Badge>
+                            <Badge variant={client.status === "actif" ? "default" : "outline"}>
+                              {client.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Téléphone</p>
+                            <p className="font-medium">{client.phone}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Commandes</p>
+                            <p className="font-medium">{client.totalOrders}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">CA Total</p>
+                            <p className="font-medium text-primary">{client.totalRevenue.toLocaleString()} FCFA</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Paiement</p>
+                            <p className="font-medium">{client.paymentTerms}</p>
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => handleViewClientDetails(client)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                        >
+                          Voir détails
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
