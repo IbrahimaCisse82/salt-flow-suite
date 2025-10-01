@@ -107,6 +107,22 @@ export const Sidebar = () => {
         })}
       </nav>
       
+      {/* Bouton toggle au-dessus de la ligne */}
+      <div className="p-2 flex justify-end">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggle}
+          title={isOpen ? "Réduire" : "Agrandir"}
+        >
+          {isOpen ? (
+            <PanelLeftClose className="h-5 w-5" />
+          ) : (
+            <PanelLeft className="h-5 w-5" />
+          )}
+        </Button>
+      </div>
+      
       {/* Afficher le widget campagne uniquement pour les non-admins et en mode ouvert */}
       {userRole !== 'admin' && isOpen && (
         <div className="border-t p-4">
@@ -119,23 +135,6 @@ export const Sidebar = () => {
           </div>
         </div>
       )}
-      
-      {/* Bouton toggle en bas */}
-      <div className="border-t p-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-full"
-          onClick={toggle}
-          title={isOpen ? "Réduire" : "Agrandir"}
-        >
-          {isOpen ? (
-            <PanelLeftClose className="h-5 w-5" />
-          ) : (
-            <PanelLeft className="h-5 w-5" />
-          )}
-        </Button>
-      </div>
     </aside>
   );
 };
