@@ -441,6 +441,34 @@ const Parametres = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Section Logo */}
+                <div className="space-y-2">
+                  <Label>Logo de l'entreprise</Label>
+                  <div className="flex items-center gap-4">
+                    {tenantData.logo_url && (
+                      <div className="h-24 w-24 rounded-lg border-2 border-border overflow-hidden bg-background">
+                        <img 
+                          src={tenantData.logo_url} 
+                          alt="Logo entreprise" 
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        disabled={isUploadingLogo}
+                        className="cursor-pointer"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        L'image sera automatiquement recadrée en format carré (400x400px)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="company">Nom de l'entreprise</Label>
@@ -527,34 +555,6 @@ const Parametres = () => {
               </CardTitle>
             </CardHeader>
               <CardContent className="space-y-4">
-                {/* Section Logo */}
-                <div className="space-y-2">
-                  <Label>Logo de l'entreprise</Label>
-                  <div className="flex items-center gap-4">
-                    {tenantData.logo_url && (
-                      <div className="h-24 w-24 rounded-lg border-2 border-border overflow-hidden bg-background">
-                        <img 
-                          src={tenantData.logo_url} 
-                          alt="Logo entreprise" 
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        disabled={isUploadingLogo}
-                        className="cursor-pointer"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        L'image sera automatiquement recadrée en format carré (400x400px)
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nom complet</Label>
