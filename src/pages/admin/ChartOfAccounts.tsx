@@ -40,15 +40,21 @@ export default function ChartOfAccounts() {
     queryFn: async () => {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tenant_id')
+        .select('tenant_id, role')
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .single();
 
-      const { data, error } = await supabase
+      // Les admins peuvent voir tous les comptes
+      let query = supabase
         .from('chart_of_accounts')
-        .select('*')
-        .eq('tenant_id', profile?.tenant_id)
-        .order('account_number');
+        .select('*');
+      
+      // Si ce n'est pas un admin, filtrer par tenant
+      if (profile?.role !== 'admin') {
+        query = query.eq('tenant_id', profile?.tenant_id);
+      }
+
+      const { data, error } = await query.order('account_number');
       
       if (error) throw error;
       return data;
@@ -63,10 +69,13 @@ export default function ChartOfAccounts() {
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .single();
 
+      // Pour les admins, utiliser un tenant_id fictif ou null
+      const tenantId = profile?.tenant_id || '00000000-0000-0000-0000-000000000000';
+
       const { error } = await supabase
         .from('chart_of_accounts')
         .insert({
-          tenant_id: profile?.tenant_id,
+          tenant_id: tenantId,
           ...newAccount
         });
       
