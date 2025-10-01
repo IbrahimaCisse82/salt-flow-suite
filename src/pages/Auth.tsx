@@ -121,36 +121,28 @@ const Auth = () => {
       
       setLoading(true);
 
-      // 1) Créer l'utilisateur d'abord pour obtenir une session (RLS)
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: signupEmail,
-        password: signupPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: signupFullName.trim(),
-            role: 'gerant'
-          }
+      // 1) Créer l'utilisateur via une Edge Function (pas d'email requis)
+      const { data: createData, error: createErr } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: signupEmail,
+          password: signupPassword,
+          full_name: signupFullName.trim(),
+          role: 'gerant',
         }
       });
 
-      if (signUpError) {
-        if (signUpError.message.includes("User already registered")) {
-          throw new Error("Cet email est déjà utilisé");
-        }
-        throw signUpError;
-      }
+      if (createErr) throw createErr;
+      if (!createData?.user?.id) throw new Error("Création utilisateur échouée");
 
-      // Si la confirmation d'email est activée, pas de session -> ne pas créer de tenant maintenant
-      if (!signUpData.session) {
-        toast({
-          title: "Vérification requise",
-          description: "Veuillez vérifier votre email pour activer votre compte. Vous pourrez finaliser la création de l'entreprise après connexion.",
-        });
-        return;
-      }
+      // 2) Se connecter pour obtenir une session (requis par RLS)
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: signupEmail,
+        password: signupPassword,
+      });
+      if (signInError) throw signInError;
+      if (!signInData.session) throw new Error("Impossible d'ouvrir une session");
 
-      // 2) Avec la session, créer le tenant (RLS: INSERT autorisé pour authenticated)
+      // 3) Créer le tenant
       const tenantId = crypto.randomUUID();
 
       const slugify = (str: string) =>
@@ -203,8 +195,8 @@ const Auth = () => {
 
       if (tenantError) throw tenantError;
 
-      // 3) Lier le profil utilisateur au tenant et s'assurer du rôle 'gerant'
-      const user = signUpData.session.user;
+      // 4) Lier le profil utilisateur au tenant et au rôle
+      const user = signInData.session.user;
       const { error: profileUpdateError } = await supabase
         .from('profiles')
         .update({ tenant_id: tenantId, role: 'gerant', full_name: signupFullName.trim(), email: signupEmail })

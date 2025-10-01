@@ -80,39 +80,30 @@ export default function AdminSetup() {
       
       setLoading(true);
 
-      // Créer l'utilisateur administrateur
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/admin`,
-          data: {
-            full_name: fullName.trim(),
-            role: 'admin',
-            tenant_id: null
-          }
+      // Créer l'utilisateur administrateur via Edge Function (pas d'email requis)
+      const { data: createData, error: createErr } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: email.trim(),
+          password,
+          full_name: fullName.trim(),
+          role: 'admin',
         }
       });
 
-      if (error) {
-        if (error.message.includes("User already registered")) {
-          throw new Error("Cet email est déjà utilisé");
-        }
-        throw error;
-      }
+      if (createErr) throw createErr;
 
-      if (data.session) {
-        toast({
-          title: "Administrateur créé",
-          description: "Compte administrateur créé avec succès",
-        });
-        navigate("/admin");
-      } else {
-        toast({
-          title: "Vérification requise",
-          description: "Veuillez vérifier votre email pour activer votre compte",
-        });
-      }
+      // Se connecter directement
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (signInError) throw signInError;
+
+      toast({
+        title: "Administrateur créé",
+        description: "Compte administrateur créé avec succès",
+      });
+      navigate("/admin");
     } catch (error: any) {
       console.error("Admin setup error:", error);
       toast({
