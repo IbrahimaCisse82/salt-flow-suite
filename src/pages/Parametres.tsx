@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { UserRole } from "@/utils/permissions";
 import { 
   Settings,
   Bell,
@@ -76,6 +77,9 @@ const Parametres = () => {
       return { user, profile };
     }
   });
+
+  const userRole = currentUser?.profile?.role as UserRole | null;
+  const isGerant = userRole === 'gerant';
 
   // Récupérer les données du tenant
   const { data: tenant } = useQuery({
@@ -287,65 +291,67 @@ const Parametres = () => {
           </div>
 
           {/* Informations entreprise */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5 text-primary" />
-                Informations entreprise
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="company">Nom de l'entreprise</Label>
-                  <Input 
-                    id="company" 
-                    value={tenantData.name}
-                    onChange={(e) => setTenantData({ ...tenantData, name: e.target.value })}
-                  />
+          {isGerant && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5 text-primary" />
+                  Informations entreprise
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="company">Nom de l'entreprise</Label>
+                    <Input 
+                      id="company" 
+                      value={tenantData.name}
+                      onChange={(e) => setTenantData({ ...tenantData, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email-company">Email</Label>
+                    <Input 
+                      id="email-company" 
+                      type="email"
+                      value={tenantData.contact_email}
+                      onChange={(e) => setTenantData({ ...tenantData, contact_email: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Adresse</Label>
+                    <Input 
+                      id="address" 
+                      value={tenantData.address}
+                      onChange={(e) => setTenantData({ ...tenantData, address: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone-company">Téléphone</Label>
+                    <Input 
+                      id="phone-company" 
+                      value={tenantData.contact_phone}
+                      onChange={(e) => setTenantData({ ...tenantData, contact_phone: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email-company">Email</Label>
-                  <Input 
-                    id="email-company" 
-                    type="email"
-                    value={tenantData.contact_email}
-                    onChange={(e) => setTenantData({ ...tenantData, contact_email: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Adresse</Label>
-                  <Input 
-                    id="address" 
-                    value={tenantData.address}
-                    onChange={(e) => setTenantData({ ...tenantData, address: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone-company">Téléphone</Label>
-                  <Input 
-                    id="phone-company" 
-                    value={tenantData.contact_phone}
-                    onChange={(e) => setTenantData({ ...tenantData, contact_phone: e.target.value })}
-                  />
-                </div>
-              </div>
-              <Button 
-                className="bg-gradient-to-r from-primary to-accent"
-                onClick={() => updateTenantMutation.mutate()}
-                disabled={updateTenantMutation.isPending}
-              >
-                {updateTenantMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Enregistrement...
-                  </>
-                ) : (
-                  "Enregistrer les modifications"
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+                <Button 
+                  className="bg-gradient-to-r from-primary to-accent"
+                  onClick={() => updateTenantMutation.mutate()}
+                  disabled={updateTenantMutation.isPending}
+                >
+                  {updateTenantMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Enregistrement...
+                    </>
+                  ) : (
+                    "Enregistrer les modifications"
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Compte utilisateur */}
           <Card>
@@ -567,66 +573,68 @@ const Parametres = () => {
           </Card>
 
           {/* Données */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5 text-primary" />
-                Gestion des données
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Exporter les données</p>
-                  <p className="text-sm text-muted-foreground">
-                    Télécharger toutes vos données d'exploitation
-                  </p>
+          {isGerant && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5 text-primary" />
+                  Gestion des données
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Exporter les données</p>
+                    <p className="text-sm text-muted-foreground">
+                      Télécharger toutes vos données d'exploitation
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="gap-2"
+                    onClick={handleExportData}
+                  >
+                    <Download className="h-4 w-4" />
+                    Exporter
+                  </Button>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="gap-2"
-                  onClick={handleExportData}
-                >
-                  <Download className="h-4 w-4" />
-                  Exporter
-                </Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Sauvegarde automatique</p>
-                  <p className="text-sm text-muted-foreground">
-                    Sauvegardes quotidiennes de vos données
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Sauvegarde automatique</p>
+                    <p className="text-sm text-muted-foreground">
+                      Sauvegardes quotidiennes de vos données
+                    </p>
+                  </div>
+                  <Switch 
+                    checked={security.autoBackup}
+                    onCheckedChange={(checked) => {
+                      setSecurity({ ...security, autoBackup: checked });
+                      toast({
+                        title: checked ? "Activé" : "Désactivé",
+                        description: checked 
+                          ? "Les sauvegardes automatiques sont activées" 
+                          : "Les sauvegardes automatiques sont désactivées",
+                      });
+                    }}
+                  />
                 </div>
-                <Switch 
-                  checked={security.autoBackup}
-                  onCheckedChange={(checked) => {
-                    setSecurity({ ...security, autoBackup: checked });
-                    toast({
-                      title: checked ? "Activé" : "Désactivé",
-                      description: checked 
-                        ? "Les sauvegardes automatiques sont activées" 
-                        : "Les sauvegardes automatiques sont désactivées",
-                    });
-                  }}
-                />
-              </div>
-              <div className="flex items-center justify-between border-t pt-4">
-                <div>
-                  <p className="font-medium text-destructive">Zone dangereuse</p>
-                  <p className="text-sm text-muted-foreground">
-                    Supprimer définitivement toutes les données
-                  </p>
+                <div className="flex items-center justify-between border-t pt-4">
+                  <div>
+                    <p className="font-medium text-destructive">Zone dangereuse</p>
+                    <p className="text-sm text-muted-foreground">
+                      Supprimer définitivement toutes les données
+                    </p>
+                  </div>
+                  <Button 
+                    variant="destructive"
+                    onClick={handleDeleteAllData}
+                  >
+                    Supprimer
+                  </Button>
                 </div>
-                <Button 
-                  variant="destructive"
-                  onClick={handleDeleteAllData}
-                >
-                  Supprimer
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </main>
       </div>
     </div>
