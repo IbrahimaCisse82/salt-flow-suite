@@ -119,7 +119,7 @@ const Auth = () => {
 
       if (tenantError) throw tenantError;
 
-      // Créer l'utilisateur avec les métadonnées
+      // Créer l'utilisateur avec les métadonnées (Gérant = propriétaire du compte)
       const { data, error } = await supabase.auth.signUp({
         email: signupEmail,
         password: signupPassword,
@@ -128,7 +128,7 @@ const Auth = () => {
           data: {
             full_name: signupFullName.trim(),
             tenant_id: tenantData.id,
-            role: 'admin'
+            role: 'gerant'
           }
         }
       });

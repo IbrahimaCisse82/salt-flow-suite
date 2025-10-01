@@ -15,6 +15,7 @@ import Commercial from "./pages/Commercial";
 import Rapports from "./pages/Rapports";
 import Parametres from "./pages/Parametres";
 import Comptabilite from "./pages/Comptabilite";
+import GestionUtilisateurs from "./pages/GestionUtilisateurs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/rapports" element={<ProtectedRoute><Rapports /></ProtectedRoute>} />
           <Route path="/parametres" element={<ProtectedRoute><Parametres /></ProtectedRoute>} />
           <Route path="/comptabilite" element={<ProtectedRoute><Comptabilite /></ProtectedRoute>} />
+          <Route path="/utilisateurs" element={<ProtectedRoute><GestionUtilisateurs /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
