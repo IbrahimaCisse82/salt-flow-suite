@@ -98,15 +98,18 @@ export const Sidebar = () => {
         })}
       </nav>
       
-      <div className="border-t p-4">
-        <div className="rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 p-4">
-          <p className="text-sm font-medium mb-1">Campagne 2025</p>
-          <p className="text-xs text-muted-foreground">85% complété</p>
-          <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
-            <div className="h-full w-[85%] bg-gradient-to-r from-primary to-accent rounded-full" />
+      {/* Afficher le widget campagne uniquement pour les non-admins */}
+      {userRole !== 'admin' && (
+        <div className="border-t p-4">
+          <div className="rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 p-4">
+            <p className="text-sm font-medium mb-1">Campagne 2025</p>
+            <p className="text-xs text-muted-foreground">85% complété</p>
+            <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
+              <div className="h-full w-[85%] bg-gradient-to-r from-primary to-accent rounded-full" />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </aside>
   );
 };
