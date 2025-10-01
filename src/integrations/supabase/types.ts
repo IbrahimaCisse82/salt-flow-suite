@@ -1252,6 +1252,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_user_tenant_id: {
+        Args: { _user_id: string }
+        Returns: string
+      }
+      is_manager_or_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       update_own_profile: {
         Args: { _avatar_url?: string; _full_name?: string; _phone?: string }
         Returns: undefined

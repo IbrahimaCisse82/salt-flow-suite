@@ -62,6 +62,25 @@ Deno.serve(async (req) => {
       )
     }
 
+    // SECURITY: Role hierarchy validation - prevent privilege escalation
+    // Gerants cannot create admin users or other gerants
+    const allowedRoles = ['commercial', 'comptable', 'production']
+    if (profile.role === 'gerant' && !allowedRoles.includes(role)) {
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé - vous ne pouvez créer que des utilisateurs commerciaux, comptables ou de production' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validate role is a valid value
+    const validRoles = ['admin', 'gerant', 'commercial', 'comptable', 'production']
+    if (!validRoles.includes(role)) {
+      return new Response(
+        JSON.stringify({ error: 'Rôle invalide' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Créer l'utilisateur avec l'API Admin
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
