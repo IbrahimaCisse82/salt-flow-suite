@@ -61,7 +61,7 @@ const Comptabilite = () => {
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
-  const [transactionType, setTransactionType] = useState<"depense" | "vente_locale" | "vente_export">("depense");
+  const [transactionType, setTransactionType] = useState<"depense" | "virement_interne" | "divers">("depense");
   const [paymentFormData, setPaymentFormData] = useState({
     accountId: "",
     paymentDate: "",
@@ -168,23 +168,14 @@ const Comptabilite = () => {
                 Gestion des comptes et transactions
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline"
-                className="gap-2"
-                onClick={() => setShowAccountDialog(true)}
-              >
-                <Plus className="h-4 w-4" />
-                Nouveau compte
-              </Button>
-              <Button 
-                className="gap-2 bg-gradient-to-r from-primary to-accent"
-                onClick={() => setShowTransactionDialog(true)}
-              >
-                <Plus className="h-4 w-4" />
-                Nouvelle transaction
-              </Button>
-            </div>
+            <Button 
+              variant="outline"
+              className="gap-2"
+              onClick={() => setShowAccountDialog(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Nouveau compte
+            </Button>
           </div>
 
           {/* Vue d'ensemble des comptes */}
@@ -258,42 +249,216 @@ const Comptabilite = () => {
             </CardContent>
           </Card>
 
-          {/* Transactions récentes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Transactions récentes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {recentTransactions.map((transaction) => (
-                  <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg border">
-                    <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                        transaction.type === "depense" ? "bg-red-100" : "bg-green-100"
-                      }`}>
-                        {transaction.type === "depense" ? (
-                          <TrendingDown className="h-5 w-5 text-red-600" />
-                        ) : (
-                          <TrendingUp className="h-5 w-5 text-green-600" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-semibold">{transaction.description}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {transaction.date} • {transaction.account}
+          {/* Onglets principaux */}
+          <Tabs defaultValue="depenses" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="depenses">Dépenses</TabsTrigger>
+              <TabsTrigger value="vente">Vente</TabsTrigger>
+              <TabsTrigger value="virement">Virement interne</TabsTrigger>
+              <TabsTrigger value="divers">Divers</TabsTrigger>
+            </TabsList>
+
+            {/* Onglet Dépenses */}
+            <TabsContent value="depenses" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Dépenses</h2>
+                <Button 
+                  className="gap-2 bg-gradient-to-r from-primary to-accent"
+                  onClick={() => {
+                    setTransactionType("depense");
+                    setShowTransactionDialog(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Nouvelle transaction
+                </Button>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Transactions récentes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {recentTransactions.filter(t => t.type === "depense").map((transaction) => (
+                      <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg border">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                            <TrendingDown className="h-5 w-5 text-red-600" />
+                          </div>
+                          <div>
+                            <p className="font-semibold">{transaction.description}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {transaction.date} • {transaction.account}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-lg font-bold text-red-600">
+                          -{transaction.amount.toLocaleString()} FCFA
                         </p>
                       </div>
-                    </div>
-                    <p className={`text-lg font-bold ${
-                      transaction.type === "depense" ? "text-red-600" : "text-green-600"
-                    }`}>
-                      {transaction.type === "depense" ? "-" : "+"}{transaction.amount.toLocaleString()} FCFA
-                    </p>
+                    ))}
                   </div>
-                ))}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Onglet Vente */}
+            <TabsContent value="vente" className="space-y-4">
+              <h2 className="text-xl font-semibold">Ventes</h2>
+
+              <Tabs defaultValue="vente_locale">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="vente_locale">Vente Locale</TabsTrigger>
+                  <TabsTrigger value="vente_export">Vente Export</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="vente_locale" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Factures en attente de paiement - Vente Locale</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {pendingInvoices.filter(inv => inv.clientType === "local" && inv.balance > 0).map((invoice) => (
+                          <div key={invoice.id} className="p-4 border rounded-lg space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold">{invoice.clientName}</p>
+                                <p className="text-sm text-muted-foreground">Facture {invoice.id} - {invoice.invoiceDate}</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <p className="text-muted-foreground">Montant total</p>
+                                <p className="font-medium">{invoice.totalAmount.toLocaleString()} FCFA</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Déjà payé</p>
+                                <p className="font-medium text-green-600">{invoice.amountPaid.toLocaleString()} FCFA</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Reste à payer</p>
+                                <p className="font-medium text-orange-600">{invoice.balance.toLocaleString()} FCFA</p>
+                              </div>
+                              <div className="flex items-end justify-end">
+                                <Button 
+                                  size="sm"
+                                  onClick={() => handleOpenPayment(invoice)}
+                                >
+                                  Enregistrer un paiement
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="vente_export" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Factures en attente de paiement - Vente Export</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {pendingInvoices.filter(inv => inv.clientType === "export" && inv.balance > 0).map((invoice) => (
+                          <div key={invoice.id} className="p-4 border rounded-lg space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold">{invoice.clientName}</p>
+                                <p className="text-sm text-muted-foreground">Facture {invoice.id} - {invoice.invoiceDate}</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <p className="text-muted-foreground">Montant total</p>
+                                <p className="font-medium">{invoice.totalAmount.toLocaleString()} FCFA</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Déjà payé</p>
+                                <p className="font-medium text-green-600">{invoice.amountPaid.toLocaleString()} FCFA</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Reste à payer</p>
+                                <p className="font-medium text-orange-600">{invoice.balance.toLocaleString()} FCFA</p>
+                              </div>
+                              <div className="flex items-end justify-end">
+                                <Button 
+                                  size="sm"
+                                  onClick={() => handleOpenPayment(invoice)}
+                                >
+                                  Enregistrer un paiement
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </TabsContent>
+
+            {/* Onglet Virement interne */}
+            <TabsContent value="virement" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Virements internes</h2>
+                <Button 
+                  className="gap-2 bg-gradient-to-r from-primary to-accent"
+                  onClick={() => {
+                    setTransactionType("virement_interne");
+                    setShowTransactionDialog(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Nouvelle transaction
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Historique des virements</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <p className="text-muted-foreground text-center py-8">Aucun virement enregistré</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Onglet Divers */}
+            <TabsContent value="divers" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Écritures diverses</h2>
+                <Button 
+                  className="gap-2 bg-gradient-to-r from-primary to-accent"
+                  onClick={() => {
+                    setTransactionType("divers");
+                    setShowTransactionDialog(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Nouvelle transaction
+                </Button>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Régularisations comptables</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <p className="text-muted-foreground text-center py-8">Aucune écriture diverse enregistrée</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
 
           {/* Dialog Nouveau Compte */}
           <Dialog open={showAccountDialog} onOpenChange={setShowAccountDialog}>
@@ -352,21 +517,21 @@ const Comptabilite = () => {
           <Dialog open={showTransactionDialog} onOpenChange={setShowTransactionDialog}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Enregistrer une transaction</DialogTitle>
+                <DialogTitle>
+                  {transactionType === "depense" && "Enregistrer une dépense"}
+                  {transactionType === "virement_interne" && "Enregistrer un virement interne"}
+                  {transactionType === "divers" && "Enregistrer une écriture diverse"}
+                </DialogTitle>
                 <DialogDescription>
-                  Ajoutez une dépense ou une vente
+                  {transactionType === "depense" && "Ajoutez une nouvelle dépense"}
+                  {transactionType === "virement_interne" && "Transférer des fonds entre comptes"}
+                  {transactionType === "divers" && "Enregistrer une régularisation comptable"}
                 </DialogDescription>
               </DialogHeader>
               
-              <Tabs defaultValue="depense" onValueChange={(value) => setTransactionType(value as any)}>
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="depense">Dépense</TabsTrigger>
-                  <TabsTrigger value="vente_locale">Vente Locale</TabsTrigger>
-                  <TabsTrigger value="vente_export">Vente Export</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="depense" className="space-y-4">
-                  <div className="space-y-4">
+              <div className="space-y-4">
+                {transactionType === "depense" && (
+                  <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="depense-date">Date</Label>
@@ -415,196 +580,108 @@ const Comptabilite = () => {
                       <Label htmlFor="depense-notes">Notes (optionnel)</Label>
                       <Textarea id="depense-notes" placeholder="Notes supplémentaires..." />
                     </div>
-                  </div>
-                </TabsContent>
+                  </>
+                )}
 
-                <TabsContent value="vente_locale" className="space-y-4">
-                  <div className="space-y-6">
-                    {/* Factures en attente */}
-                    <div>
-                      <h3 className="font-semibold mb-3">Factures en attente de paiement</h3>
-                      <div className="space-y-3">
-                        {pendingInvoices.filter(inv => inv.clientType === "local" && inv.balance > 0).map((invoice) => (
-                          <div key={invoice.id} className="p-4 border rounded-lg space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-semibold">{invoice.clientName}</p>
-                                <p className="text-sm text-muted-foreground">Facture {invoice.id} - {invoice.invoiceDate}</p>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-4 gap-4 text-sm">
-                              <div>
-                                <p className="text-muted-foreground">Montant total</p>
-                                <p className="font-medium">{invoice.totalAmount.toLocaleString()} FCFA</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Déjà payé</p>
-                                <p className="font-medium text-green-600">{invoice.amountPaid.toLocaleString()} FCFA</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Reste à payer</p>
-                                <p className="font-medium text-primary">{invoice.balance.toLocaleString()} FCFA</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Produit</p>
-                                <p className="font-medium">{invoice.saltType} ({invoice.quantity}t)</p>
-                              </div>
-                            </div>
-                            <Button 
-                              onClick={() => handleOpenPayment(invoice)}
-                              className="w-full bg-gradient-to-r from-primary to-accent"
-                              size="sm"
-                            >
-                              <DollarSign className="h-4 w-4 mr-2" />
-                              Enregistrer un paiement
-                            </Button>
-                          </div>
-                        ))}
-                        {pendingInvoices.filter(inv => inv.clientType === "local" && inv.balance > 0).length === 0 && (
-                          <p className="text-center text-muted-foreground py-4">Aucune facture en attente</p>
-                        )}
+                {transactionType === "virement_interne" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="virement-date">Date</Label>
+                      <Input id="virement-date" type="date" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="virement-from">Compte source</Label>
+                      <Select>
+                        <SelectTrigger id="virement-from">
+                          <SelectValue placeholder="Sélectionnez le compte source" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          {accounts.map((account) => (
+                            <SelectItem key={account.id} value={account.id}>
+                              {account.name} ({account.balance.toLocaleString()} FCFA)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="virement-to">Compte destination</Label>
+                      <Select>
+                        <SelectTrigger id="virement-to">
+                          <SelectValue placeholder="Sélectionnez le compte destination" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          {accounts.map((account) => (
+                            <SelectItem key={account.id} value={account.id}>
+                              {account.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="virement-amount">Montant (FCFA)</Label>
+                      <Input id="virement-amount" type="number" placeholder="0" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="virement-notes">Notes (optionnel)</Label>
+                      <Textarea id="virement-notes" placeholder="Notes supplémentaires..." />
+                    </div>
+                  </>
+                )}
+
+                {transactionType === "divers" && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="divers-date">Date</Label>
+                        <Input id="divers-date" type="date" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="divers-account">Compte</Label>
+                        <Select>
+                          <SelectTrigger id="divers-account">
+                            <SelectValue placeholder="Sélectionnez un compte" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50">
+                            {accounts.map((account) => (
+                              <SelectItem key={account.id} value={account.id}>
+                                {account.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
-
-                    {/* Formulaire de transaction manuelle */}
-                    <div className="pt-6 border-t">
-                      <h3 className="font-semibold mb-3">Enregistrer une transaction manuelle</h3>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="vente-locale-date">Date</Label>
-                            <Input id="vente-locale-date" type="date" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="vente-locale-account">Compte</Label>
-                            <Select>
-                              <SelectTrigger id="vente-locale-account">
-                                <SelectValue placeholder="Sélectionnez un compte" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-background z-50">
-                                {accounts.map((account) => (
-                                  <SelectItem key={account.id} value={account.id}>
-                                    {account.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vente-locale-description">Description</Label>
-                          <Input id="vente-locale-description" placeholder="Ex: Vente sel gros - Client ABC" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vente-locale-amount">Montant (FCFA)</Label>
-                          <Input id="vente-locale-amount" type="number" placeholder="0" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vente-locale-reference">Référence (optionnel)</Label>
-                          <Input id="vente-locale-reference" placeholder="Ex: Facture #123" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vente-locale-notes">Notes (optionnel)</Label>
-                          <Textarea id="vente-locale-notes" placeholder="Notes supplémentaires..." />
-                        </div>
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="divers-type">Type d'écriture</Label>
+                      <Select>
+                        <SelectTrigger id="divers-type">
+                          <SelectValue placeholder="Sélectionnez le type" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          <SelectItem value="correction">Correction d'erreur</SelectItem>
+                          <SelectItem value="ajustement">Ajustement de solde</SelectItem>
+                          <SelectItem value="provision">Provision</SelectItem>
+                          <SelectItem value="depreciation">Amortissement</SelectItem>
+                          <SelectItem value="autre">Autre</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="vente_export" className="space-y-4">
-                  <div className="space-y-6">
-                    {/* Factures en attente */}
-                    <div>
-                      <h3 className="font-semibold mb-3">Factures en attente de paiement</h3>
-                      <div className="space-y-3">
-                        {pendingInvoices.filter(inv => inv.clientType === "export" && inv.balance > 0).map((invoice) => (
-                          <div key={invoice.id} className="p-4 border rounded-lg space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-semibold">{invoice.clientName}</p>
-                                <p className="text-sm text-muted-foreground">Facture {invoice.id} - {invoice.invoiceDate}</p>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-4 gap-4 text-sm">
-                              <div>
-                                <p className="text-muted-foreground">Montant total</p>
-                                <p className="font-medium">{invoice.totalAmount.toLocaleString()} FCFA</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Déjà payé</p>
-                                <p className="font-medium text-green-600">{invoice.amountPaid.toLocaleString()} FCFA</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Reste à payer</p>
-                                <p className="font-medium text-primary">{invoice.balance.toLocaleString()} FCFA</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Produit</p>
-                                <p className="font-medium">{invoice.saltType} ({invoice.quantity}t)</p>
-                              </div>
-                            </div>
-                            <Button 
-                              onClick={() => handleOpenPayment(invoice)}
-                              className="w-full bg-gradient-to-r from-primary to-accent"
-                              size="sm"
-                            >
-                              <DollarSign className="h-4 w-4 mr-2" />
-                              Enregistrer un paiement
-                            </Button>
-                          </div>
-                        ))}
-                        {pendingInvoices.filter(inv => inv.clientType === "export" && inv.balance > 0).length === 0 && (
-                          <p className="text-center text-muted-foreground py-4">Aucune facture en attente</p>
-                        )}
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="divers-description">Description</Label>
+                      <Input id="divers-description" placeholder="Description de la régularisation" />
                     </div>
-
-                    {/* Formulaire de transaction manuelle */}
-                    <div className="pt-6 border-t">
-                      <h3 className="font-semibold mb-3">Enregistrer une transaction manuelle</h3>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="vente-export-date">Date</Label>
-                            <Input id="vente-export-date" type="date" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="vente-export-account">Compte</Label>
-                            <Select>
-                              <SelectTrigger id="vente-export-account">
-                                <SelectValue placeholder="Sélectionnez un compte" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-background z-50">
-                                {accounts.map((account) => (
-                                  <SelectItem key={account.id} value={account.id}>
-                                    {account.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vente-export-description">Description</Label>
-                          <Input id="vente-export-description" placeholder="Ex: Vente sel export - Client XYZ" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vente-export-amount">Montant (FCFA)</Label>
-                          <Input id="vente-export-amount" type="number" placeholder="0" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vente-export-reference">Référence (optionnel)</Label>
-                          <Input id="vente-export-reference" placeholder="Ex: Facture #123" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="vente-export-notes">Notes (optionnel)</Label>
-                          <Textarea id="vente-export-notes" placeholder="Notes supplémentaires..." />
-                        </div>
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="divers-amount">Montant (FCFA)</Label>
+                      <Input id="divers-amount" type="number" placeholder="0" />
                     </div>
-                  </div>
-                </TabsContent>
+                    <div className="space-y-2">
+                      <Label htmlFor="divers-notes">Notes (optionnel)</Label>
+                      <Textarea id="divers-notes" placeholder="Notes supplémentaires..." />
+                    </div>
+                  </>
+                )}
 
                 <div className="flex gap-2 pt-4 border-t">
                   <Button 
@@ -621,7 +698,7 @@ const Comptabilite = () => {
                     Enregistrer
                   </Button>
                 </div>
-              </Tabs>
+              </div>
             </DialogContent>
           </Dialog>
 
