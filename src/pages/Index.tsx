@@ -14,8 +14,12 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 
 const Index = () => {
+  const { isOpen } = useSidebar();
+  
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -23,7 +27,10 @@ const Index = () => {
       <div className="flex">
         <Sidebar />
         
-        <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 md:ml-64">
+        <main className={cn(
+          "flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
           {/* Hero Section */}
           <div className="rounded-2xl bg-gradient-to-br from-primary via-primary to-accent p-4 sm:p-8 text-primary-foreground shadow-elevated">
             <div className="flex flex-col sm:flex-row items-start justify-between gap-4">

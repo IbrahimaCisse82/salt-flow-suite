@@ -11,7 +11,9 @@ import {
   Wallet,
   UserCog,
   Building2,
-  BookOpen
+  BookOpen,
+  PanelLeft,
+  PanelLeftClose
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -51,7 +53,7 @@ const salinesNavItems: NavItem[] = [
 export const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isOpen } = useSidebar();
+  const { isOpen, toggle } = useSidebar();
 
   // Récupérer le rôle de l'utilisateur actuel
   const { data: userRole } = useQuery({
@@ -80,10 +82,10 @@ export const Sidebar = () => {
 
   return (
     <aside className={cn(
-      "hidden md:flex w-64 flex-col border-r bg-card fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-40 transition-transform duration-300",
-      !isOpen && "-translate-x-full"
+      "hidden md:flex flex-col border-r bg-card fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-40 transition-all duration-300",
+      isOpen ? "w-64" : "w-16"
     )}>
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 space-y-1 p-2">
         {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.href;
           return (
@@ -91,20 +93,22 @@ export const Sidebar = () => {
               key={item.href}
               variant={isActive ? "secondary" : "ghost"}
               className={cn(
-                "w-full justify-start gap-3",
-                isActive && "bg-secondary/80"
+                "w-full gap-3",
+                isActive && "bg-secondary/80",
+                isOpen ? "justify-start" : "justify-center px-0"
               )}
               onClick={() => navigate(item.href)}
+              title={!isOpen ? item.label : undefined}
             >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
+              <item.icon className="h-5 w-5 flex-shrink-0" />
+              {isOpen && <span>{item.label}</span>}
             </Button>
           );
         })}
       </nav>
       
-      {/* Afficher le widget campagne uniquement pour les non-admins */}
-      {userRole !== 'admin' && (
+      {/* Afficher le widget campagne uniquement pour les non-admins et en mode ouvert */}
+      {userRole !== 'admin' && isOpen && (
         <div className="border-t p-4">
           <div className="rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 p-4">
             <p className="text-sm font-medium mb-1">Campagne 2025</p>
@@ -115,6 +119,23 @@ export const Sidebar = () => {
           </div>
         </div>
       )}
+      
+      {/* Bouton toggle en bas */}
+      <div className="border-t p-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="w-full"
+          onClick={toggle}
+          title={isOpen ? "Réduire" : "Agrandir"}
+        >
+          {isOpen ? (
+            <PanelLeftClose className="h-5 w-5" />
+          ) : (
+            <PanelLeft className="h-5 w-5" />
+          )}
+        </Button>
+      </div>
     </aside>
   );
 };

@@ -162,19 +162,6 @@ export const Header = () => {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hidden md:flex"
-            onClick={toggleSidebar}
-          >
-            {sidebarOpen ? (
-              <PanelLeftClose className="h-5 w-5" />
-            ) : (
-              <PanelLeft className="h-5 w-5" />
-            )}
-          </Button>
           <div className="flex items-center gap-2 min-w-0">
             <div className="rounded-lg bg-gradient-to-br from-primary to-primary-glow p-1.5 sm:p-2 flex-shrink-0">
               <img src={saltLogo} alt="G-Suite Sel Logo" className="h-5 w-5 sm:h-6 sm:w-6 object-contain" />
