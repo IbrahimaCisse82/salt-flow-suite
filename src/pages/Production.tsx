@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/Layout/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Database,
   Plus,
@@ -70,6 +71,15 @@ const recentHarvests = [
 ];
 
 const Production = () => {
+  const { toast } = useToast();
+
+  const handleNewHarvest = () => {
+    toast({
+      title: "Nouvelle récolte",
+      description: "Fonctionnalité d'ajout de récolte à venir",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -85,7 +95,7 @@ const Production = () => {
                 Gestion et traçabilité de la production saline
               </p>
             </div>
-            <Button className="gap-2 bg-gradient-to-r from-primary to-accent">
+            <Button onClick={handleNewHarvest} className="gap-2 bg-gradient-to-r from-primary to-accent">
               <Plus className="h-4 w-4" />
               Nouvelle récolte
             </Button>
