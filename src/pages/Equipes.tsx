@@ -4,6 +4,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import { 
   Users,
   Plus,
@@ -83,6 +102,80 @@ const teams = [
 ];
 
 const Equipes = () => {
+  const { toast } = useToast();
+  const [isAddEmployeeDialogOpen, setIsAddEmployeeDialogOpen] = useState(false);
+  const [isManageTeamDialogOpen, setIsManageTeamDialogOpen] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<any>(null);
+  
+  const [employeeFormData, setEmployeeFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    position: "",
+    employeeType: "",
+    salary: "",
+    hireDate: "",
+    specialization: "",
+    notes: ""
+  });
+
+  const [teamFormData, setTeamFormData] = useState({
+    name: "",
+    leader: "",
+    sector: "",
+    status: "",
+    members: ""
+  });
+
+  const handleAddEmployee = () => {
+    setIsAddEmployeeDialogOpen(true);
+  };
+
+  const handleEmployeeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("New employee submitted:", employeeFormData);
+    toast({
+      title: "Employé ajouté",
+      description: `${employeeFormData.firstName} ${employeeFormData.lastName} a été ajouté avec succès`,
+    });
+    setIsAddEmployeeDialogOpen(false);
+    setEmployeeFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      position: "",
+      employeeType: "",
+      salary: "",
+      hireDate: "",
+      specialization: "",
+      notes: ""
+    });
+  };
+
+  const handleManageTeam = (team: any) => {
+    setSelectedTeam(team);
+    setTeamFormData({
+      name: team.name,
+      leader: team.leader,
+      sector: team.sector,
+      status: team.status,
+      members: team.members.toString()
+    });
+    setIsManageTeamDialogOpen(true);
+  };
+
+  const handleTeamSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Team updated:", teamFormData);
+    toast({
+      title: "Équipe mise à jour",
+      description: `${teamFormData.name} a été mise à jour avec succès`,
+    });
+    setIsManageTeamDialogOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -91,6 +184,242 @@ const Equipes = () => {
         <Sidebar />
         
         <main className="flex-1 p-6 space-y-6">
+          {/* Dialog Ajouter employé */}
+          <Dialog open={isAddEmployeeDialogOpen} onOpenChange={setIsAddEmployeeDialogOpen}>
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Ajouter un employé</DialogTitle>
+                <DialogDescription>
+                  Enregistrer un nouveau membre de l'équipe
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleEmployeeSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">Prénom</Label>
+                    <Input
+                      id="firstName"
+                      value={employeeFormData.firstName}
+                      onChange={(e) => setEmployeeFormData({...employeeFormData, firstName: e.target.value})}
+                      placeholder="Ex: Mohamed"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Nom</Label>
+                    <Input
+                      id="lastName"
+                      value={employeeFormData.lastName}
+                      onChange={(e) => setEmployeeFormData({...employeeFormData, lastName: e.target.value})}
+                      placeholder="Ex: Diallo"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={employeeFormData.email}
+                      onChange={(e) => setEmployeeFormData({...employeeFormData, email: e.target.value})}
+                      placeholder="Ex: mohamed.diallo@example.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Téléphone</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={employeeFormData.phone}
+                      onChange={(e) => setEmployeeFormData({...employeeFormData, phone: e.target.value})}
+                      placeholder="Ex: +221 77 123 45 67"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="position">Poste</Label>
+                  <Input
+                    id="position"
+                    value={employeeFormData.position}
+                    onChange={(e) => setEmployeeFormData({...employeeFormData, position: e.target.value})}
+                    placeholder="Ex: Chef saunier"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="employeeType">Type d'employé</Label>
+                    <Select 
+                      value={employeeFormData.employeeType} 
+                      onValueChange={(value) => setEmployeeFormData({...employeeFormData, employeeType: value})}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner le type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="permanent">Permanent</SelectItem>
+                        <SelectItem value="temporaire">Temporaire</SelectItem>
+                        <SelectItem value="saisonnier">Saisonnier</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="hireDate">Date d'embauche</Label>
+                    <Input
+                      id="hireDate"
+                      type="date"
+                      value={employeeFormData.hireDate}
+                      onChange={(e) => setEmployeeFormData({...employeeFormData, hireDate: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="salary">Salaire (FCFA)</Label>
+                    <Input
+                      id="salary"
+                      type="number"
+                      value={employeeFormData.salary}
+                      onChange={(e) => setEmployeeFormData({...employeeFormData, salary: e.target.value})}
+                      placeholder="Ex: 150000"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="specialization">Spécialisation</Label>
+                    <Input
+                      id="specialization"
+                      value={employeeFormData.specialization}
+                      onChange={(e) => setEmployeeFormData({...employeeFormData, specialization: e.target.value})}
+                      placeholder="Ex: Gestion bassins"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes (optionnel)</Label>
+                  <Textarea
+                    id="notes"
+                    value={employeeFormData.notes}
+                    onChange={(e) => setEmployeeFormData({...employeeFormData, notes: e.target.value})}
+                    placeholder="Informations complémentaires..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsAddEmployeeDialogOpen(false)} className="flex-1">
+                    Annuler
+                  </Button>
+                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">
+                    Ajouter l'employé
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Gérer équipe */}
+          <Dialog open={isManageTeamDialogOpen} onOpenChange={setIsManageTeamDialogOpen}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Gérer l'équipe</DialogTitle>
+                <DialogDescription>
+                  Modifier les informations de {selectedTeam?.name}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleTeamSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="teamName">Nom de l'équipe</Label>
+                  <Input
+                    id="teamName"
+                    value={teamFormData.name}
+                    onChange={(e) => setTeamFormData({...teamFormData, name: e.target.value})}
+                    placeholder="Ex: Équipe Alpha"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="teamLeader">Chef d'équipe</Label>
+                  <Select 
+                    value={teamFormData.leader} 
+                    onValueChange={(value) => setTeamFormData({...teamFormData, leader: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un chef" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {permanents.map((person) => (
+                        <SelectItem key={person.name} value={person.name}>
+                          {person.name} - {person.role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="teamSector">Secteur</Label>
+                  <Input
+                    id="teamSector"
+                    value={teamFormData.sector}
+                    onChange={(e) => setTeamFormData({...teamFormData, sector: e.target.value})}
+                    placeholder="Ex: Secteur Nord"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="teamStatus">Statut</Label>
+                    <Select 
+                      value={teamFormData.status} 
+                      onValueChange={(value) => setTeamFormData({...teamFormData, status: value})}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner le statut" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">En activité</SelectItem>
+                        <SelectItem value="repos">Repos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="teamMembers">Nombre de membres</Label>
+                    <Input
+                      id="teamMembers"
+                      type="number"
+                      value={teamFormData.members}
+                      onChange={(e) => setTeamFormData({...teamFormData, members: e.target.value})}
+                      placeholder="Ex: 12"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsManageTeamDialogOpen(false)} className="flex-1">
+                    Annuler
+                  </Button>
+                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">
+                    Enregistrer les modifications
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Gestion des Équipes</h1>
@@ -98,7 +427,7 @@ const Equipes = () => {
                 Suivi du personnel permanent et des journaliers
               </p>
             </div>
-            <Button className="gap-2 bg-gradient-to-r from-primary to-accent">
+            <Button onClick={handleAddEmployee} className="gap-2 bg-gradient-to-r from-primary to-accent">
               <Plus className="h-4 w-4" />
               Ajouter employé
             </Button>
@@ -252,7 +581,7 @@ const Equipes = () => {
                         <p className="font-semibold text-primary">{team.efficiency}%</p>
                       </div>
                       <div className="flex items-end justify-end">
-                        <Button variant="outline" size="sm">
+                        <Button onClick={() => handleManageTeam(team)} variant="outline" size="sm">
                           Gérer équipe
                         </Button>
                       </div>
