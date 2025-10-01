@@ -25,6 +25,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { JournalEntryForm } from "@/components/Accounting/JournalEntryForm";
 import {
   Wallet,
   Plus,
@@ -208,6 +209,27 @@ const Comptabilite = () => {
         campagne: t.campagne?.name || null,
         campagnePhase: t.campagne_phase || null
       }));
+    }
+  });
+
+  // Récupérer les écritures diverses avec leurs lignes
+  const { data: diversEntries = [] } = useQuery({
+    queryKey: ['divers-entries'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          journal_entries:journal_entries(
+            *,
+            account:chart_of_accounts(account_number, account_name)
+          )
+        `)
+        .eq('transaction_type', 'divers' as any)
+        .order('date', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
     }
   });
 
@@ -646,7 +668,7 @@ const Comptabilite = () => {
                   }}
                 >
                   <Plus className="h-4 w-4" />
-                  Nouvelle transaction
+                  Nouvelle écriture
                 </Button>
               </div>
 
@@ -655,8 +677,66 @@ const Comptabilite = () => {
                   <CardTitle>Régularisations comptables</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-muted-foreground text-center py-8">Aucune écriture diverse enregistrée</p>
+                  <div className="space-y-4">
+                    {diversEntries.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">Aucune écriture diverse enregistrée</p>
+                    ) : (
+                      diversEntries.map((entry) => (
+                        <div key={entry.id} className="p-4 border rounded-lg space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold">{entry.description}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {entry.date} {entry.reference && `• Réf: ${entry.reference}`}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-bold">{Number(entry.amount).toLocaleString()} FCFA</p>
+                            </div>
+                          </div>
+                          
+                          {entry.journal_entries && entry.journal_entries.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              <p className="text-sm font-medium text-muted-foreground">Détail des écritures:</p>
+                              <div className="grid grid-cols-1 gap-2">
+                                {entry.journal_entries.map((line: any) => (
+                                  <div key={line.id} className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
+                                    <div className="flex-1">
+                                      <span className="font-medium">
+                                        {line.account?.account_number} - {line.account?.account_name}
+                                      </span>
+                                      {line.description && (
+                                        <p className="text-xs text-muted-foreground">{line.description}</p>
+                                      )}
+                                    </div>
+                                    <div className="flex gap-4 min-w-[200px] justify-end">
+                                      <div className="text-right">
+                                        <p className="text-xs text-muted-foreground">Débit</p>
+                                        <p className="font-medium">
+                                          {Number(line.debit) > 0 ? Number(line.debit).toLocaleString() : '-'}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-xs text-muted-foreground">Crédit</p>
+                                        <p className="font-medium">
+                                          {Number(line.credit) > 0 ? Number(line.credit).toLocaleString() : '-'}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {entry.notes && (
+                            <p className="text-sm text-muted-foreground italic mt-2">
+                              Note: {entry.notes}
+                            </p>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -870,73 +950,33 @@ const Comptabilite = () => {
                 )}
 
                 {transactionType === "divers" && (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="divers-date">Date</Label>
-                        <Input id="divers-date" type="date" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="divers-account">Compte</Label>
-                        <Select>
-                          <SelectTrigger id="divers-account">
-                            <SelectValue placeholder="Sélectionnez un compte" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50">
-                            {accounts.map((account) => (
-                              <SelectItem key={account.id} value={account.id}>
-                                {account.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="divers-type">Type d'écriture</Label>
-                      <Select>
-                        <SelectTrigger id="divers-type">
-                          <SelectValue placeholder="Sélectionnez le type" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background z-50">
-                          <SelectItem value="correction">Correction d'erreur</SelectItem>
-                          <SelectItem value="ajustement">Ajustement de solde</SelectItem>
-                          <SelectItem value="provision">Provision</SelectItem>
-                          <SelectItem value="depreciation">Amortissement</SelectItem>
-                          <SelectItem value="autre">Autre</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="divers-description">Description</Label>
-                      <Input id="divers-description" placeholder="Description de la régularisation" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="divers-amount">Montant (FCFA)</Label>
-                      <Input id="divers-amount" type="number" placeholder="0" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="divers-notes">Notes (optionnel)</Label>
-                      <Textarea id="divers-notes" placeholder="Notes supplémentaires..." />
-                    </div>
-                  </>
+                  <JournalEntryForm
+                    onSuccess={() => {
+                      setShowTransactionDialog(false);
+                      queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
+                      queryClient.invalidateQueries({ queryKey: ['divers-entries'] });
+                    }}
+                    onCancel={() => setShowTransactionDialog(false)}
+                  />
                 )}
 
-                <div className="flex gap-2 pt-4 border-t">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => setShowTransactionDialog(false)}
-                  >
-                    Annuler
-                  </Button>
-                  <Button 
-                    className="flex-1 bg-gradient-to-r from-primary to-accent"
-                    onClick={handleAddTransaction}
-                  >
-                    Enregistrer
-                  </Button>
-                </div>
+                {transactionType === "divers" ? null : (
+                  <div className="flex gap-2 pt-4 border-t">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => setShowTransactionDialog(false)}
+                    >
+                      Annuler
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-gradient-to-r from-primary to-accent"
+                      onClick={handleAddTransaction}
+                    >
+                      Enregistrer
+                    </Button>
+                  </div>
+                )}
               </div>
             </DialogContent>
           </Dialog>

@@ -218,6 +218,50 @@ export type Database = {
           },
         ]
       }
+      chart_of_accounts: {
+        Row: {
+          account_name: string
+          account_number: string
+          account_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          parent_account_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          account_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          parent_account_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          account_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          parent_account_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_of_accounts_parent_account_id_fkey"
+            columns: ["parent_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
@@ -446,6 +490,57 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          account_id: string
+          created_at: string
+          credit: number
+          debit: number
+          description: string | null
+          id: string
+          tenant_id: string
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string | null
+          id?: string
+          tenant_id: string
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string | null
+          id?: string
+          tenant_id?: string
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -1073,7 +1168,12 @@ export type Database = {
         | "cooperative"
       employee_type: "permanent" | "journalier"
       salt_type: "gros" | "fin" | "iode" | "industriel" | "export"
-      transaction_type: "depense" | "vente_locale" | "vente_export"
+      transaction_type:
+        | "depense"
+        | "vente_locale"
+        | "vente_export"
+        | "divers"
+        | "virement_interne"
       user_role:
         | "admin"
         | "chef_exploitation"
@@ -1220,7 +1320,13 @@ export const Constants = {
       ],
       employee_type: ["permanent", "journalier"],
       salt_type: ["gros", "fin", "iode", "industriel", "export"],
-      transaction_type: ["depense", "vente_locale", "vente_export"],
+      transaction_type: [
+        "depense",
+        "vente_locale",
+        "vente_export",
+        "divers",
+        "virement_interne",
+      ],
       user_role: [
         "admin",
         "chef_exploitation",
