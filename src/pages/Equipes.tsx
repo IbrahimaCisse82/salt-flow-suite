@@ -264,7 +264,7 @@ const Equipes = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="permanent">Permanent</SelectItem>
-                        <SelectItem value="temporaire">Temporaire</SelectItem>
+                        <SelectItem value="journalier">Journalier</SelectItem>
                         <SelectItem value="saisonnier">Saisonnier</SelectItem>
                       </SelectContent>
                     </Select>
