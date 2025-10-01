@@ -614,16 +614,17 @@ const Stocks = () => {
             </DialogContent>
           </Dialog>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Gestion des Stocks</h1>
-              <p className="text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Gestion des Stocks</h1>
+              <p className="text-sm sm:text-base text-muted-foreground break-words">
                 Suivi en temps réel de vos stocks de sel par catégorie
               </p>
             </div>
-            <Button onClick={handleNewMovement} className="gap-2 bg-gradient-to-r from-primary to-accent">
+            <Button onClick={handleNewMovement} className="gap-2 bg-gradient-to-r from-primary to-accent flex-shrink-0">
               <Plus className="h-4 w-4" />
-              Mouvement stock
+              <span className="hidden sm:inline">Mouvement stock</span>
+              <span className="sm:hidden">Mouvement</span>
             </Button>
           </div>
 
@@ -641,51 +642,51 @@ const Stocks = () => {
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <Warehouse className="h-8 w-8 text-accent" />
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <Warehouse className="h-6 w-6 md:h-8 md:w-8 text-accent" />
                 </div>
-                <p className="text-sm text-muted-foreground">Capacité utilisée</p>
-                <p className="text-3xl font-bold">65%</p>
-                <p className="text-xs text-muted-foreground mt-1">786 / 1200 tonnes</p>
+                <p className="text-xs md:text-sm text-muted-foreground truncate">Capacité utilisée</p>
+                <p className="text-2xl md:text-3xl font-bold">65%</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground mt-1 truncate">786 / 1200 tonnes</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <TrendingUp className="h-8 w-8 text-primary" />
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-primary" />
                 </div>
-                <p className="text-sm text-muted-foreground">Valeur totale</p>
-                <p className="text-3xl font-bold">{(totalValue / 1000).toFixed(0)}k FCFA</p>
-                <p className="text-xs text-green-600 mt-1">+8% ce mois</p>
+                <p className="text-xs md:text-sm text-muted-foreground truncate">Valeur totale</p>
+                <p className="text-2xl md:text-3xl font-bold">{(totalValue / 1000).toFixed(0)}k FCFA</p>
+                <p className="text-[10px] md:text-xs text-green-600 mt-1 truncate">+8% ce mois</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <AlertTriangle className="h-8 w-8 text-yellow-600" />
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <AlertTriangle className="h-6 w-6 md:h-8 md:w-8 text-yellow-600" />
                 </div>
-                <p className="text-sm text-muted-foreground">Alertes</p>
-                <p className="text-3xl font-bold">2</p>
-                <p className="text-xs text-yellow-600 mt-1">Stock faible</p>
+                <p className="text-xs md:text-sm text-muted-foreground truncate">Alertes</p>
+                <p className="text-2xl md:text-3xl font-bold">2</p>
+                <p className="text-[10px] md:text-xs text-yellow-600 mt-1 truncate">Stock faible</p>
               </CardContent>
             </Card>
           </div>
 
           {/* Alerte stock */}
           <Card className="border-l-4 border-l-red-500">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-semibold text-sm mb-1">Stock critique</p>
-                  <p className="text-sm text-muted-foreground">
+            <CardContent className="p-3 md:p-4">
+              <div className="flex flex-col sm:flex-row items-start gap-3">
+                <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-xs sm:text-sm mb-1 break-words">Stock critique</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground break-words">
                     Le stock de Sel export est sous le seuil critique (35%). Planifier réapprovisionnement urgent.
                   </p>
                 </div>
-                <Badge variant="outline" className="text-red-700 border-red-600">
+                <Badge variant="outline" className="text-red-700 border-red-600 text-xs flex-shrink-0">
                   Urgent
                 </Badge>
               </div>
@@ -694,43 +695,44 @@ const Stocks = () => {
 
           {/* Stocks par catégorie */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5 text-primary" />
-                  Stocks par catégorie
+            <CardHeader className="p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                  <Package className="h-4 w-4 md:h-5 md:w-5 text-primary flex-shrink-0" />
+                  <span className="truncate">Stocks par catégorie</span>
                 </CardTitle>
-                <Button onClick={handleNewStock} size="sm" className="gap-2">
+                <Button onClick={handleNewStock} size="sm" className="gap-2 flex-shrink-0">
                   <Plus className="h-4 w-4" />
-                  Nouveau stock
+                  <span className="hidden sm:inline">Nouveau stock</span>
+                  <span className="sm:hidden">Nouveau</span>
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="p-4 md:p-6">
+              <div className="space-y-3 md:space-y-4">
                 {stockCategories.map((stock, index) => (
                   <div 
                     key={index}
-                    className="p-4 rounded-lg border hover:bg-muted/30 transition-colors"
+                    className="p-3 md:p-4 rounded-lg border hover:bg-muted/30 transition-colors"
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg">{stock.type}</h3>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-base md:text-lg break-words">{stock.type}</h3>
                           <Badge 
                             variant="outline"
-                            className={`${statusConfig[stock.status].color} ${statusConfig[stock.status].border}`}
+                            className={`${statusConfig[stock.status].color} ${statusConfig[stock.status].border} text-xs flex-shrink-0 self-start sm:self-auto`}
                           >
                             {statusConfig[stock.status].label}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs md:text-sm text-muted-foreground break-words">
                           {stock.warehouse} • Dernière mise à jour: {stock.lastUpdate}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold">{stock.quantity} {stock.unit}</p>
-                        <p className="text-sm text-muted-foreground">{stock.value}</p>
+                      <div className="text-left sm:text-right">
+                        <p className="text-xl md:text-2xl font-bold">{stock.quantity} {stock.unit}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">{stock.value}</p>
                       </div>
                     </div>
                     
@@ -761,15 +763,16 @@ const Stocks = () => {
 
           {/* Entrepôts */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Warehouse className="h-5 w-5 text-primary" />
-                  État des entrepôts
+            <CardHeader className="p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                  <Warehouse className="h-4 w-4 md:h-5 md:w-5 text-primary flex-shrink-0" />
+                  <span className="truncate">État des entrepôts</span>
                 </CardTitle>
-                <Button onClick={handleNewWarehouse} size="sm" className="gap-2">
+                <Button onClick={handleNewWarehouse} size="sm" className="gap-2 flex-shrink-0">
                   <Plus className="h-4 w-4" />
-                  Nouvel entrepôt
+                  <span className="hidden sm:inline">Nouvel entrepôt</span>
+                  <span className="sm:hidden">Nouveau</span>
                 </Button>
               </div>
             </CardHeader>
@@ -777,7 +780,7 @@ const Stocks = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {warehouses.map((warehouse, index) => (
                   <Card key={index} className="border-2">
-                    <CardContent className="p-4">
+                    <CardContent className="p-3 md:p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h3 className="font-semibold">{warehouse.name}</h3>
