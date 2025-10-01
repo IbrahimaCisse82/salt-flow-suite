@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          account_number: string | null
+          account_type: Database["public"]["Enums"]["account_type"]
+          balance: number
+          bank_name: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          account_type: Database["public"]["Enums"]["account_type"]
+          balance?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          account_type?: Database["public"]["Enums"]["account_type"]
+          balance?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bassins: {
         Row: {
           code: string
@@ -720,6 +759,56 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          account_id: string
+          amount: number
+          created_at: string
+          date: string
+          description: string
+          id: string
+          notes: string | null
+          reference: string | null
+          tenant_id: string
+          transaction_type: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          created_at?: string
+          date: string
+          description: string
+          id?: string
+          notes?: string | null
+          reference?: string | null
+          tenant_id: string
+          transaction_type: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          reference?: string | null
+          tenant_id?: string
+          transaction_type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       warehouses: {
         Row: {
           capacity: number
@@ -849,6 +938,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      account_type: "banque" | "caisse"
       bassin_status: "actif" | "maintenance" | "repos" | "preparation"
       bassin_type: "surface_preparatoire" | "table_salante"
       campagne_status: "planification" | "en_cours" | "terminee" | "annulee"
@@ -860,6 +950,7 @@ export type Database = {
         | "cooperative"
       employee_type: "permanent" | "journalier"
       salt_type: "gros" | "fin" | "iode" | "industriel" | "export"
+      transaction_type: "depense" | "vente_locale" | "vente_export"
       user_role:
         | "admin"
         | "chef_exploitation"
@@ -993,6 +1084,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_type: ["banque", "caisse"],
       bassin_status: ["actif", "maintenance", "repos", "preparation"],
       bassin_type: ["surface_preparatoire", "table_salante"],
       campagne_status: ["planification", "en_cours", "terminee", "annulee"],
@@ -1005,6 +1097,7 @@ export const Constants = {
       ],
       employee_type: ["permanent", "journalier"],
       salt_type: ["gros", "fin", "iode", "industriel", "export"],
+      transaction_type: ["depense", "vente_locale", "vente_export"],
       user_role: [
         "admin",
         "chef_exploitation",

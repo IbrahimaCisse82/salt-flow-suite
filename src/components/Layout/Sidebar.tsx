@@ -7,7 +7,8 @@ import {
   TrendingUp,
   FileText,
   Settings,
-  Database
+  Database,
+  Wallet
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ const navItems: NavItem[] = [
   { icon: Package, label: "Stocks", href: "/stocks" },
   { icon: Users, label: "Équipes", href: "/equipes" },
   { icon: TrendingUp, label: "Commercial", href: "/commercial" },
+  { icon: Wallet, label: "Comptabilité", href: "/comptabilite" },
   { icon: FileText, label: "Rapports", href: "/rapports" },
   { icon: Settings, label: "Paramètres", href: "/parametres" },
 ];
