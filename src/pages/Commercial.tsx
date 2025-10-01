@@ -1,5 +1,7 @@
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -83,12 +85,89 @@ const generateDeliveryNumber = () => {
 
 const Commercial = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
   const [isClientDetailsDialogOpen, setIsClientDetailsDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+
+  // Query pour récupérer les ventes prêtes à être livrées depuis Supabase
+  const { data: deliverySales = [] } = useQuery({
+    queryKey: ['delivery-sales'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sales')
+        .select(`
+          *,
+          client:clients(name, client_type)
+        `)
+        .eq('can_be_delivered', true)
+        .order('delivery_date');
+      
+      if (error) throw error;
+      
+      return (data || []).map(sale => ({
+        id: sale.id,
+        orderNumber: sale.invoice_number || `CMD-${sale.id.slice(0, 6)}`,
+        invoiceNumber: sale.invoice_number,
+        deliveryNumber: sale.delivery_number,
+        client: sale.client?.name || 'N/A',
+        clientType: sale.client?.client_type || 'local',
+        saltType: sale.salt_type,
+        quantity: Number(sale.quantity),
+        unitPrice: Number(sale.unit_price),
+        discount: Number(sale.discount || 0),
+        totalAmount: Number(sale.total_amount),
+        deliveryDate: sale.delivery_date,
+        paymentTerms: sale.payment_status,
+        notes: sale.notes || '',
+        date: sale.sale_date,
+        validated: true,
+        invoiced: true,
+        invoiceValidated: true,
+        paid: sale.payment_status === 'paid',
+        canBeDelivered: sale.can_be_delivered,
+        delivered: sale.delivered || false
+      }));
+    }
+  });
+
+  // Mutation pour marquer une vente comme livrée
+  const markAsDeliveredMutation = useMutation({
+    mutationFn: async (saleId: string) => {
+      const deliveryNumber = generateDeliveryNumber();
+      
+      const { error } = await supabase
+        .from('sales')
+        .update({
+          delivered: true,
+          delivery_number: deliveryNumber
+        })
+        .eq('id', saleId);
+      
+      if (error) throw error;
+      
+      return { deliveryNumber };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['delivery-sales'] });
+      
+      toast({
+        title: "Livraison enregistrée",
+        description: `Numéro de livraison: ${result.deliveryNumber}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'enregistrer la livraison",
+        variant: "destructive"
+      });
+      console.error('Delivery error:', error);
+    }
+  });
 
   const [clients, setClients] = useState([
     {
@@ -1005,13 +1084,13 @@ const Commercial = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {orders.filter(o => o.canBeDelivered).map((order) => (
+                    {deliverySales.map((order) => (
                       <div key={order.id} className="p-4 border rounded-lg space-y-3">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-semibold text-lg">{order.client}</p>
                             <p className="text-sm text-muted-foreground">
-                              {order.deliveryNumber ? `Livraison ${order.deliveryNumber}` : `Commande ${order.orderNumber}`} - Prévue: {order.deliveryDate}
+                              {order.deliveryNumber ? `Livraison ${order.deliveryNumber}` : `Facture ${order.invoiceNumber}`} - Prévue: {order.deliveryDate}
                             </p>
                           </div>
                           <Badge variant={order.delivered ? "default" : "outline"}>
@@ -1034,16 +1113,17 @@ const Commercial = () => {
                         </div>
                         {!order.delivered && (
                           <Button 
-                            onClick={() => handleDelivery(order.id)}
+                            onClick={() => markAsDeliveredMutation.mutate(order.id)}
                             className="w-full bg-gradient-to-r from-primary to-accent"
+                            disabled={markAsDeliveredMutation.isPending}
                           >
                             <Package className="h-4 w-4 mr-2" />
-                            Marquer comme livrée (décrémente le stock)
+                            {markAsDeliveredMutation.isPending ? "Enregistrement..." : "Marquer comme livrée"}
                           </Button>
                         )}
                       </div>
                     ))}
-                    {orders.filter(o => o.canBeDelivered).length === 0 && (
+                    {deliverySales.length === 0 && (
                       <p className="text-center text-muted-foreground py-8">
                         Aucune commande prête à être livrée
                       </p>

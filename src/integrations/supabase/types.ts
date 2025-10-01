@@ -409,6 +409,63 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          account_id: string
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          reference: string | null
+          sale_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date: string
+          payment_method?: string | null
+          reference?: string | null
+          sale_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          reference?: string | null
+          sale_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       production_records: {
         Row: {
           bassin_id: string
@@ -593,9 +650,13 @@ export type Database = {
       }
       sales: {
         Row: {
+          amount_paid: number | null
+          can_be_delivered: boolean | null
           client_id: string
           created_at: string | null
+          delivered: boolean | null
           delivery_date: string | null
+          delivery_number: string | null
           discount: number | null
           id: string
           invoice_number: string | null
@@ -611,9 +672,13 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          amount_paid?: number | null
+          can_be_delivered?: boolean | null
           client_id: string
           created_at?: string | null
+          delivered?: boolean | null
           delivery_date?: string | null
+          delivery_number?: string | null
           discount?: number | null
           id?: string
           invoice_number?: string | null
@@ -629,9 +694,13 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          amount_paid?: number | null
+          can_be_delivered?: boolean | null
           client_id?: string
           created_at?: string | null
+          delivered?: boolean | null
           delivery_date?: string | null
+          delivery_number?: string | null
           discount?: number | null
           id?: string
           invoice_number?: string | null

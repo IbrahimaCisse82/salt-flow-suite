@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,6 +59,7 @@ const expenseCategories = [
 
 const Comptabilite = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -69,45 +72,163 @@ const Comptabilite = () => {
     canBeDelivered: false
   });
 
-  // Mock data - À remplacer par des données Supabase
-  const accounts = [
-    { id: "1", name: "Banque Atlantique", type: "banque", balance: 1500000 },
-    { id: "2", name: "Caisse Principale", type: "caisse", balance: 250000 },
-  ];
-
-  // Factures en attente de paiement (venant de Commercial)
-  const pendingInvoices = [
-    {
-      id: "INV-001",
-      clientName: "Grossiste Dakar",
-      clientType: "local",
-      invoiceDate: "2025-03-15",
-      totalAmount: 7500000,
-      amountPaid: 0,
-      balance: 7500000,
-      saltType: "Sel gros",
-      quantity: 50
-    },
-    {
-      id: "INV-002",
-      clientName: "Export Maroc",
-      clientType: "export",
-      invoiceDate: "2025-03-14",
-      totalAmount: 12000000,
-      amountPaid: 5000000,
-      balance: 7000000,
-      saltType: "Sel iodé",
-      quantity: 80
+  // Récupérer les comptes depuis Supabase
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('accounts')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
     }
-  ];
+  });
 
-  const recentTransactions = [
-    { id: "1", date: "2025-01-15", type: "depense", description: "Carburant", amount: 50000, account: "Caisse Principale" },
-    { id: "2", date: "2025-01-14", type: "vente_locale", description: "Sel gros", amount: 350000, account: "Banque Atlantique" },
-    { id: "3", date: "2025-01-13", type: "depense", description: "Frais journaliers", amount: 25000, account: "Caisse Principale" },
-  ];
+  // Récupérer les factures en attente depuis Supabase
+  const { data: pendingInvoices = [] } = useQuery({
+    queryKey: ['pending-invoices'],
+    queryFn: async () => {
+      const { data: salesData, error } = await supabase
+        .from('sales')
+        .select(`
+          *,
+          client:clients(name, client_type)
+        `)
+        .order('sale_date', { ascending: false });
+      
+      if (error) throw error;
+      
+      return (salesData || []).map(sale => ({
+        id: sale.id,
+        invoiceNumber: sale.invoice_number || `INV-${sale.id.slice(0, 6)}`,
+        clientName: sale.client?.name || 'N/A',
+        clientType: sale.client?.client_type || 'local',
+        invoiceDate: sale.sale_date,
+        totalAmount: Number(sale.total_amount),
+        amountPaid: Number(sale.amount_paid || 0),
+        balance: Number(sale.total_amount) - Number(sale.amount_paid || 0),
+        saltType: sale.salt_type,
+        quantity: Number(sale.quantity),
+        canBeDelivered: sale.can_be_delivered || false
+      })).filter(invoice => invoice.balance > 0);
+    }
+  });
 
-  const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+  // Récupérer les transactions récentes
+  const { data: recentTransactions = [] } = useQuery({
+    queryKey: ['recent-transactions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          account:accounts(name)
+        `)
+        .order('date', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      
+      return (data || []).map(t => ({
+        id: t.id,
+        date: t.date,
+        type: t.transaction_type,
+        description: t.description,
+        amount: Number(t.amount),
+        account: t.account?.name || 'N/A'
+      }));
+    }
+  });
+
+  const totalBalance = accounts.reduce((sum: number, acc: any) => sum + Number(acc.balance || 0), 0);
+
+  // Mutation pour enregistrer un paiement
+  const recordPaymentMutation = useMutation({
+    mutationFn: async (paymentData: any) => {
+      const { sale_id, account_id, payment_date, amount, can_be_delivered } = paymentData;
+      
+      // Get tenant_id from profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profile) throw new Error('Profile not found');
+      
+      // 1. Créer l'enregistrement de paiement
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .insert({
+          tenant_id: profile.tenant_id,
+          sale_id,
+          account_id,
+          payment_date,
+          amount: amount.toString(),
+          payment_method: 'manual',
+        });
+      
+      if (paymentError) throw paymentError;
+
+      // 2. Mettre à jour la vente
+      const { data: saleData, error: saleError } = await supabase
+        .from('sales')
+        .select('amount_paid, total_amount')
+        .eq('id', sale_id)
+        .single();
+      
+      if (saleError) throw saleError;
+
+      const newAmountPaid = Number(saleData.amount_paid || 0) + Number(amount);
+      const newBalance = Number(saleData.total_amount) - newAmountPaid;
+
+      const { error: updateError } = await supabase
+        .from('sales')
+        .update({
+          amount_paid: newAmountPaid,
+          payment_status: newBalance <= 0 ? 'paid' : 'partial',
+          can_be_delivered: can_be_delivered
+        })
+        .eq('id', sale_id);
+      
+      if (updateError) throw updateError;
+
+      return { newBalance, newAmountPaid };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['pending-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      
+      toast({
+        title: "Paiement enregistré",
+        description: result.newBalance > 0 
+          ? `Paiement enregistré. Reliquat: ${result.newBalance.toLocaleString()} FCFA`
+          : `Paiement complet enregistré`,
+      });
+      
+      setShowPaymentDialog(false);
+      setSelectedInvoice(null);
+      setPaymentFormData({
+        accountId: "",
+        paymentDate: "",
+        amountReceived: "",
+        canBeDelivered: false
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'enregistrer le paiement",
+        variant: "destructive"
+      });
+      console.error('Payment error:', error);
+    }
+  });
 
   const handleAddAccount = () => {
     toast({
@@ -126,25 +247,32 @@ const Comptabilite = () => {
   };
 
   const handlePaymentSubmit = () => {
-    if (!selectedInvoice) return;
+    if (!selectedInvoice || !paymentFormData.accountId || !paymentFormData.paymentDate || !paymentFormData.amountReceived) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const amountReceived = parseFloat(paymentFormData.amountReceived);
-    const balance = selectedInvoice.balance - amountReceived;
+    
+    if (amountReceived <= 0 || amountReceived > selectedInvoice.balance) {
+      toast({
+        title: "Erreur",
+        description: "Le montant doit être positif et inférieur ou égal au solde restant",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    toast({
-      title: "Paiement enregistré",
-      description: balance > 0 
-        ? `Paiement de ${amountReceived.toLocaleString()} FCFA enregistré. Reliquat: ${balance.toLocaleString()} FCFA`
-        : `Paiement complet de ${amountReceived.toLocaleString()} FCFA enregistré`,
-    });
-
-    setShowPaymentDialog(false);
-    setSelectedInvoice(null);
-    setPaymentFormData({
-      accountId: "",
-      paymentDate: "",
-      amountReceived: "",
-      canBeDelivered: false
+    recordPaymentMutation.mutate({
+      sale_id: selectedInvoice.id,
+      account_id: paymentFormData.accountId,
+      payment_date: paymentFormData.paymentDate,
+      amount: amountReceived,
+      can_be_delivered: paymentFormData.canBeDelivered
     });
   };
 
@@ -229,19 +357,19 @@ const Comptabilite = () => {
               <div className="space-y-3">
                 {accounts.map((account) => (
                   <div key={account.id} className="flex items-center justify-between p-4 rounded-lg bg-muted">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        {account.type === "banque" ? (
-                          <DollarSign className="h-5 w-5 text-primary" />
-                        ) : (
-                          <Wallet className="h-5 w-5 text-primary" />
-                        )}
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          {account.account_type === "banque" ? (
+                            <DollarSign className="h-5 w-5 text-primary" />
+                          ) : (
+                            <Wallet className="h-5 w-5 text-primary" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold">{account.name}</p>
+                          <p className="text-sm text-muted-foreground capitalize">{account.account_type}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold">{account.name}</p>
-                        <p className="text-sm text-muted-foreground capitalize">{account.type}</p>
-                      </div>
-                    </div>
                     <p className="text-lg font-bold">{account.balance.toLocaleString()} FCFA</p>
                   </div>
                 ))}
@@ -742,7 +870,7 @@ const Comptabilite = () => {
                       <SelectContent className="bg-background z-50">
                         {accounts.map((account) => (
                           <SelectItem key={account.id} value={account.id}>
-                            {account.name} ({account.type})
+                            {account.name} ({account.account_type})
                           </SelectItem>
                         ))}
                       </SelectContent>
