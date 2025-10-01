@@ -142,6 +142,7 @@ const Commercial = () => {
   ]);
 
   const [orderFormData, setOrderFormData] = useState({
+    clientId: "",
     clientName: "",
     clientType: "",
     saltType: "",
@@ -155,6 +156,18 @@ const Commercial = () => {
 
   const handleNewOrder = () => {
     setIsNewOrderDialogOpen(true);
+  };
+
+  const handleClientSelect = (clientId: string) => {
+    const selectedClient = clients.find(c => c.id === clientId);
+    if (selectedClient) {
+      setOrderFormData({
+        ...orderFormData,
+        clientId: clientId,
+        clientName: selectedClient.name,
+        clientType: selectedClient.type
+      });
+    }
   };
 
   const handleOrderSubmit = (e: React.FormEvent) => {
@@ -189,6 +202,7 @@ const Commercial = () => {
     });
     setIsNewOrderDialogOpen(false);
     setOrderFormData({
+      clientId: "",
       clientName: "",
       clientType: "",
       saltType: "",
@@ -360,31 +374,34 @@ const Commercial = () => {
               </DialogHeader>
               <form onSubmit={handleOrderSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="clientName">Nom du client</Label>
-                  <Input
-                    id="clientName"
-                    value={orderFormData.clientName}
-                    onChange={(e) => setOrderFormData({...orderFormData, clientName: e.target.value})}
-                    placeholder="Ex: Grossiste Dakar"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="clientType">Type de client</Label>
+                  <Label htmlFor="clientSelect">Client *</Label>
                   <Select 
-                    value={orderFormData.clientType} 
-                    onValueChange={(value) => setOrderFormData({...orderFormData, clientType: value})}
+                    value={orderFormData.clientId} 
+                    onValueChange={handleClientSelect}
                     required
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner le type" />
+                      <SelectValue placeholder="Sélectionner un client" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="local">Local</SelectItem>
-                      <SelectItem value="export">Export</SelectItem>
+                    <SelectContent className="z-50 bg-popover">
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="clientTypeDisplay">Type de client</Label>
+                  <Input
+                    id="clientTypeDisplay"
+                    value={orderFormData.clientType === "local" ? "Local" : orderFormData.clientType === "export" ? "Export" : ""}
+                    placeholder="Sélectionnez d'abord un client"
+                    disabled
+                    className="bg-muted"
+                  />
                 </div>
 
                 <div className="space-y-2">
