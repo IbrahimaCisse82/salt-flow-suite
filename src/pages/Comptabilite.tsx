@@ -35,26 +35,78 @@ import {
 } from "lucide-react";
 
 const expenseCategories = [
-  "Frais journaliers",
-  "Frais employés contractants",
-  "Carburant",
-  "Motopompes",
-  "Machines de broyage",
-  "Machine de lavage",
-  "Machine d'iodation",
-  "Matériel de création de digues",
-  "EPI",
-  "Repas",
-  "Transport",
-  "Téléphone",
-  "Tracteurs",
-  "Pelles",
-  "Brouettes",
-  "Sacs",
-  "Balance",
-  "Testeur",
-  "Location de marais salants",
-  "Achat de marais salants",
+  {
+    type: "Frais de maintenance",
+    category: "Charges externes",
+    account: "615 – Entretien et réparations",
+    notes: "Pour machines, véhicules, bâtiments"
+  },
+  {
+    type: "Voyage",
+    category: "Charges externes",
+    account: "618 – Déplacements, missions, réceptions",
+    notes: "Inclut billets, hébergements"
+  },
+  {
+    type: "Foire et atelier",
+    category: "Charges externes",
+    account: "618 – Publicité, publications, relations publiques",
+    notes: "Participation salons, expositions"
+  },
+  {
+    type: "Frais communication et marketing",
+    category: "Charges externes",
+    account: "618 – Publicité, communication",
+    notes: "Campagnes médias, flyers, pub"
+  },
+  {
+    type: "Achat fournitures de bureau",
+    category: "Charges externes",
+    account: "334 – Fournitures de bureau",
+    notes: "Consommables de bureau"
+  },
+  {
+    type: "Matériel informatique",
+    category: "Immobilisations corporelles",
+    account: "2442 – Matériel informatique",
+    notes: "Ordinateurs, serveurs, imprimantes"
+  },
+  {
+    type: "Achat camion",
+    category: "Immobilisations corporelles",
+    account: "2451 – Matériel automobile",
+    notes: "Véhicule amortissable"
+  },
+  {
+    type: "Électricité",
+    category: "Charges externes",
+    account: "611 – Électricité",
+    notes: "Dépenses récurrentes"
+  },
+  {
+    type: "Eau",
+    category: "Charges externes",
+    account: "612 – Eau",
+    notes: "Dépenses récurrentes"
+  },
+  {
+    type: "Internet",
+    category: "Charges externes",
+    account: "616 – Télécommunications",
+    notes: "Abonnements internet"
+  },
+  {
+    type: "Mobilier de bureau",
+    category: "Immobilisations corporelles",
+    account: "2444 – Mobilier de bureau",
+    notes: "Tables, chaises, armoires"
+  },
+  {
+    type: "Location bureau",
+    category: "Charges externes",
+    account: "616 – Loyers",
+    notes: "Location immeuble / local"
+  }
 ];
 
 const Comptabilite = () => {
@@ -682,15 +734,18 @@ const Comptabilite = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="depense-description">Description</Label>
+                      <Label htmlFor="depense-description">Type de dépense</Label>
                       <Select>
                         <SelectTrigger id="depense-description">
                           <SelectValue placeholder="Sélectionnez une catégorie de dépense" />
                         </SelectTrigger>
                         <SelectContent className="bg-background z-50">
-                          {expenseCategories.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
+                          {expenseCategories.map((expense) => (
+                            <SelectItem key={expense.type} value={expense.type}>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{expense.type}</span>
+                                <span className="text-xs text-muted-foreground">{expense.account}</span>
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
