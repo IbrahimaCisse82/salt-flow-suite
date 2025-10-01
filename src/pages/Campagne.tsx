@@ -32,10 +32,11 @@ const Campagne = () => {
   const [showNewCampagneDialog, setShowNewCampagneDialog] = useState(false);
   const [showBudgetDialog, setShowBudgetDialog] = useState(false);
   const [phaseExpenses, setPhaseExpenses] = useState<Record<string, BudgetExpense[]>>({
-    'amenagement': [],
+    'preparation-bassins': [],
     'mise-en-eau': [],
-    'cristallisation': [],
-    'recolte': []
+    'evaporation': [],
+    'recolte-principale': [],
+    'traitement-stockage': []
   });
 
   const handleCreateCampagne = () => {
@@ -413,19 +414,20 @@ const Campagne = () => {
                 </div>
               </div>
 
-              <Tabs defaultValue="amenagement" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="amenagement">Aménagement</TabsTrigger>
+              <Tabs defaultValue="preparation-bassins" className="w-full">
+                <TabsList className="grid w-full grid-cols-5">
+                  <TabsTrigger value="preparation-bassins">Préparation des bassins</TabsTrigger>
                   <TabsTrigger value="mise-en-eau">Mise en eau</TabsTrigger>
-                  <TabsTrigger value="cristallisation">Cristallisation</TabsTrigger>
-                  <TabsTrigger value="recolte">Récolte</TabsTrigger>
+                  <TabsTrigger value="evaporation">Évaporation</TabsTrigger>
+                  <TabsTrigger value="recolte-principale">Récolte principale</TabsTrigger>
+                  <TabsTrigger value="traitement-stockage">Traitement et stockage</TabsTrigger>
                 </TabsList>
 
 
-                <TabsContent value="amenagement" className="space-y-4">
+                <TabsContent value="preparation-bassins" className="space-y-4">
                   <BudgetPhaseTab 
-                    phase="amenagement" 
-                    expenses={phaseExpenses['amenagement'] || []}
+                    phase="preparation-bassins" 
+                    expenses={phaseExpenses['preparation-bassins'] || []}
                     onAddExpense={handleAddExpense}
                     onUpdateExpense={handleUpdateExpense}
                     onDeleteExpense={handleDeleteExpense}
@@ -442,20 +444,30 @@ const Campagne = () => {
                   />
                 </TabsContent>
 
-                <TabsContent value="cristallisation" className="space-y-4">
+                <TabsContent value="evaporation" className="space-y-4">
                   <BudgetPhaseTab 
-                    phase="cristallisation" 
-                    expenses={phaseExpenses['cristallisation'] || []}
+                    phase="evaporation" 
+                    expenses={phaseExpenses['evaporation'] || []}
                     onAddExpense={handleAddExpense}
                     onUpdateExpense={handleUpdateExpense}
                     onDeleteExpense={handleDeleteExpense}
                   />
                 </TabsContent>
 
-                <TabsContent value="recolte" className="space-y-4">
+                <TabsContent value="recolte-principale" className="space-y-4">
                   <BudgetPhaseTab 
-                    phase="recolte" 
-                    expenses={phaseExpenses['recolte'] || []}
+                    phase="recolte-principale" 
+                    expenses={phaseExpenses['recolte-principale'] || []}
+                    onAddExpense={handleAddExpense}
+                    onUpdateExpense={handleUpdateExpense}
+                    onDeleteExpense={handleDeleteExpense}
+                  />
+                </TabsContent>
+
+                <TabsContent value="traitement-stockage" className="space-y-4">
+                  <BudgetPhaseTab 
+                    phase="traitement-stockage" 
+                    expenses={phaseExpenses['traitement-stockage'] || []}
                     onAddExpense={handleAddExpense}
                     onUpdateExpense={handleUpdateExpense}
                     onDeleteExpense={handleDeleteExpense}
