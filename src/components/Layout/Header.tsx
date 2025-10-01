@@ -12,8 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import saltLogo from "@/assets/salt-logo.png";
 
 const mockNotifications = [
@@ -46,44 +46,8 @@ const mockNotifications = [
 export const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile, tenant } = useAuth();
   const [notifications, setNotifications] = useState(mockNotifications);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUserId(session?.user?.id || null);
-    });
-  }, []);
-
-  const { data: userProfile } = useQuery({
-    queryKey: ['userProfile', userId],
-    queryFn: async () => {
-      if (!userId) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('full_name, tenant_id')
-        .eq('id', userId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!userId,
-  });
-
-  const { data: tenant } = useQuery({
-    queryKey: ['tenant', userProfile?.tenant_id],
-    queryFn: async () => {
-      if (!userProfile?.tenant_id) return null;
-      const { data, error } = await supabase
-        .from('tenants')
-        .select('name, logo_url')
-        .eq('id', userProfile.tenant_id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!userProfile?.tenant_id,
-  });
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -137,7 +101,7 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          {userProfile && (
+          {profile && (
             <div className="hidden md:flex items-center gap-3 px-4 py-2 rounded-lg bg-muted/50">
               {tenant?.logo_url ? (
                 <img src={tenant.logo_url} alt="Logo entreprise" className="h-8 w-8 rounded object-contain" />
@@ -148,8 +112,8 @@ export const Header = () => {
                 {tenant?.name && (
                   <span className="text-xs font-medium text-foreground">{tenant.name}</span>
                 )}
-                {userProfile.full_name && (
-                  <span className="text-xs text-muted-foreground">{userProfile.full_name}</span>
+                {profile.full_name && (
+                  <span className="text-xs text-muted-foreground">{profile.full_name}</span>
                 )}
               </div>
             </div>
