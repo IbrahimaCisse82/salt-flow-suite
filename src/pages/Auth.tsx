@@ -106,16 +106,16 @@ const Auth = () => {
       
       setLoading(true);
 
-      // Créer d'abord le tenant
-      const { data: tenantData, error: tenantError } = await supabase
+      // Créer d'abord le tenant sans SELECT pour éviter les problèmes RLS sur RETURNING
+      const tenantId = crypto.randomUUID();
+      const { error: tenantError } = await supabase
         .from('tenants')
         .insert({
+          id: tenantId,
           name: signupTenantName.trim(),
           subdomain: signupTenantName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
           contact_email: signupEmail
-        })
-        .select()
-        .single();
+        });
 
       if (tenantError) throw tenantError;
 
@@ -127,7 +127,7 @@ const Auth = () => {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: signupFullName.trim(),
-            tenant_id: tenantData.id,
+            tenant_id: tenantId,
             role: 'gerant'
           }
         }
