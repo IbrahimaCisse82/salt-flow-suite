@@ -938,7 +938,10 @@ export type Database = {
           contact_phone: string | null
           created_at: string | null
           id: string
+          manager_name: string | null
           name: string
+          ninea: string | null
+          rccm: string | null
           subdomain: string
           updated_at: string | null
         }
@@ -948,7 +951,10 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string | null
           id?: string
+          manager_name?: string | null
           name: string
+          ninea?: string | null
+          rccm?: string | null
           subdomain: string
           updated_at?: string | null
         }
@@ -958,7 +964,10 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string | null
           id?: string
+          manager_name?: string | null
           name?: string
+          ninea?: string | null
+          rccm?: string | null
           subdomain?: string
           updated_at?: string | null
         }

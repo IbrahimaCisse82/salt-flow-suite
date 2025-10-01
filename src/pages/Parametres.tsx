@@ -28,9 +28,12 @@ const Parametres = () => {
   // États pour les formulaires
   const [tenantData, setTenantData] = useState({
     name: "",
+    manager_name: "",
     contact_email: "",
     address: "",
-    contact_phone: ""
+    contact_phone: "",
+    ninea: "",
+    rccm: ""
   });
 
   const [profileData, setProfileData] = useState({
@@ -105,9 +108,12 @@ const Parametres = () => {
       if (tenantData) {
         setTenantData({
           name: tenantData.name || "",
+          manager_name: tenantData.manager_name || "",
           contact_email: tenantData.contact_email || "",
           address: tenantData.address || "",
-          contact_phone: tenantData.contact_phone || ""
+          contact_phone: tenantData.contact_phone || "",
+          ninea: tenantData.ninea || "",
+          rccm: tenantData.rccm || ""
         });
       }
       
@@ -310,6 +316,14 @@ const Parametres = () => {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="manager-name">Nom du Gérant</Label>
+                    <Input 
+                      id="manager-name" 
+                      value={tenantData.manager_name}
+                      onChange={(e) => setTenantData({ ...tenantData, manager_name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="email-company">Email</Label>
                     <Input 
                       id="email-company" 
@@ -332,6 +346,22 @@ const Parametres = () => {
                       id="phone-company" 
                       value={tenantData.contact_phone}
                       onChange={(e) => setTenantData({ ...tenantData, contact_phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ninea">NINEA</Label>
+                    <Input 
+                      id="ninea" 
+                      value={tenantData.ninea}
+                      onChange={(e) => setTenantData({ ...tenantData, ninea: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="rccm">RCCM</Label>
+                    <Input 
+                      id="rccm" 
+                      value={tenantData.rccm}
+                      onChange={(e) => setTenantData({ ...tenantData, rccm: e.target.value })}
                     />
                   </div>
                 </div>
