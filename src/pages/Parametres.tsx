@@ -398,7 +398,9 @@ const Parametres = () => {
       if (updateError) throw updateError;
 
       setTenantData({ ...tenantData, logo_url: publicUrl });
-      queryClient.invalidateQueries({ queryKey: ['tenant'] });
+      // Invalider toutes les queries tenant (incluant celle du Header)
+      await queryClient.invalidateQueries({ queryKey: ['tenant'] });
+      await queryClient.refetchQueries({ queryKey: ['tenant'] });
 
       toast({
         title: "Succès",
