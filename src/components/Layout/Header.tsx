@@ -1,5 +1,6 @@
-import { Waves, Menu, Bell, User, LogOut } from "lucide-react";
+import { Waves, Menu, Bell, User, LogOut, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,10 +12,49 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+
+const mockNotifications = [
+  {
+    id: 1,
+    type: "success",
+    title: "Production enregistrée",
+    message: "125 tonnes de sel gros ajoutées au stock",
+    time: "Il y a 2h",
+    read: false
+  },
+  {
+    id: 2,
+    type: "warning",
+    title: "Vente en attente",
+    message: "Commande client #1234 nécessite validation",
+    time: "Il y a 5h",
+    read: false
+  },
+  {
+    id: 3,
+    type: "info",
+    title: "Rapport disponible",
+    message: "Rapport mensuel de mars prêt à télécharger",
+    time: "Hier",
+    read: true
+  }
+];
 
 export const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [notifications, setNotifications] = useState(mockNotifications);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, read: true })));
+    toast({
+      title: "Notifications marquées comme lues",
+      description: "Toutes les notifications ont été lues",
+    });
+  };
 
   const handleLogout = async () => {
     try {
@@ -58,10 +98,84 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel className="flex items-center justify-between">
+                <span>Notifications</span>
+                {unreadCount > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {unreadCount} nouvelle{unreadCount > 1 ? 's' : ''}
+                  </Badge>
+                )}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <div className="max-h-[400px] overflow-y-auto">
+                {notifications.length > 0 ? (
+                  notifications.map((notification) => (
+                    <DropdownMenuItem
+                      key={notification.id}
+                      className="flex gap-3 p-3 cursor-pointer"
+                      onClick={() => {
+                        const updatedNotifications = notifications.map(n =>
+                          n.id === notification.id ? { ...n, read: true } : n
+                        );
+                        setNotifications(updatedNotifications);
+                      }}
+                    >
+                      <div className="flex-shrink-0">
+                        {notification.type === "success" ? (
+                          <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        ) : notification.type === "warning" ? (
+                          <AlertCircle className="h-5 w-5 text-orange-600" />
+                        ) : (
+                          <Bell className="h-5 w-5 text-blue-600" />
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <p className={`text-sm font-medium ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            {notification.title}
+                          </p>
+                          {!notification.read && (
+                            <span className="h-2 w-2 rounded-full bg-primary ml-2" />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {notification.time}
+                        </p>
+                      </div>
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    Aucune notification
+                  </div>
+                )}
+              </div>
+              {unreadCount > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="justify-center text-primary cursor-pointer"
+                    onClick={markAllAsRead}
+                  >
+                    Tout marquer comme lu
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
