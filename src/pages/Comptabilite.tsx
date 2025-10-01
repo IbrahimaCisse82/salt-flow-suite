@@ -312,27 +312,42 @@ const Comptabilite = () => {
       
       if (updateError) throw updateError;
 
-      // 3. Créer une transaction pour enregistrer la vente
+      // 3. Générer le numéro de document avec code journal VTE
       const clientType = saleData.client?.client_type || 'local';
       const transactionType = clientType === 'local' ? 'vente_locale' : 'vente_export';
+      const journalCode = 'VTE';
+      const dateFormatted = payment_date.replace(/-/g, '');
       
+      // Compter les transactions du même type pour la même date
+      const { data: existingTx } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('journal_code', journalCode)
+        .eq('date', payment_date);
+      
+      const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
+      const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
+      
+      // 4. Créer une transaction pour enregistrer la vente
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
         .insert({
           tenant_id: profile.tenant_id,
           account_id: account_id,
           transaction_type: transactionType,
+          journal_code: journalCode,
           date: payment_date,
           amount: amount,
           description: `Vente ${clientType === 'local' ? 'locale' : 'export'}`,
-          reference: `Paiement vente #${sale_id.slice(0, 8)}`
+          reference: documentNumber
         } as any)
         .select()
         .single();
 
       if (txError) throw txError;
 
-      // 4. Trouver le compte de produits approprié (701 pour local, 702 pour export)
+      // 5. Trouver le compte de produits approprié (701 pour local, 702 pour export)
       const productAccountNumber = clientType === 'local' ? '701' : '702';
       const { data: productAccount } = await supabase
         .from('chart_of_accounts')
@@ -342,7 +357,7 @@ const Comptabilite = () => {
 
       if (!productAccount) throw new Error(`Compte ${productAccountNumber} introuvable`);
 
-      // 5. Créer les écritures comptables (double entrée)
+      // 6. Créer les écritures comptables (double entrée)
       const journalEntries = [
         {
           tenant_id: profile.tenant_id,
@@ -441,17 +456,33 @@ const Comptabilite = () => {
 
       if (!chargeAccount) throw new Error(`Compte ${chargeAccountNumber} introuvable dans le plan comptable`);
 
-      // 2. Créer la transaction
+      // 2. Générer le numéro de document avec code journal ACH
+      const journalCode = 'ACH';
+      const dateFormatted = formData.date.replace(/-/g, '');
+      
+      // Compter les transactions du même type pour la même date
+      const { data: existingTx } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('journal_code', journalCode)
+        .eq('date', formData.date);
+      
+      const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
+      const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
+
+      // 3. Créer la transaction
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
         .insert({
           tenant_id: profile.tenant_id,
           account_id: formData.accountId,
           transaction_type: 'depense',
+          journal_code: journalCode,
           date: formData.date,
           amount: amount,
           description: formData.description,
-          reference: formData.reference || null,
+          reference: documentNumber,
           notes: formData.notes || null,
           campagne_id: formData.campagneId && formData.campagneId !== 'none' ? formData.campagneId : null,
           campagne_phase: formData.campagnePhase || null
@@ -461,7 +492,7 @@ const Comptabilite = () => {
 
       if (txError) throw txError;
 
-      // 3. Créer les écritures comptables (double entrée)
+      // 4. Créer les écritures comptables (double entrée)
       const journalEntries = [
         {
           tenant_id: profile.tenant_id,
@@ -535,16 +566,33 @@ const Comptabilite = () => {
       if (!amount || amount <= 0) throw new Error('Montant invalide');
       if (formData.fromAccountId === formData.toAccountId) throw new Error('Les comptes source et destination doivent être différents');
 
-      // 1. Créer la transaction
+      // 1. Générer le numéro de document avec code journal OD
+      const journalCode = 'OD';
+      const dateFormatted = formData.date.replace(/-/g, '');
+      
+      // Compter les transactions du même type pour la même date
+      const { data: existingTx } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('journal_code', journalCode)
+        .eq('date', formData.date);
+      
+      const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
+      const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
+
+      // 2. Créer la transaction
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
         .insert({
           tenant_id: profile.tenant_id,
           account_id: formData.fromAccountId,
           transaction_type: 'virement_interne',
+          journal_code: journalCode,
           date: formData.date,
           amount: amount,
           description: 'Virement interne',
+          reference: documentNumber,
           notes: formData.notes || null
         } as any)
         .select()
@@ -552,7 +600,7 @@ const Comptabilite = () => {
 
       if (txError) throw txError;
 
-      // 2. Créer les écritures comptables (double entrée)
+      // 3. Créer les écritures comptables (double entrée)
       const journalEntries = [
         {
           tenant_id: profile.tenant_id,

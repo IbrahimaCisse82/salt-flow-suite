@@ -147,15 +147,32 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
         throw new Error('Au moins un compte doit être spécifié');
       }
 
+      // Générer le numéro de document avec code journal OD
+      const journalCode = 'OD';
+      const dateFormatted = date.replace(/-/g, '');
+      
+      // Compter les transactions du même type pour la même date
+      const { data: existingTx } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('journal_code', journalCode)
+        .eq('date', date);
+      
+      const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
+      const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
+
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
         .insert({
+          tenant_id: profile.tenant_id,
           account_id: firstAccount.accountId,
           transaction_type: 'divers' as const,
+          journal_code: journalCode,
           date,
           amount: totalDebit,
           description: notes || 'Écriture diverse',
-          reference,
+          reference: documentNumber,
         } as any)
         .select()
         .single();
@@ -166,6 +183,7 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
       const journalEntries = lines
         .filter(line => line.accountId && (parseFloat(line.debit) > 0 || parseFloat(line.credit) > 0))
         .map(line => ({
+          tenant_id: profile.tenant_id,
           transaction_id: transaction.id,
           account_id: line.accountId,
           debit: parseFloat(line.debit) || 0,
@@ -218,12 +236,13 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="entry-reference">Référence</Label>
+          <Label htmlFor="entry-reference">Référence (générée automatiquement)</Label>
           <Input
             id="entry-reference"
-            placeholder="Ex: REG-2025-001"
+            placeholder="Auto: OD{DATE}{NUM}"
             value={reference}
             onChange={(e) => setReference(e.target.value)}
+            disabled
           />
         </div>
       </div>

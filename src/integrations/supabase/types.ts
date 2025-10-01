@@ -974,6 +974,7 @@ export type Database = {
           date: string
           description: string
           id: string
+          journal_code: string | null
           notes: string | null
           reference: string | null
           tenant_id: string
@@ -989,6 +990,7 @@ export type Database = {
           date: string
           description: string
           id?: string
+          journal_code?: string | null
           notes?: string | null
           reference?: string | null
           tenant_id: string
@@ -1004,6 +1006,7 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          journal_code?: string | null
           notes?: string | null
           reference?: string | null
           tenant_id?: string
