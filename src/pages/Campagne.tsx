@@ -38,6 +38,11 @@ const Campagne = () => {
     'recolte-principale': [],
     'traitement-stockage': []
   });
+  
+  const [completedPhases, setCompletedPhases] = useState<Set<string>>(new Set([
+    "Préparation des bassins",
+    "Mise en eau"
+  ]));
 
   const handleCreateCampagne = () => {
     setShowNewCampagneDialog(false);
@@ -87,39 +92,49 @@ const Campagne = () => {
     });
     setShowBudgetDialog(false);
   };
+
+  const togglePhaseCompletion = (phaseName: string) => {
+    setCompletedPhases(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(phaseName)) {
+        newSet.delete(phaseName);
+        toast({
+          title: "Phase réouverte",
+          description: `La phase "${phaseName}" a été réouverte`,
+        });
+      } else {
+        newSet.add(phaseName);
+        toast({
+          title: "Phase clôturée",
+          description: `La phase "${phaseName}" a été marquée comme complétée`,
+        });
+      }
+      return newSet;
+    });
+  };
   const phases = [
     { 
       name: "Préparation des bassins", 
-      status: "completed", 
-      progress: 100, 
       startDate: "2025-01-01",
       endDate: "2025-01-31"
     },
     { 
       name: "Mise en eau", 
-      status: "completed", 
-      progress: 100, 
       startDate: "2025-02-01",
       endDate: "2025-02-15"
     },
     { 
       name: "Évaporation", 
-      status: "active", 
-      progress: 65, 
       startDate: "2025-02-16",
       endDate: "2025-06-30"
     },
     { 
       name: "Récolte principale", 
-      status: "upcoming", 
-      progress: 0, 
       startDate: "2025-07-01",
       endDate: "2025-09-30"
     },
     { 
       name: "Traitement et stockage", 
-      status: "upcoming", 
-      progress: 0, 
       startDate: "2025-10-01",
       endDate: "2025-11-30"
     },
@@ -258,53 +273,55 @@ const Campagne = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {phases.map((phase, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {phase.status === "completed" && (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                      )}
-                      {phase.status === "active" && (
-                        <div className="h-5 w-5 rounded-full bg-primary animate-pulse" />
-                      )}
-                      {phase.status === "upcoming" && (
-                        <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                      )}
-                      <div>
-                        <p className="font-semibold">{phase.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {phase.startDate} → {phase.endDate}
-                        </p>
+              {phases.map((phase, index) => {
+                const isCompleted = completedPhases.has(phase.name);
+                return (
+                  <div key={index} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <button
+                          onClick={() => togglePhaseCompletion(phase.name)}
+                          className="flex items-center justify-center h-5 w-5 rounded-full border-2 transition-all hover:scale-110"
+                          style={{
+                            borderColor: isCompleted ? 'rgb(22 163 74)' : 'hsl(var(--muted-foreground))',
+                            backgroundColor: isCompleted ? 'rgb(22 163 74)' : 'transparent'
+                          }}
+                        >
+                          {isCompleted && (
+                            <CheckCircle className="h-4 w-4 text-white" />
+                          )}
+                        </button>
+                        <div className="flex-1">
+                          <p className={`font-semibold ${isCompleted ? 'text-green-600' : ''}`}>
+                            {phase.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {phase.startDate} → {phase.endDate}
+                          </p>
+                        </div>
                       </div>
+                      <Badge 
+                        variant="outline"
+                        className={
+                          isCompleted
+                            ? "border-green-600 text-green-700"
+                            : "border-muted-foreground text-muted-foreground"
+                        }
+                      >
+                        {isCompleted ? "Complété" : "En cours"}
+                      </Badge>
                     </div>
-                    <Badge 
-                      variant="outline"
+                    <Progress 
+                      value={isCompleted ? 100 : 0} 
                       className={
-                        phase.status === "completed" 
-                          ? "border-green-600 text-green-700"
-                          : phase.status === "active"
-                          ? "border-primary text-primary"
-                          : "border-muted-foreground text-muted-foreground"
+                        isCompleted
+                          ? "[&>div]:bg-green-600"
+                          : ""
                       }
-                    >
-                      {phase.status === "completed" && "Complété"}
-                      {phase.status === "active" && "En cours"}
-                      {phase.status === "upcoming" && "À venir"}
-                    </Badge>
+                    />
                   </div>
-                  <Progress 
-                    value={phase.progress} 
-                    className={
-                      phase.status === "completed" 
-                        ? "[&>div]:bg-green-600"
-                        : phase.status === "active"
-                        ? "[&>div]:bg-primary"
-                        : ""
-                    }
-                  />
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
 
