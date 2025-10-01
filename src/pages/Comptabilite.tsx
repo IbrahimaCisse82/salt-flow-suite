@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { JournalEntryForm } from "@/components/Accounting/JournalEntryForm";
+import { ChartOfAccountsTable } from "@/components/Accounting/ChartOfAccountsTable";
 import {
   Wallet,
   Plus,
@@ -470,11 +471,12 @@ const Comptabilite = () => {
 
           {/* Onglets principaux */}
           <Tabs defaultValue="depenses" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="depenses">Dépenses</TabsTrigger>
               <TabsTrigger value="vente">Vente</TabsTrigger>
               <TabsTrigger value="virement">Virement interne</TabsTrigger>
               <TabsTrigger value="divers">Divers</TabsTrigger>
+              <TabsTrigger value="plan-comptable">Plan comptable</TabsTrigger>
             </TabsList>
 
             {/* Onglet Dépenses */}
@@ -740,6 +742,11 @@ const Comptabilite = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Onglet Plan Comptable */}
+            <TabsContent value="plan-comptable">
+              <ChartOfAccountsTable />
             </TabsContent>
           </Tabs>
 
