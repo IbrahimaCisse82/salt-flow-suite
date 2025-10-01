@@ -43,6 +43,8 @@ const Campagne = () => {
     "Préparation des bassins",
     "Mise en eau"
   ]));
+  
+  const [activePhaseIndex, setActivePhaseIndex] = useState(2); // Index de la phase en cours (Évaporation)
 
   const handleCreateCampagne = () => {
     setShowNewCampagneDialog(false);
@@ -93,24 +95,44 @@ const Campagne = () => {
     setShowBudgetDialog(false);
   };
 
-  const togglePhaseCompletion = (phaseName: string) => {
-    setCompletedPhases(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(phaseName)) {
-        newSet.delete(phaseName);
-        toast({
-          title: "Phase réouverte",
-          description: `La phase "${phaseName}" a été réouverte`,
-        });
-      } else {
-        newSet.add(phaseName);
+  const getPhaseStatus = (index: number) => {
+    if (index < activePhaseIndex) return "completed";
+    if (index === activePhaseIndex) return "active";
+    return "upcoming";
+  };
+
+  const togglePhaseCompletion = (index: number) => {
+    const status = getPhaseStatus(index);
+    
+    if (status === "active") {
+      // Passer à la phase suivante
+      if (index < 4) {
+        setActivePhaseIndex(index + 1);
         toast({
           title: "Phase clôturée",
-          description: `La phase "${phaseName}" a été marquée comme complétée`,
+          description: `La phase a été complétée. Passage à la phase suivante.`,
+        });
+      } else {
+        toast({
+          title: "Dernière phase",
+          description: `C'est la dernière phase de la campagne.`,
         });
       }
-      return newSet;
-    });
+    } else if (status === "upcoming" && index === activePhaseIndex + 1) {
+      // Aller à la phase suivante manuellement
+      setActivePhaseIndex(index);
+      toast({
+        title: "Passage à la phase suivante",
+        description: `Phase active mise à jour.`,
+      });
+    } else if (status === "completed" && index === activePhaseIndex - 1) {
+      // Revenir à la phase précédente
+      setActivePhaseIndex(index);
+      toast({
+        title: "Retour à la phase précédente",
+        description: `Phase active mise à jour.`,
+      });
+    }
   };
   const phases = [
     { 
@@ -274,25 +296,31 @@ const Campagne = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {phases.map((phase, index) => {
-                const isCompleted = completedPhases.has(phase.name);
+                const status = getPhaseStatus(index);
                 return (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1">
                         <button
-                          onClick={() => togglePhaseCompletion(phase.name)}
-                          className="flex items-center justify-center h-5 w-5 rounded-full border-2 transition-all hover:scale-110"
-                          style={{
-                            borderColor: isCompleted ? 'rgb(22 163 74)' : 'hsl(var(--muted-foreground))',
-                            backgroundColor: isCompleted ? 'rgb(22 163 74)' : 'transparent'
-                          }}
+                          onClick={() => togglePhaseCompletion(index)}
+                          className="flex items-center justify-center h-6 w-6 rounded-full transition-all hover:scale-110"
                         >
-                          {isCompleted && (
-                            <CheckCircle className="h-4 w-4 text-white" />
+                          {status === "completed" && (
+                            <CheckCircle className="h-6 w-6 text-green-600" />
+                          )}
+                          {status === "active" && (
+                            <div className="h-6 w-6 rounded-full bg-primary animate-pulse" />
+                          )}
+                          {status === "upcoming" && (
+                            <AlertCircle className="h-6 w-6 text-muted-foreground" />
                           )}
                         </button>
                         <div className="flex-1">
-                          <p className={`font-semibold ${isCompleted ? 'text-green-600' : ''}`}>
+                          <p className={`font-semibold ${
+                            status === "completed" ? 'text-green-600' : 
+                            status === "active" ? 'text-primary' : 
+                            'text-muted-foreground'
+                          }`}>
                             {phase.name}
                           </p>
                           <p className="text-xs text-muted-foreground">
@@ -303,19 +331,25 @@ const Campagne = () => {
                       <Badge 
                         variant="outline"
                         className={
-                          isCompleted
+                          status === "completed"
                             ? "border-green-600 text-green-700"
+                            : status === "active"
+                            ? "border-primary text-primary"
                             : "border-muted-foreground text-muted-foreground"
                         }
                       >
-                        {isCompleted ? "Complété" : "En cours"}
+                        {status === "completed" && "Complété"}
+                        {status === "active" && "En cours"}
+                        {status === "upcoming" && "À venir"}
                       </Badge>
                     </div>
                     <Progress 
-                      value={isCompleted ? 100 : 0} 
+                      value={status === "completed" ? 100 : status === "active" ? 65 : 0} 
                       className={
-                        isCompleted
+                        status === "completed"
                           ? "[&>div]:bg-green-600"
+                          : status === "active"
+                          ? "[&>div]:bg-primary"
                           : ""
                       }
                     />
