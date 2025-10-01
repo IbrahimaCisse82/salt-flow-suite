@@ -33,8 +33,11 @@ const Parametres = () => {
     address: "",
     contact_phone: "",
     ninea: "",
-    rccm: ""
+    rccm: "",
+    logo_url: ""
   });
+
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   const [profileData, setProfileData] = useState({
     full_name: "",
@@ -113,7 +116,8 @@ const Parametres = () => {
           address: tenantData.address || "",
           contact_phone: tenantData.contact_phone || "",
           ninea: tenantData.ninea || "",
-          rccm: tenantData.rccm || ""
+          rccm: tenantData.rccm || "",
+          logo_url: tenantData.logo_url || ""
         });
       }
       
@@ -281,6 +285,137 @@ const Parametres = () => {
     });
   };
 
+  // Fonction pour recadrer et redimensionner l'image
+  const cropAndResizeImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const size = 400; // Taille du logo final
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            reject(new Error('Cannot get canvas context'));
+            return;
+          }
+
+          // Calculer le ratio pour le recadrage carré
+          const sourceSize = Math.min(img.width, img.height);
+          const sourceX = (img.width - sourceSize) / 2;
+          const sourceY = (img.height - sourceSize) / 2;
+
+          // Dessiner l'image recadrée et redimensionnée
+          ctx.drawImage(
+            img,
+            sourceX, sourceY, sourceSize, sourceSize,
+            0, 0, size, size
+          );
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to create blob'));
+            }
+          }, 'image/png', 0.95);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Gérer l'upload du logo
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Vérifier le type de fichier
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner une image valide",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUploadingLogo(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.tenant_id) throw new Error('Tenant not found');
+
+      // Recadrer et redimensionner l'image
+      const croppedBlob = await cropAndResizeImage(file);
+
+      // Supprimer l'ancien logo s'il existe
+      if (tenantData.logo_url) {
+        const oldPath = tenantData.logo_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('company-logos')
+            .remove([oldPath]);
+        }
+      }
+
+      // Upload le nouveau logo
+      const fileName = `${profile.tenant_id}-${Date.now()}.png`;
+      const { error: uploadError } = await supabase.storage
+        .from('company-logos')
+        .upload(fileName, croppedBlob, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Obtenir l'URL publique
+      const { data: { publicUrl } } = supabase.storage
+        .from('company-logos')
+        .getPublicUrl(fileName);
+
+      // Mettre à jour la base de données
+      const { error: updateError } = await supabase
+        .from('tenants')
+        .update({ logo_url: publicUrl })
+        .eq('id', profile.tenant_id);
+
+      if (updateError) throw updateError;
+
+      setTenantData({ ...tenantData, logo_url: publicUrl });
+      queryClient.invalidateQueries({ queryKey: ['tenant'] });
+
+      toast({
+        title: "Succès",
+        description: "Le logo a été mis à jour avec succès"
+      });
+    } catch (error: any) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible d'uploader le logo",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -391,8 +526,36 @@ const Parametres = () => {
                 Compte utilisateur
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="space-y-4">
+                {/* Section Logo */}
+                <div className="space-y-2">
+                  <Label>Logo de l'entreprise</Label>
+                  <div className="flex items-center gap-4">
+                    {tenantData.logo_url && (
+                      <div className="h-24 w-24 rounded-lg border-2 border-border overflow-hidden bg-background">
+                        <img 
+                          src={tenantData.logo_url} 
+                          alt="Logo entreprise" 
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        disabled={isUploadingLogo}
+                        className="cursor-pointer"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        L'image sera automatiquement recadrée en format carré (400x400px)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nom complet</Label>
                   <Input 
