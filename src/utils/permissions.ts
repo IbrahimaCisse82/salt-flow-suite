@@ -1,7 +1,13 @@
 // Définition des permissions par rôle
-export type UserRole = 'gerant' | 'commercial' | 'production' | 'comptable';
+export type UserRole = 'gerant' | 'commercial' | 'production' | 'comptable' | 'admin';
 
 export const rolePermissions: Record<UserRole, string[]> = {
+  admin: [
+    '/',
+    '/admin/tenants',
+    '/admin/chart-of-accounts',
+    '/parametres'
+  ],
   gerant: [
     '/',
     '/bassins',

@@ -938,6 +938,7 @@ export type Database = {
           contact_phone: string | null
           created_at: string | null
           id: string
+          is_active: boolean
           logo_url: string | null
           manager_name: string | null
           name: string
@@ -952,6 +953,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string | null
           id?: string
+          is_active?: boolean
           logo_url?: string | null
           manager_name?: string | null
           name: string
@@ -966,6 +968,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string | null
           id?: string
+          is_active?: boolean
           logo_url?: string | null
           manager_name?: string | null
           name?: string
@@ -1192,7 +1195,7 @@ export type Database = {
         | "vente_export"
         | "divers"
         | "virement_interne"
-      user_role: "gerant" | "commercial" | "production" | "comptable"
+      user_role: "gerant" | "commercial" | "production" | "comptable" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1340,7 +1343,7 @@ export const Constants = {
         "divers",
         "virement_interne",
       ],
-      user_role: ["gerant", "commercial", "production", "comptable"],
+      user_role: ["gerant", "commercial", "production", "comptable", "admin"],
     },
   },
 } as const

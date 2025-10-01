@@ -9,7 +9,9 @@ import {
   Settings,
   Database,
   Wallet,
-  UserCog
+  UserCog,
+  Building2,
+  BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,8 @@ const navItems: NavItem[] = [
   { icon: Wallet, label: "Comptabilité", href: "/comptabilite" },
   { icon: FileText, label: "Rapports", href: "/rapports" },
   { icon: UserCog, label: "Utilisateurs", href: "/utilisateurs" },
+  { icon: Building2, label: "Entreprises", href: "/admin/tenants" },
+  { icon: BookOpen, label: "Plan comptable", href: "/admin/chart-of-accounts" },
   { icon: Settings, label: "Paramètres", href: "/parametres" },
 ];
 

@@ -16,6 +16,8 @@ import Rapports from "./pages/Rapports";
 import Parametres from "./pages/Parametres";
 import Comptabilite from "./pages/Comptabilite";
 import GestionUtilisateurs from "./pages/GestionUtilisateurs";
+import AdminTenants from "./pages/admin/Tenants";
+import AdminChartOfAccounts from "./pages/admin/ChartOfAccounts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +41,8 @@ const App = () => (
           <Route path="/parametres" element={<RoleProtectedRoute><Parametres /></RoleProtectedRoute>} />
           <Route path="/comptabilite" element={<RoleProtectedRoute><Comptabilite /></RoleProtectedRoute>} />
           <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
+          <Route path="/admin/tenants" element={<RoleProtectedRoute><AdminTenants /></RoleProtectedRoute>} />
+          <Route path="/admin/chart-of-accounts" element={<RoleProtectedRoute><AdminChartOfAccounts /></RoleProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
