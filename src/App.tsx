@@ -21,6 +21,7 @@ import GestionUtilisateurs from "./pages/GestionUtilisateurs";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminTenants from "./pages/admin/Tenants";
 import AdminChartOfAccounts from "./pages/admin/ChartOfAccounts";
+import AdminSetup from "./pages/admin/Setup";
 import NotFound from "./pages/NotFound";
 
 // Optimized QueryClient with better caching
@@ -45,6 +46,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/admin/setup" element={<AdminSetup />} />
           <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
           <Route path="/bassins" element={<RoleProtectedRoute><Bassins /></RoleProtectedRoute>} />
           <Route path="/campagne" element={<RoleProtectedRoute><Campagne /></RoleProtectedRoute>} />
