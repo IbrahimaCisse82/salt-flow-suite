@@ -3,7 +3,7 @@ export type UserRole = 'gerant' | 'commercial' | 'production' | 'comptable' | 'a
 
 export const rolePermissions: Record<UserRole, string[]> = {
   admin: [
-    '/',
+    '/admin',
     '/admin/tenants',
     '/admin/chart-of-accounts',
     '/parametres'

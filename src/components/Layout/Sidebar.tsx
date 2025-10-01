@@ -26,7 +26,14 @@ interface NavItem {
   href: string;
 }
 
-const navItems: NavItem[] = [
+const adminNavItems: NavItem[] = [
+  { icon: LayoutDashboard, label: "Tableau de bord", href: "/admin" },
+  { icon: Building2, label: "Entreprises", href: "/admin/tenants" },
+  { icon: BookOpen, label: "Plan comptable", href: "/admin/chart-of-accounts" },
+  { icon: Settings, label: "Paramètres", href: "/parametres" },
+];
+
+const salinesNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Tableau de bord", href: "/" },
   { icon: Droplets, label: "Bassins salants", href: "/bassins" },
   { icon: Calendar, label: "Plan de campagne", href: "/campagne" },
@@ -37,8 +44,6 @@ const navItems: NavItem[] = [
   { icon: Wallet, label: "Comptabilité", href: "/comptabilite" },
   { icon: FileText, label: "Rapports", href: "/rapports" },
   { icon: UserCog, label: "Utilisateurs", href: "/utilisateurs" },
-  { icon: Building2, label: "Entreprises", href: "/admin/tenants" },
-  { icon: BookOpen, label: "Plan comptable", href: "/admin/chart-of-accounts" },
   { icon: Settings, label: "Paramètres", href: "/parametres" },
 ];
 
@@ -63,6 +68,9 @@ export const Sidebar = () => {
     }
   });
 
+  // Choisir les items de navigation selon le rôle
+  const navItems = userRole === 'admin' ? adminNavItems : salinesNavItems;
+  
   // Filtrer les items de navigation selon les permissions du rôle
   const visibleNavItems = navItems.filter(item => 
     hasAccessToPage(userRole || null, item.href)
