@@ -796,10 +796,6 @@ const Commercial = () => {
                 Commande → Facturation → Livraison
               </p>
             </div>
-            <Button onClick={handleNewOrder} className="gap-2 bg-gradient-to-r from-primary to-accent">
-              <Plus className="h-4 w-4" />
-              Nouvelle commande
-            </Button>
           </div>
 
           <Tabs defaultValue="clients" className="space-y-6">
@@ -889,7 +885,13 @@ const Commercial = () => {
             <TabsContent value="commandes" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Liste des commandes</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Liste des commandes</CardTitle>
+                    <Button onClick={handleNewOrder} size="sm" className="gap-2 bg-gradient-to-r from-primary to-accent">
+                      <Plus className="h-4 w-4" />
+                      Nouvelle commande
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
