@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Wallet,
@@ -58,12 +59,46 @@ const Comptabilite = () => {
   const { toast } = useToast();
   const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [transactionType, setTransactionType] = useState<"depense" | "vente_locale" | "vente_export">("depense");
+  const [paymentFormData, setPaymentFormData] = useState({
+    accountId: "",
+    paymentDate: "",
+    amountReceived: "",
+    canBeDelivered: false
+  });
 
   // Mock data - À remplacer par des données Supabase
   const accounts = [
     { id: "1", name: "Banque Atlantique", type: "banque", balance: 1500000 },
     { id: "2", name: "Caisse Principale", type: "caisse", balance: 250000 },
+  ];
+
+  // Factures en attente de paiement (venant de Commercial)
+  const pendingInvoices = [
+    {
+      id: "INV-001",
+      clientName: "Grossiste Dakar",
+      clientType: "local",
+      invoiceDate: "2025-03-15",
+      totalAmount: 7500000,
+      amountPaid: 0,
+      balance: 7500000,
+      saltType: "Sel gros",
+      quantity: 50
+    },
+    {
+      id: "INV-002",
+      clientName: "Export Maroc",
+      clientType: "export",
+      invoiceDate: "2025-03-14",
+      totalAmount: 12000000,
+      amountPaid: 5000000,
+      balance: 7000000,
+      saltType: "Sel iodé",
+      quantity: 80
+    }
   ];
 
   const recentTransactions = [
@@ -88,6 +123,34 @@ const Comptabilite = () => {
       description: "La transaction a été enregistrée avec succès",
     });
     setShowTransactionDialog(false);
+  };
+
+  const handlePaymentSubmit = () => {
+    if (!selectedInvoice) return;
+
+    const amountReceived = parseFloat(paymentFormData.amountReceived);
+    const balance = selectedInvoice.balance - amountReceived;
+
+    toast({
+      title: "Paiement enregistré",
+      description: balance > 0 
+        ? `Paiement de ${amountReceived.toLocaleString()} FCFA enregistré. Reliquat: ${balance.toLocaleString()} FCFA`
+        : `Paiement complet de ${amountReceived.toLocaleString()} FCFA enregistré`,
+    });
+
+    setShowPaymentDialog(false);
+    setSelectedInvoice(null);
+    setPaymentFormData({
+      accountId: "",
+      paymentDate: "",
+      amountReceived: "",
+      canBeDelivered: false
+    });
+  };
+
+  const handleOpenPayment = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setShowPaymentDialog(true);
   };
 
   return (
@@ -287,7 +350,7 @@ const Comptabilite = () => {
 
           {/* Dialog Nouvelle Transaction */}
           <Dialog open={showTransactionDialog} onOpenChange={setShowTransactionDialog}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Enregistrer une transaction</DialogTitle>
                 <DialogDescription>
@@ -356,105 +419,324 @@ const Comptabilite = () => {
                 </TabsContent>
 
                 <TabsContent value="vente_locale" className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="vente-locale-date">Date</Label>
-                        <Input id="vente-locale-date" type="date" />
+                  <div className="space-y-6">
+                    {/* Factures en attente */}
+                    <div>
+                      <h3 className="font-semibold mb-3">Factures en attente de paiement</h3>
+                      <div className="space-y-3">
+                        {pendingInvoices.filter(inv => inv.clientType === "local" && inv.balance > 0).map((invoice) => (
+                          <div key={invoice.id} className="p-4 border rounded-lg space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold">{invoice.clientName}</p>
+                                <p className="text-sm text-muted-foreground">Facture {invoice.id} - {invoice.invoiceDate}</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <p className="text-muted-foreground">Montant total</p>
+                                <p className="font-medium">{invoice.totalAmount.toLocaleString()} FCFA</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Déjà payé</p>
+                                <p className="font-medium text-green-600">{invoice.amountPaid.toLocaleString()} FCFA</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Reste à payer</p>
+                                <p className="font-medium text-primary">{invoice.balance.toLocaleString()} FCFA</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Produit</p>
+                                <p className="font-medium">{invoice.saltType} ({invoice.quantity}t)</p>
+                              </div>
+                            </div>
+                            <Button 
+                              onClick={() => handleOpenPayment(invoice)}
+                              className="w-full bg-gradient-to-r from-primary to-accent"
+                              size="sm"
+                            >
+                              <DollarSign className="h-4 w-4 mr-2" />
+                              Enregistrer un paiement
+                            </Button>
+                          </div>
+                        ))}
+                        {pendingInvoices.filter(inv => inv.clientType === "local" && inv.balance > 0).length === 0 && (
+                          <p className="text-center text-muted-foreground py-4">Aucune facture en attente</p>
+                        )}
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="vente-locale-account">Compte</Label>
-                        <Select>
-                          <SelectTrigger id="vente-locale-account">
-                            <SelectValue placeholder="Sélectionnez un compte" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50">
-                            {accounts.map((account) => (
-                              <SelectItem key={account.id} value={account.id}>
-                                {account.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    </div>
+
+                    {/* Formulaire de transaction manuelle */}
+                    <div className="pt-6 border-t">
+                      <h3 className="font-semibold mb-3">Enregistrer une transaction manuelle</h3>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="vente-locale-date">Date</Label>
+                            <Input id="vente-locale-date" type="date" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="vente-locale-account">Compte</Label>
+                            <Select>
+                              <SelectTrigger id="vente-locale-account">
+                                <SelectValue placeholder="Sélectionnez un compte" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-background z-50">
+                                {accounts.map((account) => (
+                                  <SelectItem key={account.id} value={account.id}>
+                                    {account.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="vente-locale-description">Description</Label>
+                          <Input id="vente-locale-description" placeholder="Ex: Vente sel gros - Client ABC" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="vente-locale-amount">Montant (FCFA)</Label>
+                          <Input id="vente-locale-amount" type="number" placeholder="0" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="vente-locale-reference">Référence (optionnel)</Label>
+                          <Input id="vente-locale-reference" placeholder="Ex: Facture #123" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="vente-locale-notes">Notes (optionnel)</Label>
+                          <Textarea id="vente-locale-notes" placeholder="Notes supplémentaires..." />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="vente-locale-description">Description</Label>
-                      <Input id="vente-locale-description" placeholder="Ex: Vente sel gros - Client ABC" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="vente-locale-amount">Montant (FCFA)</Label>
-                      <Input id="vente-locale-amount" type="number" placeholder="0" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="vente-locale-reference">Référence (optionnel)</Label>
-                      <Input id="vente-locale-reference" placeholder="Ex: Facture #123" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="vente-locale-notes">Notes (optionnel)</Label>
-                      <Textarea id="vente-locale-notes" placeholder="Notes supplémentaires..." />
                     </div>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="vente_export" className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="vente-export-date">Date</Label>
-                        <Input id="vente-export-date" type="date" />
+                  <div className="space-y-6">
+                    {/* Factures en attente */}
+                    <div>
+                      <h3 className="font-semibold mb-3">Factures en attente de paiement</h3>
+                      <div className="space-y-3">
+                        {pendingInvoices.filter(inv => inv.clientType === "export" && inv.balance > 0).map((invoice) => (
+                          <div key={invoice.id} className="p-4 border rounded-lg space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold">{invoice.clientName}</p>
+                                <p className="text-sm text-muted-foreground">Facture {invoice.id} - {invoice.invoiceDate}</p>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <p className="text-muted-foreground">Montant total</p>
+                                <p className="font-medium">{invoice.totalAmount.toLocaleString()} FCFA</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Déjà payé</p>
+                                <p className="font-medium text-green-600">{invoice.amountPaid.toLocaleString()} FCFA</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Reste à payer</p>
+                                <p className="font-medium text-primary">{invoice.balance.toLocaleString()} FCFA</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Produit</p>
+                                <p className="font-medium">{invoice.saltType} ({invoice.quantity}t)</p>
+                              </div>
+                            </div>
+                            <Button 
+                              onClick={() => handleOpenPayment(invoice)}
+                              className="w-full bg-gradient-to-r from-primary to-accent"
+                              size="sm"
+                            >
+                              <DollarSign className="h-4 w-4 mr-2" />
+                              Enregistrer un paiement
+                            </Button>
+                          </div>
+                        ))}
+                        {pendingInvoices.filter(inv => inv.clientType === "export" && inv.balance > 0).length === 0 && (
+                          <p className="text-center text-muted-foreground py-4">Aucune facture en attente</p>
+                        )}
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="vente-export-account">Compte</Label>
-                        <Select>
-                          <SelectTrigger id="vente-export-account">
-                            <SelectValue placeholder="Sélectionnez un compte" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-background z-50">
-                            {accounts.map((account) => (
-                              <SelectItem key={account.id} value={account.id}>
-                                {account.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    </div>
+
+                    {/* Formulaire de transaction manuelle */}
+                    <div className="pt-6 border-t">
+                      <h3 className="font-semibold mb-3">Enregistrer une transaction manuelle</h3>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="vente-export-date">Date</Label>
+                            <Input id="vente-export-date" type="date" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="vente-export-account">Compte</Label>
+                            <Select>
+                              <SelectTrigger id="vente-export-account">
+                                <SelectValue placeholder="Sélectionnez un compte" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-background z-50">
+                                {accounts.map((account) => (
+                                  <SelectItem key={account.id} value={account.id}>
+                                    {account.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="vente-export-description">Description</Label>
+                          <Input id="vente-export-description" placeholder="Ex: Vente sel export - Client XYZ" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="vente-export-amount">Montant (FCFA)</Label>
+                          <Input id="vente-export-amount" type="number" placeholder="0" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="vente-export-reference">Référence (optionnel)</Label>
+                          <Input id="vente-export-reference" placeholder="Ex: Facture #123" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="vente-export-notes">Notes (optionnel)</Label>
+                          <Textarea id="vente-export-notes" placeholder="Notes supplémentaires..." />
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="vente-export-description">Description</Label>
-                      <Input id="vente-export-description" placeholder="Ex: Export sel fin - International" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="vente-export-amount">Montant (FCFA)</Label>
-                      <Input id="vente-export-amount" type="number" placeholder="0" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="vente-export-reference">Référence (optionnel)</Label>
-                      <Input id="vente-export-reference" placeholder="Ex: Facture #123" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="vente-export-notes">Notes (optionnel)</Label>
-                      <Textarea id="vente-export-notes" placeholder="Notes supplémentaires..." />
                     </div>
                   </div>
                 </TabsContent>
-              </Tabs>
 
-              <div className="flex gap-2 pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => setShowTransactionDialog(false)}
-                >
-                  Annuler
-                </Button>
-                <Button 
-                  className="flex-1 bg-gradient-to-r from-primary to-accent"
-                  onClick={handleAddTransaction}
-                >
-                  Enregistrer
-                </Button>
-              </div>
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => setShowTransactionDialog(false)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button 
+                    className="flex-1 bg-gradient-to-r from-primary to-accent"
+                    onClick={handleAddTransaction}
+                  >
+                    Enregistrer
+                  </Button>
+                </div>
+              </Tabs>
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Enregistrement de Paiement */}
+          <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Enregistrer un paiement</DialogTitle>
+                <DialogDescription>
+                  Enregistrez le paiement reçu pour cette facture
+                </DialogDescription>
+              </DialogHeader>
+              {selectedInvoice && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <p className="text-sm text-muted-foreground">Client</p>
+                    <p className="font-semibold text-lg">{selectedInvoice.clientName}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Facture {selectedInvoice.id}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-primary/10 rounded-lg">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Montant total</p>
+                      <p className="text-lg font-bold">{selectedInvoice.totalAmount.toLocaleString()} FCFA</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Reste à payer</p>
+                      <p className="text-lg font-bold text-primary">{selectedInvoice.balance.toLocaleString()} FCFA</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-account">Compte de paiement *</Label>
+                    <Select
+                      value={paymentFormData.accountId}
+                      onValueChange={(value) => setPaymentFormData({...paymentFormData, accountId: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Banque ou Caisse" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        {accounts.map((account) => (
+                          <SelectItem key={account.id} value={account.id}>
+                            {account.name} ({account.type})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-date">Date de paiement *</Label>
+                    <Input
+                      id="payment-date"
+                      type="date"
+                      value={paymentFormData.paymentDate}
+                      onChange={(e) => setPaymentFormData({...paymentFormData, paymentDate: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="amount-received">Montant reçu (FCFA) *</Label>
+                    <Input
+                      id="amount-received"
+                      type="number"
+                      placeholder="0"
+                      value={paymentFormData.amountReceived}
+                      onChange={(e) => setPaymentFormData({...paymentFormData, amountReceived: e.target.value})}
+                    />
+                  </div>
+
+                  {paymentFormData.amountReceived && parseFloat(paymentFormData.amountReceived) < selectedInvoice.balance && (
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm font-medium text-yellow-800">Reliquat</p>
+                      <p className="text-lg font-bold text-yellow-900">
+                        {(selectedInvoice.balance - parseFloat(paymentFormData.amountReceived)).toLocaleString()} FCFA
+                      </p>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        Ce montant restera en suspens en comptabilité
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <Checkbox 
+                      id="can-deliver" 
+                      checked={paymentFormData.canBeDelivered}
+                      onCheckedChange={(checked) => setPaymentFormData({...paymentFormData, canBeDelivered: checked as boolean})}
+                    />
+                    <label
+                      htmlFor="can-deliver"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Peut être livrée (même avec reliquat)
+                    </label>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowPaymentDialog(false)} 
+                      className="flex-1"
+                    >
+                      Annuler
+                    </Button>
+                    <Button 
+                      onClick={handlePaymentSubmit}
+                      className="flex-1 bg-gradient-to-r from-primary to-accent"
+                      disabled={!paymentFormData.accountId || !paymentFormData.paymentDate || !paymentFormData.amountReceived}
+                    >
+                      Enregistrer le paiement
+                    </Button>
+                  </div>
+                </div>
+              )}
             </DialogContent>
           </Dialog>
         </main>

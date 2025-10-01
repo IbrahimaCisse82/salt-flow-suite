@@ -61,12 +61,10 @@ const Commercial = () => {
   const { toast } = useToast();
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
   const [isClientDetailsDialogOpen, setIsClientDetailsDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [selectedClient, setSelectedClient] = useState<any>(null);
-  const [canBeDeliveredChecked, setCanBeDeliveredChecked] = useState(false);
 
   const [clients, setClients] = useState([
     {
@@ -258,42 +256,8 @@ const Commercial = () => {
     ));
     toast({
       title: "Facture validée",
-      description: "Le paiement peut maintenant être enregistré",
+      description: "La facture est maintenant disponible dans Comptabilité pour le paiement",
     });
-  };
-
-  const handlePaymentDialog = (order: Order) => {
-    if (!order.invoiceValidated) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "La facture doit être validée avant d'enregistrer le paiement",
-      });
-      return;
-    }
-    setSelectedOrder(order);
-    setCanBeDeliveredChecked(false);
-    setIsPaymentDialogOpen(true);
-  };
-
-  const handlePaymentSubmit = () => {
-    if (!selectedOrder) return;
-    
-    setOrders(orders.map(order => 
-      order.id === selectedOrder.id ? { 
-        ...order, 
-        paid: true,
-        canBeDelivered: canBeDeliveredChecked 
-      } : order
-    ));
-    toast({
-      title: "Paiement enregistré",
-      description: canBeDeliveredChecked 
-        ? "La commande apparaît maintenant dans l'onglet Livraison" 
-        : "Le paiement a été enregistré",
-    });
-    setIsPaymentDialogOpen(false);
-    setSelectedOrder(null);
   };
 
   const handleDelivery = (orderId: string) => {
@@ -559,51 +523,6 @@ const Commercial = () => {
                     </Button>
                     <Button onClick={handleInvoiceSubmit} className="flex-1 bg-gradient-to-r from-primary to-accent">
                       Générer la facture
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
-
-          {/* Dialog Paiement */}
-          <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Enregistrer le paiement</DialogTitle>
-                <DialogDescription>
-                  Confirmer la réception du paiement
-                </DialogDescription>
-              </DialogHeader>
-              {selectedOrder && (
-                <div className="space-y-4">
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <p className="text-sm text-muted-foreground">Client</p>
-                    <p className="font-semibold text-lg">{selectedOrder.client}</p>
-                  </div>
-                  <div className="p-4 bg-primary/10 rounded-lg">
-                    <Label className="text-xs text-muted-foreground">Montant à payer</Label>
-                    <p className="text-2xl font-bold text-primary">{selectedOrder.totalAmount.toLocaleString()} FCFA</p>
-                  </div>
-                  <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                    <Checkbox 
-                      id="canDeliver" 
-                      checked={canBeDeliveredChecked}
-                      onCheckedChange={(checked) => setCanBeDeliveredChecked(checked as boolean)}
-                    />
-                    <label
-                      htmlFor="canDeliver"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Peut être livrée (apparaîtra dans l'onglet Livraison)
-                    </label>
-                  </div>
-                  <div className="flex gap-3 pt-4">
-                    <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)} className="flex-1">
-                      Annuler
-                    </Button>
-                    <Button onClick={handlePaymentSubmit} className="flex-1 bg-gradient-to-r from-primary to-accent">
-                      Confirmer le paiement
                     </Button>
                   </div>
                 </div>
@@ -1012,11 +931,11 @@ const Commercial = () => {
                           )}
                           {order.invoiceValidated && !order.paid && (
                             <Button 
-                              onClick={() => handlePaymentDialog(order)}
-                              className="flex-1 bg-gradient-to-r from-primary to-accent"
+                              disabled
+                              variant="outline"
+                              className="flex-1"
                             >
-                              <DollarSign className="h-4 w-4 mr-2" />
-                              Enregistrer paiement
+                              Paiement à effectuer dans Comptabilité
                             </Button>
                           )}
                         </div>
