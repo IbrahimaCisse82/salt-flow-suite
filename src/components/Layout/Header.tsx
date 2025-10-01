@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import saltLogo from "@/assets/salt-logo.png";
 
 const mockNotifications = [
   {
@@ -86,7 +87,7 @@ export const Header = () => {
           </Button>
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-gradient-to-br from-primary to-primary-glow p-2">
-              <Waves className="h-6 w-6 text-primary-foreground" />
+              <img src={saltLogo} alt="G-Suite Sel Logo" className="h-6 w-6 object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
