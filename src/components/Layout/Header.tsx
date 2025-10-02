@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -132,8 +133,13 @@ export const Header = () => {
     });
   };
 
+  const queryClient = useQueryClient();
+
   const handleLogout = async () => {
     try {
+      // Vider le cache avant la déconnexion
+      queryClient.clear();
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       

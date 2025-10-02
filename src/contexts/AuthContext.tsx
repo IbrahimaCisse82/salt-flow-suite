@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { logger } from '@/utils/logger';
 
 interface Profile {
@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const inactivityTimerRef = useRef<NodeJS.Timeout>();
+  const queryClient = useQueryClient();
   
   // Session timeout: 30 minutes of inactivity
   const SESSION_TIMEOUT = 30 * 60 * 1000;
@@ -130,9 +131,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const previousUserId = user?.id;
+      const newUserId = session?.user?.id;
+      
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Vider le cache React Query lors de la déconnexion ou changement d'utilisateur
+      if (!session || (previousUserId && previousUserId !== newUserId)) {
+        queryClient.clear();
+        logger.info('Cache cleared due to user change or logout');
+      }
     });
 
     // Vérifier la session au démarrage
