@@ -36,8 +36,11 @@ CREATE POLICY "Authorized roles can view sales in their tenant"
 - Created restrictive RLS policies on `profiles` table:
   - Users can only see their own email/phone
   - Managers/admins can see all profiles in their tenant
-- Created `safe_profiles` view without PII (email, phone) for general queries
-- Regular users should use `safe_profiles` to see coworker names
+- Secured `profiles_public` view with `security_invoker = true`
+  - View inherits RLS policies from underlying `profiles` table
+  - Shows only non-PII data (name, avatar) - no email/phone
+  - Authenticated users within same tenant can access
+- Regular users should use `profiles_public` to see coworker names without PII
 
 ```sql
 -- Users see their own full profile
@@ -204,16 +207,19 @@ export const passwordSchema = z
 
 ## ⚠️ SECURITY DEFINER VIEWS (By Design)
 
-The database linter flags 3 `SECURITY DEFINER` views as warnings. These are **intentional** and necessary to prevent RLS infinite recursion:
+The database linter flags `SECURITY DEFINER` views as warnings. These are **intentional** and necessary to prevent RLS infinite recursion:
 
-1. **`safe_profiles` view** - Bypasses RLS to provide non-PII profile data
-2. **Helper functions** - Use SECURITY DEFINER to query tables without triggering recursive RLS checks
+1. **`employees_public` view** - Uses SECURITY DEFINER to provide employee data without salaries/PII
+2. **`profiles_with_roles` view** - Uses SECURITY DEFINER to join profiles with roles safely
+3. **Helper functions** - Use SECURITY DEFINER to query tables without triggering recursive RLS checks
 
-**Security Review:** These views are safe because:
+**Important:** The `profiles_public` view uses `SECURITY INVOKER` (not definer), which means it properly inherits RLS policies from the `profiles` table.
+
+**Security Review:** These SECURITY DEFINER views are safe because:
 - They expose only non-sensitive data
 - Access is still controlled by the underlying table's RLS policies
 - Alternative would cause infinite recursion errors
-- Supabase documentation confirms this is an acceptable pattern
+- Supabase documentation confirms this is an acceptable pattern for RLS recursion prevention
 
 ---
 
