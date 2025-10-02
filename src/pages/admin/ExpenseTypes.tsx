@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -31,8 +38,16 @@ interface ExpenseType {
   name: string;
   syscohada_category: string;
   account_number: string;
+  account_id: string | null;
   observations: string;
   is_active: boolean;
+}
+
+interface ChartAccount {
+  id: string;
+  account_number: string;
+  account_name: string;
+  account_type: string;
 }
 
 export default function ExpenseTypes() {
@@ -42,6 +57,7 @@ export default function ExpenseTypes() {
     name: "",
     syscohada_category: "",
     account_number: "",
+    account_id: null as string | null,
     observations: "",
     is_active: true,
   });
@@ -58,6 +74,20 @@ export default function ExpenseTypes() {
 
       if (error) throw error;
       return data as ExpenseType[];
+    },
+  });
+
+  const { data: chartAccounts } = useQuery({
+    queryKey: ["chart-accounts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("chart_of_accounts")
+        .select("id, account_number, account_name, account_type")
+        .eq("is_active", true)
+        .order("account_number");
+
+      if (error) throw error;
+      return data as ChartAccount[];
     },
   });
 
@@ -122,6 +152,18 @@ export default function ExpenseTypes() {
     },
   });
 
+  const handleAccountChange = (accountId: string) => {
+    const selectedAccount = chartAccounts?.find(acc => acc.id === accountId);
+    if (selectedAccount) {
+      setFormData({
+        ...formData,
+        account_id: accountId,
+        account_number: selectedAccount.account_number,
+        syscohada_category: selectedAccount.account_type,
+      });
+    }
+  };
+
   const handleOpenDialog = (expense?: ExpenseType) => {
     if (expense) {
       setEditingExpense(expense);
@@ -129,6 +171,7 @@ export default function ExpenseTypes() {
         name: expense.name,
         syscohada_category: expense.syscohada_category,
         account_number: expense.account_number || "",
+        account_id: expense.account_id || null,
         observations: expense.observations || "",
         is_active: expense.is_active,
       });
@@ -138,6 +181,7 @@ export default function ExpenseTypes() {
         name: "",
         syscohada_category: "",
         account_number: "",
+        account_id: null,
         observations: "",
         is_active: true,
       });
@@ -267,25 +311,35 @@ export default function ExpenseTypes() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="syscohada_category">Catégorie SYSCOHADA *</Label>
+                <Label htmlFor="account">Compte comptable *</Label>
+                <Select
+                  value={formData.account_id || ""}
+                  onValueChange={handleAccountChange}
+                  required
+                >
+                  <SelectTrigger id="account" className="bg-background">
+                    <SelectValue placeholder="Sélectionnez un compte" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    {chartAccounts?.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.account_number} - {account.account_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="syscohada_category">Catégorie SYSCOHADA</Label>
                 <Input
                   id="syscohada_category"
                   value={formData.syscohada_category}
-                  onChange={(e) =>
-                    setFormData({ ...formData, syscohada_category: e.target.value })
-                  }
-                  required
+                  disabled
+                  className="bg-muted"
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="account_number">Numéro de compte</Label>
-                <Input
-                  id="account_number"
-                  value={formData.account_number}
-                  onChange={(e) =>
-                    setFormData({ ...formData, account_number: e.target.value })
-                  }
-                />
+                <p className="text-xs text-muted-foreground">
+                  Généré automatiquement à partir du compte sélectionné
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="observations">Observations</Label>
