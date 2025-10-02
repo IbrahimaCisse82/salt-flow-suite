@@ -6,8 +6,8 @@ const ALLOWED_ORIGINS = [
   'https://mwxybozfksdxrsipywlh.supabase.co', // Supabase
   'https://a879894c-887f-41e8-9be4-ab73e08c3d84.lovableproject.com', // Lovable Production
   // Add your custom domain here when ready:
-  // 'https://yourdomain.com',
-  // 'https://www.yourdomain.com',
+  // 'https://sel.g-suiteapp.com',
+  // 'https://www.sel.g-suiteapp.com',
 ];
 
 export const corsHeaders = {
