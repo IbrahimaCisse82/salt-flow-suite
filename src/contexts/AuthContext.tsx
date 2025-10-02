@@ -42,43 +42,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Charger le profil
-  const { data: profile } = useQuery({
-    queryKey: ['profile', user?.id],
+  // Charger profil et tenant en une seule requête optimisée
+  const { data: profileData } = useQuery({
+    queryKey: ['profile-with-tenant', user?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!user?.id) return { profile: null, tenant: null };
       
-      const { data, error } = await supabase
+      // Charger le profil avec le tenant en une seule requête
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          tenant:tenants!profiles_tenant_id_fkey(
+            id,
+            name,
+            logo_url
+          )
+        `)
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
-      return data as Profile;
+      if (profileError) throw profileError;
+      
+      return {
+        profile: profile as Profile,
+        tenant: profile.tenant as Tenant
+      };
     },
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // Cache pendant 5 minutes
+    staleTime: 10 * 60 * 1000, // Cache pendant 10 minutes
+    gcTime: 15 * 60 * 1000, // Garde en mémoire 15 minutes
   });
 
-  // Charger le tenant
-  const { data: tenant } = useQuery({
-    queryKey: ['tenant', profile?.tenant_id],
-    queryFn: async () => {
-      if (!profile?.tenant_id) return null;
-      
-      const { data, error } = await supabase
-        .from('tenants')
-        .select('id, name, logo_url')
-        .eq('id', profile.tenant_id)
-        .single();
-
-      if (error) throw error;
-      return data as Tenant;
-    },
-    enabled: !!profile?.tenant_id,
-    staleTime: 5 * 60 * 1000, // Cache pendant 5 minutes
-  });
+  const profile = profileData?.profile ?? null;
+  const tenant = profileData?.tenant ?? null;
 
   useEffect(() => {
     // Écouter les changements d'authentification

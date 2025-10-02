@@ -13,9 +13,8 @@ import {
   Eye,
   Settings
 } from "lucide-react";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useToast } from "@/hooks/use-toast";
-import MapPicker from "@/components/Map/MapPicker";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +31,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Lazy load MapPicker pour améliorer les performances
+const MapPicker = lazy(() => import("@/components/Map/MapPicker"));
 
 const bassins = [
   {
@@ -530,11 +533,13 @@ const Bassins = () => {
 
                   <div className="space-y-2">
                     <Label>Localisation GPS</Label>
-                    <MapPicker 
-                      onLocationChange={handleManageLocationChange}
-                      initialLat={manageBassinLocation.lat}
-                      initialLng={manageBassinLocation.lng}
-                    />
+                    <Suspense fallback={<Skeleton className="h-[400px] w-full rounded-lg" />}>
+                      <MapPicker 
+                        onLocationChange={handleManageLocationChange}
+                        initialLat={manageBassinLocation.lat}
+                        initialLng={manageBassinLocation.lng}
+                      />
+                    </Suspense>
                   </div>
 
                   <div className="flex gap-2 pt-4 border-t">
@@ -619,11 +624,13 @@ const Bassins = () => {
 
                 <div className="space-y-2">
                   <Label>Localisation sur la carte</Label>
-                  <MapPicker 
-                    onLocationChange={handleLocationChange}
-                    initialLat={14.7167}
-                    initialLng={-17.4677}
-                  />
+                  <Suspense fallback={<Skeleton className="h-[400px] w-full rounded-lg" />}>
+                    <MapPicker 
+                      onLocationChange={handleLocationChange}
+                      initialLat={14.7167}
+                      initialLng={-17.4677}
+                    />
+                  </Suspense>
                 </div>
 
                 <div className="flex gap-2 pt-4">
