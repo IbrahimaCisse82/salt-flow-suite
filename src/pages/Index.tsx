@@ -10,15 +10,32 @@ import {
   Package,
   Sun,
   CloudRain,
-  AlertTriangle
+  AlertTriangle,
+  UserCheck,
+  UserCog,
+  UsersRound
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
+import { useEmployees } from "@/hooks/useEmployees";
+import { useDailyWorkers } from "@/hooks/useDailyWorkers";
+import { useTeams } from "@/hooks/useTeams";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const { isOpen } = useSidebar();
+  const { profile } = useAuth();
+  const { data: employees = [] } = useEmployees();
+  const { data: dailyWorkers = [] } = useDailyWorkers();
+  const { teams } = useTeams();
+
+  // Calculer les statistiques du personnel pour les gérants
+  const isManager = profile?.role === 'admin' || profile?.role === 'gerant';
+  const permanentCount = employees.filter(e => e.employee_type === 'permanent').length;
+  const seasonalCount = employees.filter(e => e.employee_type === 'saisonnier').length;
+  const activeTeamsCount = teams?.filter(t => t.status === 'active').length || 0;
   
   return (
     <div className="min-h-screen bg-background">
@@ -85,6 +102,59 @@ const Index = () => {
               icon={Package}
             />
           </div>
+
+          {/* Personnel Stats - Only for Managers */}
+          {isManager && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Effectif du personnel</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="border-l-4 border-l-primary">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Personnel Permanent
+                    </CardTitle>
+                    <UserCheck className="h-5 w-5 text-primary" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-primary">{permanentCount}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Employés permanents actifs
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-accent">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Personnel Saisonnier
+                    </CardTitle>
+                    <UserCog className="h-5 w-5 text-accent" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-accent">{seasonalCount}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Employés saisonniers actifs
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-secondary">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Équipes Terrain
+                    </CardTitle>
+                    <UsersRound className="h-5 w-5 text-secondary" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-secondary">{activeTeamsCount}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Équipes actives avec {dailyWorkers.length} journaliers
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
 
           {/* Alerts */}
           <Card className="border-l-4 border-l-yellow-500">
