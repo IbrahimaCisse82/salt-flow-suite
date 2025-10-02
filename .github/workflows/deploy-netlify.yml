@@ -52,9 +52,9 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-      - name: Deploy to Netlify (official action)
-        uses: netlify/actions/cli@v4
-        with:
-          args: deploy --prod --dir=dist --site ${{ secrets.NETLIFY_SITE_ID }}
+      - name: Deploy to Netlify using npx
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          npx --yes netlify-cli deploy --prod --dir=dist --site "$NETLIFY_SITE_ID"
