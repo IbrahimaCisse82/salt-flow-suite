@@ -21,21 +21,60 @@
 
 1. **Cliquer sur le bouton "Publish"** en haut à droite de l'éditeur Lovable
 2. Lovable déploiera automatiquement l'application sur son infrastructure
-3. Vous obtiendrez une URL `*.lovable.app`
+3. Votre application sera accessible sur : `https://a879894c-887f-41e8-9be4-ab73e08c3d84.lovableproject.com`
 
 ### Avantages
-- ✅ Déploiement instantané
+- ✅ Déploiement instantané (quelques minutes)
 - ✅ SSL/HTTPS automatique
 - ✅ CDN mondial
 - ✅ Mises à jour automatiques
 - ✅ Rollback facile via l'historique de versions
+- ✅ Edge Functions déployées automatiquement
+- ✅ CORS pré-configuré pour Lovable
+
+### ⚠️ Configuration Post-Déploiement OBLIGATOIRE
+
+**1. Activer la Protection des Mots de Passe Compromis**
+   - Aller sur : [Supabase Auth Settings](https://supabase.com/dashboard/project/mwxybozfksdxrsipywlh/auth/providers)
+   - Activer **"Leaked Password Protection"**
+   - ⚠️ **CRITIQUE** : Cette étape ne peut pas être automatisée
+
+**2. Configurer les URLs de Redirection**
+   - Aller sur : [Supabase URL Configuration](https://supabase.com/dashboard/project/mwxybozfksdxrsipywlh/auth/url-configuration)
+   - Ajouter dans "Redirect URLs" :
+     ```
+     https://a879894c-887f-41e8-9be4-ab73e08c3d84.lovableproject.com/**
+     ```
+   - Si vous utilisez un domaine personnalisé, ajoutez également :
+     ```
+     https://votredomaine.com/**
+     https://www.votredomaine.com/**
+     ```
+
+**3. Tester les Fonctionnalités Critiques**
+   - [ ] Inscription avec création de tenant
+   - [ ] Connexion/déconnexion
+   - [ ] Invitation d'utilisateurs
+   - [ ] Affichage des données selon les rôles
+   - [ ] Création de bassins, campagnes, production
 
 ### Configuration du Domaine Personnalisé
 
 1. Aller dans **Project > Settings > Domains**
-2. Ajouter votre domaine personnalisé (ex: app.votre-entreprise.com)
-3. Configurer les enregistrements DNS selon les instructions
-4. Attendre la validation SSL (quelques minutes)
+2. Ajouter votre domaine personnalisé (ex: `g-suitesel.com`)
+3. Configurer les enregistrements DNS :
+   ```
+   Type: A
+   Nom: @
+   Valeur: 185.158.133.1
+   
+   Type: A
+   Nom: www
+   Valeur: 185.158.133.1
+   ```
+4. Attendre la validation SSL (quelques minutes à 48h max)
+5. **IMPORTANT** : Mettre à jour `supabase/functions/_shared/cors.ts` avec votre domaine
+6. Republier l'application
 
 ⚠️ **Note:** Un plan payant Lovable est requis pour les domaines personnalisés.
 
@@ -147,9 +186,39 @@ netlify deploy --prod --dir=dist
 
 ## 🔒 Sécurité Production
 
-### Headers de Sécurité (si hébergement externe)
+### Configuration CORS
 
-Ajouter ces headers HTTP :
+Le CORS est déjà configuré pour Lovable dans `supabase/functions/_shared/cors.ts` :
+
+**Domaines autorisés actuellement :**
+- ✅ `http://localhost:5173` (développement)
+- ✅ `https://mwxybozfksdxrsipywlh.supabase.co` (Supabase)
+- ✅ `https://a879894c-887f-41e8-9be4-ab73e08c3d84.lovableproject.com` (Lovable Production)
+
+**Quand ajouter un domaine personnalisé :**
+1. Modifier `supabase/functions/_shared/cors.ts`
+2. Ajouter votre domaine dans `ALLOWED_ORIGINS`
+3. Republier l'application
+
+### Checklist Sécurité Production
+
+- [x] RLS activé sur toutes les tables
+- [x] Politiques de sécurité restrictives par rôle
+- [x] CORS configuré pour Lovable
+- [x] Mots de passe renforcés (8 caractères, majuscule, minuscule, chiffre)
+- [x] Protection PII (emails, téléphones, salaires)
+- [ ] ⚠️ **À FAIRE MANUELLEMENT** : Activer "Leaked Password Protection" dans Supabase
+- [ ] ⚠️ **À FAIRE** : Configurer les URLs de redirection dans Supabase Auth
+- [ ] ⚠️ **SI DOMAINE PERSO** : Ajouter votre domaine au CORS et republier
+
+### Headers de Sécurité
+
+Lovable gère automatiquement les headers de sécurité :
+- ✅ SSL/TLS automatique
+- ✅ HTTPS obligatoire
+- ✅ Headers de sécurité standards
+
+Si hébergement externe (Vercel/Netlify), ajouter ces headers :
 
 ```
 X-Frame-Options: DENY
@@ -158,10 +227,6 @@ X-XSS-Protection: 1; mode=block
 Referrer-Policy: strict-origin-when-cross-origin
 Permissions-Policy: geolocation=(), microphone=(), camera=()
 ```
-
-### CORS Supabase
-
-Les Edge Functions incluent déjà la configuration CORS dans `_shared/cors.ts`.
 
 ### Rate Limiting
 
@@ -201,40 +266,54 @@ L'application est prête pour Google Analytics ou Plausible :
 ### Checklist de Tests
 
 1. **Authentification**
-   - [ ] Inscription nouveau compte
-   - [ ] Connexion existante
-   - [ ] Réinitialisation mot de passe
+   - [ ] Inscription nouveau compte + création tenant
+   - [ ] Connexion avec compte existant
    - [ ] Déconnexion
-   - [ ] Session persistante
+   - [ ] Timeout de session (30 minutes)
+   - [ ] Persiste la session au refresh
 
-2. **Gestion des Rôles**
+2. **Gestion des Rôles & Sécurité**
    - [ ] Admin peut accéder à /admin
    - [ ] Gérant peut inviter des utilisateurs
-   - [ ] Commercial ne voit que ses pages autorisées
-   - [ ] Production limité à ses fonctionnalités
+   - [ ] Gérant NE PEUT PAS créer d'admin
+   - [ ] Commercial voit uniquement ses pages autorisées (/, /commercial, /parametres)
+   - [ ] Production limité à /, /bassins, /production, /stocks, /equipes, /parametres
+   - [ ] Comptable voit /, /comptabilite, /parametres
 
-3. **Données**
-   - [ ] CRUD Bassins
-   - [ ] CRUD Production
-   - [ ] CRUD Clients (commercial uniquement)
-   - [ ] CRUD Employés
-   - [ ] CRUD Équipes
-   - [ ] CRUD Campagnes
+3. **Protection des Données Sensibles**
+   - [ ] Salaires visibles UNIQUEMENT par gérants/admins/comptables
+   - [ ] Commercial NE VOIT PAS les salaires
+   - [ ] Production NE VOIT PAS les salaires ni les ventes
+   - [ ] Utilisateurs ne voient PAS les emails/téléphones de leurs collègues
+   - [ ] Gérants voient tous les emails/téléphones de leur tenant
+   - [ ] Isolation des données entre tenants (créer 2 tenants pour tester)
 
-4. **Sécurité**
-   - [ ] Salaires visibles uniquement par managers/comptables
-   - [ ] Clients visibles uniquement par commerciaux/managers
-   - [ ] Isolation des données entre tenants
+4. **Données & CRUD**
+   - [ ] CRUD Bassins (gérants)
+   - [ ] CRUD Production (gérants + production)
+   - [ ] CRUD Clients (gérants + commercial)
+   - [ ] CRUD Employés (gérants)
+   - [ ] CRUD Équipes (gérants)
+   - [ ] CRUD Campagnes (gérants)
+   - [ ] CRUD Ventes (gérants + commercial)
 
-5. **Performance**
+5. **Edge Functions**
+   - [ ] create-user fonctionne lors de l'inscription
+   - [ ] invite-user fonctionne avec validation des rôles
+   - [ ] delete-user fonctionne (gérants uniquement)
+   - [ ] Les fonctions rejettent les mots de passe faibles
+
+6. **Performance**
    - [ ] Temps de chargement < 3s
    - [ ] Images lazy loaded
    - [ ] Pas d'erreurs console
+   - [ ] Pas d'erreurs dans les logs Supabase
 
-6. **Mobile**
-   - [ ] Responsive sur mobile
-   - [ ] PWA installable
-   - [ ] Touch gestures fonctionnels
+7. **Mobile & Responsive**
+   - [ ] Responsive sur mobile (test iPhone, Android)
+   - [ ] Navigation fonctionne sur mobile
+   - [ ] Formulaires utilisables sur mobile
+   - [ ] Tableaux scrollables horizontalement
 
 ---
 

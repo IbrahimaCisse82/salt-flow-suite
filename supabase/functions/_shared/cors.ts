@@ -4,7 +4,8 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5173', // Development
   'http://localhost:8080', // Development
   'https://mwxybozfksdxrsipywlh.supabase.co', // Supabase
-  // Add your production domains here:
+  'https://a879894c-887f-41e8-9be4-ab73e08c3d84.lovableproject.com', // Lovable Production
+  // Add your custom domain here when ready:
   // 'https://yourdomain.com',
   // 'https://www.yourdomain.com',
 ];
