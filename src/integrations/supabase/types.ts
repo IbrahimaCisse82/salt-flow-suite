@@ -1007,42 +1007,36 @@ export type Database = {
       employees_public: {
         Row: {
           created_at: string | null
-          email: string | null
           employee_number: string | null
           employee_type: string | null
           full_name: string | null
           hire_date: string | null
           id: string | null
           is_active: boolean | null
-          phone: string | null
           position: string | null
           tenant_id: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          email?: string | null
           employee_number?: string | null
           employee_type?: string | null
           full_name?: string | null
           hire_date?: string | null
           id?: string | null
           is_active?: boolean | null
-          phone?: string | null
           position?: string | null
           tenant_id?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          email?: string | null
           employee_number?: string | null
           employee_type?: string | null
           full_name?: string | null
           hire_date?: string | null
           id?: string | null
           is_active?: boolean | null
-          phone?: string | null
           position?: string | null
           tenant_id?: string | null
           updated_at?: string | null

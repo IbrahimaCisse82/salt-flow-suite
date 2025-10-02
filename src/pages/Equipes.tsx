@@ -556,7 +556,7 @@ const Equipes = () => {
                       <p className="text-sm text-muted-foreground mb-2">{person.position}</p>
                       <div className="flex gap-4 text-xs">
                         <span className="px-2 py-1 bg-muted rounded">
-                          {person.email || 'N/A'}
+                          {person.employee_type}
                         </span>
                       </div>
                     </div>

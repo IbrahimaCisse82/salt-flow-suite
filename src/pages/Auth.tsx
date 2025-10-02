@@ -197,11 +197,11 @@ const Auth = () => {
 
       if (tenantError) throw tenantError;
 
-      // 4) Lier le profil utilisateur au tenant et au rôle
+      // 4) Lier le profil utilisateur au tenant (role already assigned by handle_new_user trigger)
       const user = signInData.session.user;
       const { error: profileUpdateError } = await supabase
         .from('profiles')
-        .update({ tenant_id: tenantId, role: 'gerant', full_name: validated.fullName, email: validated.email })
+        .update({ tenant_id: tenantId, full_name: validated.fullName, email: validated.email })
         .eq('id', user.id);
 
       if (profileUpdateError) throw profileUpdateError;

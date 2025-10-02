@@ -60,19 +60,42 @@ CREATE POLICY "Managers can view all profiles in tenant"
 **Status:** FIXED
 
 **Implementation:**
-- Updated `employees_public` view to remove PII fields (email, phone)
-- Removed salary information from public view
-- Only managers and accountants can access full employee data via `employees` table
-- Added RLS policy to underlying `employees` table to control access
+- Split employee data access into two RLS policies:
+  - Managers/Admins/Accountants: Full access to all fields including salary, email, phone
+  - Regular users: Only see public fields (no salary, email, or phone)
+- Updated `employees_public` view to explicitly exclude sensitive fields
+- Updated `src/hooks/useEmployees.ts` to fetch from correct source based on role
+- Updated `src/pages/Equipes.tsx` to not display email (removed from UI)
 
 ```sql
+-- Policy 1: Managers/Admins/Accountants see all data
+CREATE POLICY "Managers can view all employee data"
+  ON employees FOR SELECT
+  USING (
+    get_user_role(auth.uid()) IN ('admin', 'gerant', 'comptable')
+    AND tenant_id = get_user_tenant_id(auth.uid())
+  );
+
+-- Policy 2: Regular users see only public data
+CREATE POLICY "Users can view public employee data"
+  ON employees FOR SELECT
+  USING (
+    tenant_id = get_user_tenant_id(auth.uid())
+    AND get_user_role(auth.uid()) NOT IN ('admin', 'gerant', 'comptable')
+  );
+
+-- Updated view excludes sensitive fields
 CREATE VIEW employees_public AS
 SELECT 
   id, tenant_id, full_name, position, employee_type, 
   employee_number, is_active, hire_date, created_at, updated_at
 FROM employees;
--- Note: salary, email, phone excluded
+-- Note: salary, email, phone explicitly excluded
 ```
+
+**Code Changes:**
+- `src/hooks/useEmployees.ts`: Role-based data fetching
+- `src/pages/Equipes.tsx`: Removed email display, shows employee_type instead
 
 ### 4. ✅ Tenant Sensitive Data Protection (NEW - 2025-10-02)
 **Issue:** Company registration numbers (NINEA, RCCM) and manager details visible to all users  
@@ -131,14 +154,22 @@ export const passwordSchema = z
 
 ### 7. ✅ Privilege Escalation Prevention (RESOLVED)
 **Problems Fixed:**
+- Role column in profiles table could allow unauthorized role changes
 - Users could update their own role in the database
 - No validation of role hierarchy during user creation
 
 **Solutions Implemented:**
+- **CRITICAL:** Removed `role` column from `profiles` table (if it existed)
+- Ensured `user_roles` table is the single source of truth for all roles
+- Updated `src/pages/Auth.tsx` to not set role on profiles during signup
+- Role is automatically assigned via `handle_new_user()` trigger to `user_roles` table
 - Created `update_own_profile()` function - allows users to update only safe fields
 - Added RLS policy blocking direct profile updates
 - Edge function validation prevents gerants from creating admin/gerant users
 - All role changes logged to `security_audit_log`
+
+**Code Changes:**
+- `src/pages/Auth.tsx`: Removed `role: 'gerant'` from profile update during signup
 
 ---
 
