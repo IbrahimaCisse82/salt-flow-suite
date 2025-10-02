@@ -108,9 +108,9 @@ export const Header = () => {
         .from('profiles')
         .select('role')
         .eq('id', user.id)
-        .single();
-      
-      return profile?.role as UserRole;
+        .maybeSingle();
+        
+      return (profile?.role as UserRole) ?? null;
     }
   });
 

@@ -17,13 +17,8 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     let cancelled = false;
 
-    // Filet de sécurité: éviter un loader infini si auth traîne en iframe
-    const timer = setTimeout(() => {
-      if (!cancelled) {
-        setIsAuthenticated(false);
-        setLoading(false);
-      }
-    }, 4000);
+    // Attendre explicitement la résolution d'auth pour éviter les aller-retours /auth <-> /
+    // Plus de timer agressif: on affiche un loader jusqu'à la fin de la vérification.
 
     const checkAuthAndRole = async () => {
       try {
@@ -59,7 +54,6 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
       } finally {
         if (!cancelled) {
           setLoading(false);
-          clearTimeout(timer);
         }
       }
     };
@@ -89,7 +83,7 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
       }
     });
 
-    return () => { cancelled = true; clearTimeout(timer); subscription.unsubscribe(); };
+    return () => { cancelled = true; subscription.unsubscribe(); };
   }, []);
 
   if (loading) {
