@@ -1051,21 +1051,27 @@ export type Database = {
           tenant_id: string | null
           updated_at: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {
       get_primary_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_profiles_with_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string
+          updated_at: string
+        }[]
       }
       get_user_role: {
         Args: { user_id: string }
