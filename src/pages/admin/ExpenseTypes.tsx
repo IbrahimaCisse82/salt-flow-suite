@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Header } from "@/components/Layout/Header";
+import { Sidebar } from "@/components/Layout/Sidebar";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +55,7 @@ interface ChartAccount {
 }
 
 export default function ExpenseTypes() {
+  const { isOpen } = useSidebar();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ExpenseType | null>(null);
   const [formData, setFormData] = useState({
@@ -210,8 +215,16 @@ export default function ExpenseTypes() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header />
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className={cn(
+          "flex-1 p-6 overflow-auto transition-all duration-300",
+          isOpen ? "md:ml-64" : "md:ml-16"
+        )}>
+          <div className="container mx-auto space-y-6">
+            <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Types de dépenses</h1>
           <p className="text-muted-foreground mt-2">
@@ -374,6 +387,9 @@ export default function ExpenseTypes() {
           </form>
         </DialogContent>
       </Dialog>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
