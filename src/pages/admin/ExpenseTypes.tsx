@@ -5,6 +5,7 @@ import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
+import { logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -118,7 +119,7 @@ export default function ExpenseTypes() {
     },
     onError: (error) => {
       toast.error("Erreur lors de la création");
-      console.error(error);
+      logger.error(error);
     },
   });
 
@@ -138,7 +139,7 @@ export default function ExpenseTypes() {
     },
     onError: (error) => {
       toast.error("Erreur lors de la modification");
-      console.error(error);
+      logger.error(error);
     },
   });
 
@@ -153,7 +154,7 @@ export default function ExpenseTypes() {
     },
     onError: (error) => {
       toast.error("Erreur lors de la suppression");
-      console.error(error);
+      logger.error(error);
     },
   });
 
