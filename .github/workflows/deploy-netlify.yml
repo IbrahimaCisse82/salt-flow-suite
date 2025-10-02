@@ -21,12 +21,17 @@ jobs:
       - name: Build
         run: npm run build --if-present
 
-      - name: Install Netlify CLI
-        run: npm i -g netlify-cli
+      - name: Check Netlify secrets
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then echo "ERROR: NETLIFY_AUTH_TOKEN not set"; exit 1; fi
+          if [ -z "$NETLIFY_SITE_ID" ]; then echo "ERROR: NETLIFY_SITE_ID not set"; exit 1; fi
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
-      - name: Deploy to Netlify
+      - name: Deploy to Netlify (via npx)
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          netlify deploy --prod --dir=dist --auth="$NETLIFY_AUTH_TOKEN" --site="$NETLIFY_SITE_ID"
+          npx netlify-cli deploy --prod --dir=dist --auth="$NETLIFY_AUTH_TOKEN" --site="$NETLIFY_SITE_ID"
