@@ -7,7 +7,7 @@ import { logger } from '@/utils/logger';
 interface Profile {
   id: string;
   tenant_id: string;
-  role?: string; // Populated from user_roles join
+  role?: string;
   email: string;
   full_name: string | null;
   phone: string | null;
@@ -48,45 +48,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Session timeout: 30 minutes of inactivity
   const SESSION_TIMEOUT = 30 * 60 * 1000;
 
-  // Charger profil et tenant en une seule requête optimisée
+  // Charger profil, tenant ET rôle en une seule requête optimisée via la fonction get_profiles_with_roles
   const { data: profileData } = useQuery({
-    queryKey: ['profile-with-tenant', user?.id],
+    queryKey: ['profile-with-tenant-role', user?.id],
     queryFn: async () => {
       if (!user?.id) return { profile: null, tenant: null };
       
-      // Charger le profil avec le tenant en une seule requête
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          tenant:tenants!profiles_tenant_id_fkey(
-            id,
-            name,
-            logo_url
-          )
-        `)
+      // Utiliser la fonction RPC qui retourne profile + role en une seule requête
+      const { data: profilesData, error: profileError } = await supabase
+        .rpc('get_profiles_with_roles')
         .eq('id', user.id)
         .single();
 
       if (profileError) throw profileError;
 
-      // Fetch user role from user_roles table
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .order('role')
-        .limit(1)
-        .maybeSingle();
+      // Charger le tenant séparément (nécessaire car pas inclus dans get_profiles_with_roles)
+      const { data: tenant, error: tenantError } = await supabase
+        .from('tenants')
+        .select('id, name, logo_url')
+        .eq('id', profilesData.tenant_id)
+        .single();
+
+      if (tenantError) throw tenantError;
       
       return {
-        profile: { ...profile, role: roleData?.role || undefined } as Profile,
-        tenant: profile.tenant as Tenant
+        profile: profilesData as Profile,
+        tenant: tenant as Tenant
       };
     },
     enabled: !!user?.id,
-    staleTime: 10 * 60 * 1000, // Cache pendant 10 minutes
-    gcTime: 15 * 60 * 1000, // Garde en mémoire 15 minutes
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
   });
 
   const profile = profileData?.profile ?? null;

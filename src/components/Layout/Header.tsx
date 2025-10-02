@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Waves, Menu, Bell, User, LogOut, CheckCircle2, AlertCircle, Building2, PanelLeft, PanelLeftClose } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -92,7 +93,7 @@ const salinesNavItems = [
   { icon: Settings, label: "Paramètres", href: "/parametres" },
 ];
 
-export const Header = () => {
+const HeaderComponent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile, tenant } = useAuth();
@@ -100,23 +101,8 @@ export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toggle: toggleSidebar, isOpen: sidebarOpen } = useSidebar();
 
-  const { data: userRole } = useQuery({
-    queryKey: ['user-role'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-      
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .order('role')
-        .limit(1)
-        .maybeSingle();
-        
-      return (roleData?.role as UserRole) ?? null;
-    }
-  });
+  // Utiliser le rôle du contexte Auth au lieu d'une requête séparée
+  const userRole = (profile?.role as UserRole) ?? null;
 
   const navItems = userRole === 'admin' ? adminNavItems : salinesNavItems;
   const visibleNavItems = navItems.filter(item => 
@@ -340,3 +326,5 @@ export const Header = () => {
     </header>
   );
 };
+
+export const Header = memo(HeaderComponent);

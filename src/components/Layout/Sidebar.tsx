@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { 
   LayoutDashboard, 
   Droplets, 
@@ -19,10 +20,9 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NavItem {
   icon: React.ElementType;
@@ -52,29 +52,14 @@ const salinesNavItems: NavItem[] = [
   { icon: Settings, label: "Paramètres", href: "/parametres" },
 ];
 
-export const Sidebar = () => {
+const SidebarComponent = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isOpen, toggle } = useSidebar();
+  const { profile } = useAuth();
 
-  // Récupérer le rôle de l'utilisateur actuel
-  const { data: userRole } = useQuery({
-    queryKey: ['user-role'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-      
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .order('role')
-        .limit(1)
-        .maybeSingle();
-      
-      return roleData?.role as UserRole || null;
-    }
-  });
+  // Utiliser le rôle du contexte Auth au lieu d'une requête séparée
+  const userRole = (profile?.role as UserRole) ?? null;
 
   // Choisir les items de navigation selon le rôle
   const navItems = userRole === 'admin' ? adminNavItems : salinesNavItems;
@@ -142,3 +127,5 @@ export const Sidebar = () => {
     </aside>
   );
 };
+
+export const Sidebar = memo(SidebarComponent);
