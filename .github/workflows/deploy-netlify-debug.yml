@@ -1,0 +1,48 @@
+name: Debug: Netlify deploy (debug)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  debug_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Print basic info
+        run: |
+          echo "Run on $(uname -a)"
+          echo "Repo: $GITHUB_REPOSITORY"
+          echo "Ref: $GITHUB_REF"
+
+      - name: Check secrets presence
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then echo "NETLIFY_AUTH_TOKEN=MISSING"; else echo "NETLIFY_AUTH_TOKEN=SET"; fi
+          if [ -z "$NETLIFY_SITE_ID" ]; then echo "NETLIFY_SITE_ID=MISSING"; else echo "NETLIFY_SITE_ID=SET"; fi
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Install Netlify CLI
+        run: npm i -g netlify-cli
+
+      - name: Attempt deploy (debug)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          echo "Starting deploy..."
+          netlify status || true
+          netlify deploy --prod --dir=dist --auth="$NETLIFY_AUTH_TOKEN" --site="$NETLIFY_SITE_ID"
