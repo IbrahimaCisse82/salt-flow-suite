@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -50,14 +51,15 @@ const PageLoader = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <SidebarProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SidebarProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/admin/setup" element={<AdminSetup />} />
                 <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
@@ -82,6 +84,7 @@ const App = () => (
         </TooltipProvider>
       </SidebarProvider>
     </AuthProvider>
+  </ErrorBoundary>
   </QueryClientProvider>
 );
 

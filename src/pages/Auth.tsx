@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import saltLogo from "@/assets/salt-logo.png";
 import saltMarshesBg from "@/assets/salt-marshes-bg.jpg";
+import { ImageWithLoading } from "@/components/ImageWithLoading";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -260,7 +261,11 @@ const Auth = () => {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center p-3">
-              <img src={saltLogo} alt="G-Suite Sel Logo" className="h-full w-full object-contain" />
+              <ImageWithLoading 
+                src={saltLogo} 
+                alt="G-Suite Sel Logo" 
+                className="h-full w-full object-contain"
+              />
             </div>
           </div>
           <CardTitle className="text-2xl">G-Suite Sel</CardTitle>

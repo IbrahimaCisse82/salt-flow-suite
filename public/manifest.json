@@ -1,0 +1,43 @@
+{
+  "name": "G-Suite Sel - Gestion des Marais Salants",
+  "short_name": "G-Suite Sel",
+  "description": "Solution SaaS complète pour la gestion des exploitations salines",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0EA5E9",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/salt-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/salt-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "agriculture"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Tableau de bord",
+      "url": "/",
+      "description": "Accéder au tableau de bord"
+    },
+    {
+      "name": "Production",
+      "url": "/production",
+      "description": "Gérer la production"
+    },
+    {
+      "name": "Commercial",
+      "url": "/commercial",
+      "description": "Gérer les ventes"
+    }
+  ]
+}
