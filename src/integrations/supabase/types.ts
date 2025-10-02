@@ -366,6 +366,60 @@ export type Database = {
           },
         ]
       }
+      expense_types: {
+        Row: {
+          account_id: string | null
+          account_number: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          observations: string | null
+          syscohada_category: string
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          account_number?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          observations?: string | null
+          syscohada_category: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          account_number?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          observations?: string | null
+          syscohada_category?: string
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_types_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journal_entries: {
         Row: {
           account_id: string | null

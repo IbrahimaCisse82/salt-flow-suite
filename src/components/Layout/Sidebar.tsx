@@ -13,7 +13,8 @@ import {
   Building2,
   BookOpen,
   PanelLeft,
-  PanelLeftClose
+  PanelLeftClose,
+  Receipt
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ const adminNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Tableau de bord", href: "/admin" },
   { icon: Building2, label: "Entreprises", href: "/admin/tenants" },
   { icon: BookOpen, label: "Plan comptable", href: "/admin/chart-of-accounts" },
+  { icon: Receipt, label: "Types de dépenses", href: "/admin/expense-types" },
   { icon: Settings, label: "Paramètres", href: "/parametres" },
 ];
 

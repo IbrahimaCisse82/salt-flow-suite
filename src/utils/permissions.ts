@@ -6,6 +6,7 @@ export const rolePermissions: Record<UserRole, string[]> = {
     '/admin',
     '/admin/tenants',
     '/admin/chart-of-accounts',
+    '/admin/expense-types',
     '/parametres'
   ],
   gerant: [

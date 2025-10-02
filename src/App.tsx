@@ -21,6 +21,7 @@ import GestionUtilisateurs from "./pages/GestionUtilisateurs";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminTenants from "./pages/admin/Tenants";
 import AdminChartOfAccounts from "./pages/admin/ChartOfAccounts";
+import AdminExpenseTypes from "./pages/admin/ExpenseTypes";
 import AdminSetup from "./pages/admin/Setup";
 import NotFound from "./pages/NotFound";
 
@@ -61,6 +62,7 @@ const App = () => (
           <Route path="/admin" element={<RoleProtectedRoute><AdminDashboard /></RoleProtectedRoute>} />
           <Route path="/admin/tenants" element={<RoleProtectedRoute><AdminTenants /></RoleProtectedRoute>} />
           <Route path="/admin/chart-of-accounts" element={<RoleProtectedRoute><AdminChartOfAccounts /></RoleProtectedRoute>} />
+          <Route path="/admin/expense-types" element={<RoleProtectedRoute><AdminExpenseTypes /></RoleProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

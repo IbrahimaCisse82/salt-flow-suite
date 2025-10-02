@@ -9,29 +9,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
-
-const expenseCategories = [
-  "Frais journaliers",
-  "Frais employés contractants",
-  "Carburant",
-  "Motopompes",
-  "Machines de broyage",
-  "Machine de lavage",
-  "Machine d'iodation",
-  "Matériel de création de digues",
-  "EPI",
-  "Repas",
-  "Transport",
-  "Téléphone",
-  "Tracteurs",
-  "Pelles",
-  "Brouettes",
-  "Sacs",
-  "Balance",
-  "Testeur",
-  "Location de marais salants",
-  "Achat de marais salants",
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface BudgetExpense {
   id: string;
@@ -55,6 +34,20 @@ export const BudgetPhaseTab = ({
   onDeleteExpense 
 }: BudgetPhaseTabProps) => {
   const phaseTotal = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+
+  const { data: expenseTypes } = useQuery({
+    queryKey: ["expense-types"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expense_types")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   return (
     <div className="space-y-4">
@@ -91,9 +84,9 @@ export const BudgetPhaseTab = ({
                     <SelectValue placeholder="Sélectionnez une catégorie de dépense" />
                   </SelectTrigger>
                   <SelectContent className="bg-background z-50">
-                    {expenseCategories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
+                    {expenseTypes?.map((expenseType) => (
+                      <SelectItem key={expenseType.id} value={expenseType.name}>
+                        {expenseType.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
