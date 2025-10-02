@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { useState } from "react";
 import { 
   Users,
@@ -205,7 +206,7 @@ const Equipes = () => {
         members: ""
       });
     } catch (error) {
-      console.error('Team operation error:', error);
+      logger.error('Team operation error:', error);
     }
   };
 
