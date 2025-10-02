@@ -54,8 +54,9 @@ const Auth = () => {
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/");
+      if (session && event === 'SIGNED_IN') {
+        // Redirection uniquement lors d'un nouveau sign-in
+        setTimeout(() => navigate("/"), 100);
       }
     });
 
@@ -89,7 +90,8 @@ const Auth = () => {
           title: "Connexion réussie",
           description: "Bienvenue !",
         });
-        navigate("/");
+        // Attendre que la session soit propagée avant de rediriger
+        setTimeout(() => navigate("/"), 100);
       }
     } catch (error: any) {
       console.error("Login error:", error);
@@ -208,7 +210,8 @@ const Auth = () => {
         title: "Inscription réussie",
         description: "Votre entreprise et votre compte ont été créés",
       });
-      navigate("/");
+      // Attendre que la session soit propagée avant de rediriger
+      setTimeout(() => navigate("/"), 100);
     } catch (error: any) {
       console.error("Signup error:", error);
       toast({
