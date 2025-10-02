@@ -1,37 +1,28 @@
-name: CI: Build and Deploy to Netlify
+name: CI: Minimal test for Actions
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  build_and_deploy:
+  minimal_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build --if-present
-
-      - name: Check Netlify secrets
+      - name: Print basic info
         run: |
-          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then echo "ERROR: NETLIFY_AUTH_TOKEN not set"; exit 1; fi
-          if [ -z "$NETLIFY_SITE_ID" ]; then echo "ERROR: NETLIFY_SITE_ID not set"; exit 1; fi
+          echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
+          echo "GITHUB_REF=$GITHUB_REF"
+          echo "GITHUB_SHA=$GITHUB_SHA"
+
+      - name: Print secrets presence
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then echo "NETLIFY_AUTH_TOKEN=MISSING"; else echo "NETLIFY_AUTH_TOKEN=SET"; fi
+          if [ -z "$NETLIFY_SITE_ID" ]; then echo "NETLIFY_SITE_ID=MISSING"; else echo "NETLIFY_SITE_ID=SET"; fi
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
-      - name: Deploy to Netlify (via npx)
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: |
-          npx netlify-cli deploy --prod --dir=dist --auth="$NETLIFY_AUTH_TOKEN" --site="$NETLIFY_SITE_ID"
+      - name: Success
+        run: echo "minimal test OK"
