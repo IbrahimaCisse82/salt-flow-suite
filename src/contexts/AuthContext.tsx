@@ -131,17 +131,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const previousUserId = user?.id;
-      const newUserId = session?.user?.id;
-      
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // Vider le cache React Query lors de la déconnexion ou changement d'utilisateur
-      if (!session || (previousUserId && previousUserId !== newUserId)) {
+      // Vider le cache React Query lors de la déconnexion
+      if (event === 'SIGNED_OUT') {
         queryClient.clear();
-        logger.info('Cache cleared due to user change or logout');
+        logger.info('Cache cleared due to logout');
       }
     });
 
@@ -153,7 +150,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   return (
     <AuthContext.Provider value={{ user, session, profile: profile ?? null, tenant: tenant ?? null, loading }}>
