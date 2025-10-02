@@ -18,6 +18,21 @@ Deno.serve(async (req) => {
       )
     }
 
+    // SECURITY: Strong password validation
+    if (password.length < 8) {
+      return new Response(
+        JSON.stringify({ error: 'Le mot de passe doit contenir au moins 8 caractères' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      return new Response(
+        JSON.stringify({ error: 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const admin = createClient(supabaseUrl, serviceKey)
