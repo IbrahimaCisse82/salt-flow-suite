@@ -170,7 +170,7 @@ const Comptabilite = () => {
         .from('employees')
         .select('*')
         .eq('is_active', true)
-        .order('last_name');
+        .order('full_name');
       
       if (error) throw error;
       return data || [];
@@ -183,7 +183,7 @@ const Comptabilite = () => {
       const { data, error } = await supabase
         .from('daily_workers')
         .select('*')
-        .order('last_name');
+        .order('full_name');
       
       if (error) throw error;
       return data || [];
@@ -197,7 +197,7 @@ const Comptabilite = () => {
       const { data, error } = await supabase
         .from('accounts')
         .select('*')
-        .order('name');
+        .order('account_name');
       
       if (error) throw error;
       return data || [];
@@ -256,7 +256,6 @@ const Comptabilite = () => {
         .from('transactions')
         .select(`
           *,
-          account:accounts(name),
           campagne:campagnes(name)
         `)
         .order('transaction_date', { ascending: false })
@@ -270,7 +269,7 @@ const Comptabilite = () => {
         type: t.transaction_type,
         description: t.description,
         amount: Number(t.amount),
-        account: 'N/A', // Will be handled separately
+        account: 'N/A',
         campagne: t.campagne?.name || null,
         campagnePhase: t.campagne_phase || null
       }));
@@ -291,7 +290,7 @@ const Comptabilite = () => {
           )
         `)
         .eq('transaction_type', 'divers' as any)
-        .order('date', { ascending: false });
+        .order('transaction_date', { ascending: false });
       
       if (error) throw error;
       return data || [];
