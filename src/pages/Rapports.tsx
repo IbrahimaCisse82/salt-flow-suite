@@ -150,7 +150,7 @@ const Rapports = () => {
           bassin:bassins(name, code),
           campagne:campagnes(name)
         `)
-        .order('date', { ascending: false })
+        .order('production_date', { ascending: false })
         .limit(50);
       if (error) throw error;
       return data || [];
