@@ -8,6 +8,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { BudgetPhaseTab, BudgetExpense } from "@/components/Campaign/BudgetPhaseTab";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -234,7 +235,7 @@ const Campagne = () => {
         'traitement-stockage': []
       });
     } catch (error) {
-      console.error('Error saving budget:', error);
+      logger.error('Error saving budget:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'enregistrer le budget",

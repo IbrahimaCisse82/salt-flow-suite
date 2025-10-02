@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { logger } from '@/utils/logger';
 
 interface Profile {
   id: string;
@@ -41,6 +42,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const inactivityTimerRef = useRef<NodeJS.Timeout>();
+  
+  // Session timeout: 30 minutes of inactivity
+  const SESSION_TIMEOUT = 30 * 60 * 1000;
 
   // Charger profil et tenant en une seule requête optimisée
   const { data: profileData } = useQuery({
@@ -85,6 +90,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const profile = profileData?.profile ?? null;
   const tenant = profileData?.tenant ?? null;
+
+  // Reset inactivity timer on user activity
+  const resetInactivityTimer = () => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    if (session) {
+      inactivityTimerRef.current = setTimeout(async () => {
+        logger.info('Session timeout due to inactivity');
+        await supabase.auth.signOut();
+      }, SESSION_TIMEOUT);
+    }
+  };
+
+  // Monitor user activity
+  useEffect(() => {
+    if (!session) return;
+
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, resetInactivityTimer);
+    });
+
+    resetInactivityTimer();
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, resetInactivityTimer);
+      });
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    };
+  }, [session]);
 
   useEffect(() => {
     // Écouter les changements d'authentification

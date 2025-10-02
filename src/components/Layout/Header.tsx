@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -143,7 +144,7 @@ export const Header = () => {
       
       navigate("/auth");
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error("Logout error:", error);
       toast({
         title: "Erreur",
         description: "Impossible de se déconnecter",

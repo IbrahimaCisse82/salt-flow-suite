@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -193,7 +194,7 @@ const Parametres = () => {
       });
       
       if (profileError) {
-        console.error('Profile update error:', profileError);
+        logger.error('Profile update error:', profileError);
         throw new Error(profileError.message || 'Erreur lors de la mise à jour du profil');
       }
 
@@ -203,7 +204,7 @@ const Parametres = () => {
           password: profileData.password
         });
         if (passwordError) {
-          console.error('Password update error:', passwordError);
+          logger.error('Password update error:', passwordError);
           throw new Error(passwordError.message || 'Erreur lors de la mise à jour du mot de passe');
         }
       } else if (profileData.password && profileData.password.length < 6) {
@@ -219,7 +220,7 @@ const Parametres = () => {
       setProfileData(prev => ({ ...prev, password: "" }));
     },
     onError: (error: any) => {
-      console.error('Update profile mutation error:', error);
+      logger.error('Update profile mutation error:', error);
       toast({
         title: "Erreur",
         description: error?.message || "Impossible de mettre à jour le profil",
@@ -412,7 +413,7 @@ const Parametres = () => {
         description: "Le logo a été mis à jour avec succès"
       });
     } catch (error: any) {
-      console.error('Error uploading logo:', error);
+      logger.error('Error uploading logo:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible d'uploader le logo",

@@ -4,6 +4,7 @@ import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
+import { logger } from "@/utils/logger";
 import {
   Table,
   TableBody,
@@ -49,7 +50,7 @@ export default function Tenants() {
     },
     onError: (error) => {
       toast.error("Erreur lors de la mise à jour");
-      console.error(error);
+      logger.error(error);
     }
   });
 

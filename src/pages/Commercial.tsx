@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { logger } from "@/utils/logger";
 import {
   Dialog,
   DialogContent,
@@ -168,7 +169,7 @@ const Commercial = () => {
         description: "Impossible d'enregistrer la livraison",
         variant: "destructive"
       });
-      console.error('Delivery error:', error);
+      logger.error('Delivery error:', error);
     }
   });
 

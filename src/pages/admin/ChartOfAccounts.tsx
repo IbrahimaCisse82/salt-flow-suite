@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { logger } from "@/utils/logger";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -119,7 +120,7 @@ export default function ChartOfAccounts() {
     },
     onError: (error) => {
       toast.error("Erreur lors de l'ajout");
-      console.error(error);
+      logger.error(error);
     }
   });
 
@@ -138,7 +139,7 @@ export default function ChartOfAccounts() {
     },
     onError: (error) => {
       toast.error("Erreur lors de la mise à jour");
-      console.error(error);
+      logger.error(error);
     }
   });
 

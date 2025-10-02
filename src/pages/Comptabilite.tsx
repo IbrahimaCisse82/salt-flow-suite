@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { logger } from "@/utils/logger";
 import {
   Dialog,
   DialogContent,
@@ -454,7 +455,7 @@ const Comptabilite = () => {
         description: "Impossible d'enregistrer le paiement",
         variant: "destructive"
       });
-      console.error('Payment error:', error);
+      logger.error('Payment error:', error);
     }
   });
 

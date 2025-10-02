@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
+import { logger } from "@/utils/logger";
 
 export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -44,7 +45,7 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
         
         setUserRole(derivedRole);
       } catch (e) {
-        console.error('Auth check failed', e);
+        logger.error('Auth check failed', e);
         setIsAuthenticated(false);
       } finally {
         if (!cancelled) {
@@ -74,7 +75,7 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
           setUserRole(derivedRole);
         }
       } catch (e) {
-        console.error('Auth state change error', e);
+        logger.error('Auth state change error', e);
       } finally {
         if (!cancelled) setLoading(false);
       }

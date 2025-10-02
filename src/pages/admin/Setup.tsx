@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,7 @@ export default function AdminSetup() {
           .limit(1);
 
         if (error) {
-          console.error("Error checking admin:", error);
+          logger.error("Error checking admin:", error);
           toast({
             title: "Erreur",
             description: "Impossible de vérifier les administrateurs existants",
@@ -53,7 +54,7 @@ export default function AdminSetup() {
           navigate("/auth");
         }
       } catch (error) {
-        console.error("Error checking admin:", error);
+        logger.error("Error checking admin:", error);
       } finally {
         setCheckingAdmin(false);
       }
@@ -105,7 +106,7 @@ export default function AdminSetup() {
       });
       navigate("/admin");
     } catch (error: any) {
-      console.error("Admin setup error:", error);
+      logger.error("Admin setup error:", error);
       toast({
         title: "Erreur de création",
         description: error.message || "Impossible de créer le compte administrateur",

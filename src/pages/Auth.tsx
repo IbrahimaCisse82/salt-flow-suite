@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
+import { logger } from "@/utils/logger";
 import {
   Dialog,
   DialogContent,
@@ -94,10 +95,7 @@ const Auth = () => {
         setTimeout(() => navigate("/"), 100);
       }
     } catch (error: any) {
-      // Log errors only in development mode
-      if (import.meta.env.DEV) {
-        console.error("Login error:", error);
-      }
+      logger.error("Login error:", error);
       toast({
         title: "Erreur de connexion",
         description: error.message || "Impossible de se connecter",
@@ -216,10 +214,7 @@ const Auth = () => {
       // Attendre que la session soit propagée avant de rediriger
       setTimeout(() => navigate("/"), 100);
     } catch (error: any) {
-      // Log errors only in development mode
-      if (import.meta.env.DEV) {
-        console.error("Signup error:", error);
-      }
+      logger.error("Signup error:", error);
       toast({
         title: "Erreur d'inscription",
         description: error.message || "Impossible de créer le compte",
@@ -252,10 +247,7 @@ const Auth = () => {
       setResetDialogOpen(false);
       setResetEmail("");
     } catch (error: any) {
-      // Log errors only in development mode
-      if (import.meta.env.DEV) {
-        console.error("Password reset error:", error);
-      }
+      logger.error("Password reset error:", error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible d'envoyer l'email de réinitialisation",
