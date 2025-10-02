@@ -897,35 +897,6 @@ export type Database = {
       }
     }
     Views: {
-      employees_safe: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          employee_number: string | null
-          employee_type: string | null
-          full_name: string | null
-          hire_date: string | null
-          id: string | null
-          is_active: boolean | null
-          phone: string | null
-          position: string | null
-          salary: number | null
-          tenant_id: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
-      profiles_safe: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          full_name: string | null
-          id: string | null
-          tenant_id: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
       profiles_with_roles: {
         Row: {
           avatar_url: string | null
