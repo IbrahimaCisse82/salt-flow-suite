@@ -785,13 +785,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "team_members_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "team_members_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
@@ -843,13 +836,6 @@ export type Database = {
             columns: ["leader_id"]
             isOneToOne: false
             referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "teams_leader_id_fkey"
-            columns: ["leader_id"]
-            isOneToOne: false
-            referencedRelation: "employees_public"
             referencedColumns: ["id"]
           },
           {
@@ -1004,53 +990,6 @@ export type Database = {
       }
     }
     Views: {
-      employees_public: {
-        Row: {
-          created_at: string | null
-          employee_number: string | null
-          employee_type: string | null
-          full_name: string | null
-          hire_date: string | null
-          id: string | null
-          is_active: boolean | null
-          position: string | null
-          tenant_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          employee_number?: string | null
-          employee_type?: string | null
-          full_name?: string | null
-          hire_date?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          position?: string | null
-          tenant_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          employee_number?: string | null
-          employee_type?: string | null
-          full_name?: string | null
-          hire_date?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          position?: string | null
-          tenant_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "employees_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles_public: {
         Row: {
           avatar_url: string | null

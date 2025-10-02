@@ -57,48 +57,45 @@ CREATE POLICY "Managers can view all profiles in tenant"
   );
 ```
 
-### 3. ✅ Employees Salary & PII Protection (NEW - 2025-10-02)
-**Issue:** Employee salaries, emails, and phone numbers visible to all staff  
+### 3. ✅ Employees & Daily Workers Data Protection (UPDATED - 2025-10-02)
+**Issue:** Employee salaries, PII, and daily worker rates visible to unauthorized staff  
 **Impact:** High - Salary confidentiality breach, privacy violation  
-**Status:** FIXED
+**Status:** FIXED - FULLY RESTRICTED
 
 **Implementation:**
-- Split employee data access into two RLS policies:
-  - Managers/Admins/Accountants: Full access to all fields including salary, email, phone
-  - Regular users: Only see public fields (no salary, email, or phone)
-- Updated `employees_public` view to explicitly exclude sensitive fields
-- Updated `src/hooks/useEmployees.ts` to fetch from correct source based on role
-- Updated `src/pages/Equipes.tsx` to not display email (removed from UI)
+- **CRITICAL CHANGE:** Only gérants and admins can access employee and daily worker data
+- Removed all access for regular users (production, commercial, comptable)
+- Deleted `employees_public` view - no longer needed
+- Updated RLS policies for complete data protection:
+  - `employees` table: Only admin/gerant with ALL operations
+  - `daily_workers` table: Only admin/gerant with ALL operations
+- Production role manages teams only (team_members, teams tables)
 
 ```sql
--- Policy 1: Managers/Admins/Accountants see all data
-CREATE POLICY "Managers can view all employee data"
-  ON employees FOR SELECT
+-- EMPLOYEES: Only managers can access
+CREATE POLICY "Only managers can manage employees"
+  ON employees FOR ALL
   USING (
-    get_user_role(auth.uid()) IN ('admin', 'gerant', 'comptable')
+    get_user_role(auth.uid()) IN ('admin', 'gerant')
     AND tenant_id = get_user_tenant_id(auth.uid())
   );
 
--- Policy 2: Regular users see only public data
-CREATE POLICY "Users can view public employee data"
-  ON employees FOR SELECT
+-- DAILY WORKERS: Only managers can access
+CREATE POLICY "Only managers can manage daily workers"
+  ON daily_workers FOR ALL
   USING (
-    tenant_id = get_user_tenant_id(auth.uid())
-    AND get_user_role(auth.uid()) NOT IN ('admin', 'gerant', 'comptable')
+    get_user_role(auth.uid()) IN ('admin', 'gerant')
+    AND tenant_id = get_user_tenant_id(auth.uid())
   );
 
--- Updated view excludes sensitive fields
-CREATE VIEW employees_public AS
-SELECT 
-  id, tenant_id, full_name, position, employee_type, 
-  employee_number, is_active, hire_date, created_at, updated_at
-FROM employees;
--- Note: salary, email, phone explicitly excluded
+-- Removed: employees_public view (deleted)
+-- Removed: comptable access to employee data
 ```
 
 **Code Changes:**
-- `src/hooks/useEmployees.ts`: Role-based data fetching
-- `src/pages/Equipes.tsx`: Removed email display, shows employee_type instead
+- `src/hooks/useEmployees.ts`: Returns empty array for non-manager roles
+- Comptable role no longer has access to employee data
+- Production role manages only teams and attendance (pointage)
 
 ### 4. ✅ Tenant Sensitive Data Protection (NEW - 2025-10-02)
 **Issue:** Company registration numbers (NINEA, RCCM) and manager details visible to all users  
@@ -205,20 +202,26 @@ export const passwordSchema = z
 
 ---
 
-## ⚠️ SECURITY DEFINER VIEWS (By Design)
+## ⚠️ SECURITY DEFINER FUNCTIONS (By Design)
 
-The database linter flags `SECURITY DEFINER` views as warnings. These are **intentional** and necessary to prevent RLS infinite recursion:
+The database linter flags `SECURITY DEFINER` functions as warnings. These are **intentional** and necessary to prevent RLS infinite recursion:
 
-1. **`employees_public` view** - Uses SECURITY DEFINER to provide employee data without salaries/PII
-2. **`profiles_with_roles` view** - Uses SECURITY DEFINER to join profiles with roles safely
-3. **Helper functions** - Use SECURITY DEFINER to query tables without triggering recursive RLS checks
+1. **Helper functions** - Use SECURITY DEFINER to query tables without triggering recursive RLS checks:
+   - `get_user_tenant_id(uuid)` - Safely retrieves user's tenant
+   - `get_user_role(uuid)` - Safely retrieves user's primary role
+   - `is_manager_or_admin(uuid)` - Checks admin/manager status
+   - `has_role(uuid, app_role)` - Checks specific role assignment
+   - `get_profiles_with_roles()` - Joins profiles with roles safely
+   - `get_employees_safe()` - Provides safe employee data access
+   - `get_clients_safe()` - Provides safe client data access
 
 **Important:** The `profiles_public` view uses `SECURITY INVOKER` (not definer), which means it properly inherits RLS policies from the `profiles` table.
 
-**Security Review:** These SECURITY DEFINER views are safe because:
-- They expose only non-sensitive data
+**Security Review:** These SECURITY DEFINER functions are safe because:
+- They prevent infinite RLS recursion (accessing same table from within RLS policy)
 - Access is still controlled by the underlying table's RLS policies
-- Alternative would cause infinite recursion errors
+- Functions have `set search_path = public` to prevent schema injection
+- Alternative would cause database errors and application failure
 - Supabase documentation confirms this is an acceptable pattern for RLS recursion prevention
 
 ---
@@ -280,10 +283,10 @@ const ALLOWED_ORIGINS = [
 - [x] Cross-tenant data access prevented
 
 ### Employee Data Protection Tests
-- [x] Regular users cannot see employee salaries
-- [x] Regular users cannot see employee PII (email, phone)
-- [x] Managers and accountants CAN see full employee data
-- [x] `employees_public` view excludes sensitive fields
+- [x] Regular users (production, commercial, comptable) CANNOT access employee data
+- [x] Only gérants and admins can view/manage employee data
+- [x] Only gérants and admins can view/manage daily worker data
+- [x] Production role can manage teams but not employee records
 
 ### Password Policy Tests
 - [x] 6-character passwords rejected

@@ -9,27 +9,21 @@ export const useEmployees = () => {
   return useQuery({
     queryKey: ['employees', userRole],
     queryFn: async () => {
-      // Managers and accountants can see full employee info including salaries
-      const canViewSalary = userRole === 'admin' || userRole === 'gerant' || userRole === 'comptable';
+      // Only managers (gérants) and admins can see employee data
+      const canViewEmployees = userRole === 'admin' || userRole === 'gerant';
 
-      if (canViewSalary) {
-        const { data, error } = await supabase
-          .from('employees')
-          .select('*')
-          .order('full_name');
-        
-        if (error) throw error;
-        return data || [];
-      } else {
-        // Other users see public view without salaries
-        const { data, error } = await supabase
-          .from('employees_public')
-          .select('*')
-          .order('full_name');
-        
-        if (error) throw error;
-        return data || [];
+      if (!canViewEmployees) {
+        // Users without permission get empty array
+        return [];
       }
+
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*')
+        .order('full_name');
+      
+      if (error) throw error;
+      return data || [];
     }
   });
 };
