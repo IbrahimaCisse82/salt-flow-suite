@@ -30,17 +30,33 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Vérifier que l'utilisateur est gérant
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('role, tenant_id')
-      .eq('id', user.id)
-      .single()
+    // Vérifier le rôle de l'utilisateur depuis user_roles
+    const { data: roleData, error: roleError } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .order('role')
+      .limit(1)
+      .maybeSingle()
 
-    if (profileError || !profile || profile.role !== 'gerant') {
+    if (roleError || !roleData || roleData.role !== 'gerant') {
       return new Response(
         JSON.stringify({ error: 'Non autorisé - seuls les gérants peuvent inviter des utilisateurs' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Récupérer le tenant_id depuis le profil
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !profile) {
+      return new Response(
+        JSON.stringify({ error: 'Profil utilisateur non trouvé' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -65,7 +81,7 @@ Deno.serve(async (req) => {
     // SECURITY: Role hierarchy validation - prevent privilege escalation
     // Gerants cannot create admin users or other gerants
     const allowedRoles = ['commercial', 'comptable', 'production']
-    if (profile.role === 'gerant' && !allowedRoles.includes(role)) {
+    if (!allowedRoles.includes(role)) {
       return new Response(
         JSON.stringify({ error: 'Non autorisé - vous ne pouvez créer que des utilisateurs commerciaux, comptables ou de production' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

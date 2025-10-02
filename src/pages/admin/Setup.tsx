@@ -30,7 +30,7 @@ export default function AdminSetup() {
     const checkExistingAdmin = async () => {
       try {
         const { data, error } = await supabase
-          .from('profiles')
+          .from('user_roles')
           .select('id')
           .eq('role', 'admin')
           .limit(1);

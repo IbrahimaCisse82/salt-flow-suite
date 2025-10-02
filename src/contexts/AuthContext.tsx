@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 interface Profile {
   id: string;
   tenant_id: string;
-  role: string;
+  role?: string; // Populated from user_roles join
   email: string;
   full_name: string | null;
   phone: string | null;
@@ -63,9 +63,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (profileError) throw profileError;
+
+      // Fetch user role from user_roles table
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .order('role')
+        .limit(1)
+        .maybeSingle();
       
       return {
-        profile: profile as Profile,
+        profile: { ...profile, role: roleData?.role || undefined } as Profile,
         tenant: profile.tenant as Tenant
       };
     },

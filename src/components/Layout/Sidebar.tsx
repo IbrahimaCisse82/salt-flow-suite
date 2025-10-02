@@ -62,13 +62,15 @@ export const Sidebar = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
       
-      const { data: profile } = await supabase
-        .from('profiles')
+      const { data: roleData } = await supabase
+        .from('user_roles')
         .select('role')
-        .eq('id', user.id)
-        .single();
+        .eq('user_id', user.id)
+        .order('role')
+        .limit(1)
+        .maybeSingle();
       
-      return profile?.role as UserRole;
+      return roleData?.role as UserRole || null;
     }
   });
 

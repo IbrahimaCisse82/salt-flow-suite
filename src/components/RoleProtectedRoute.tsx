@@ -32,18 +32,20 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
 
         setIsAuthenticated(true);
 
-        // Récupérer le rôle de l'utilisateur (fallback sur user_metadata)
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
+        // Récupérer le rôle de l'utilisateur depuis user_roles
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
           .select('role')
-          .eq('id', session.user.id)
+          .eq('user_id', session.user.id)
+          .order('role')
+          .limit(1)
           .maybeSingle();
 
-        console.log('RoleProtectedRoute - Profile:', profile);
-        console.log('RoleProtectedRoute - Profile error:', profileError);
+        console.log('RoleProtectedRoute - Role data:', roleData);
+        console.log('RoleProtectedRoute - Role error:', roleError);
         console.log('RoleProtectedRoute - User metadata role:', session.user.user_metadata?.role);
 
-        const derivedRole = (profile?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || null;
+        const derivedRole = (roleData?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || null;
         console.log('RoleProtectedRoute - Derived role:', derivedRole);
         console.log('RoleProtectedRoute - Current path:', location.pathname);
         
@@ -67,13 +69,15 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
           setUserRole(null);
         } else {
           setIsAuthenticated(true);
-          const { data: profile } = await supabase
-            .from('profiles')
+          const { data: roleData } = await supabase
+            .from('user_roles')
             .select('role')
-            .eq('id', session.user.id)
+            .eq('user_id', session.user.id)
+            .order('role')
+            .limit(1)
             .maybeSingle();
 
-          const derivedRole = (profile?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || null;
+          const derivedRole = (roleData?.role as UserRole) || (session.user.user_metadata?.role as UserRole) || null;
           setUserRole(derivedRole);
         }
       } catch (e) {

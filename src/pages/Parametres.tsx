@@ -73,6 +73,14 @@ const Parametres = () => {
         .select('*')
         .eq('id', user.id)
         .single();
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .order('role')
+        .limit(1)
+        .maybeSingle();
       
       if (profile) {
         setProfileData({
@@ -83,7 +91,7 @@ const Parametres = () => {
         });
       }
       
-      return { user, profile };
+      return { user, profile: { ...profile, role: roleData?.role } };
     }
   });
 

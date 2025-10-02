@@ -46,11 +46,19 @@ export default function ChartOfAccounts() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tenant_id, role')
+        .select('tenant_id')
         .eq('id', user?.id)
         .maybeSingle();
 
-      const role = profile?.role || (user?.user_metadata?.role as string);
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .order('role')
+        .limit(1)
+        .maybeSingle();
+
+      const role = roleData?.role || (user?.user_metadata?.role as string);
       const tenantId = profile?.tenant_id || (role === 'admin' ? '00000000-0000-0000-0000-000000000001' : undefined);
 
       // Les admins peuvent voir tous les comptes
@@ -77,11 +85,19 @@ export default function ChartOfAccounts() {
       const user = authUser?.user;
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tenant_id, role')
+        .select('tenant_id')
         .eq('id', user?.id)
         .maybeSingle();
 
-      const role = profile?.role || (user?.user_metadata?.role as string);
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .order('role')
+        .limit(1)
+        .maybeSingle();
+
+      const role = roleData?.role || (user?.user_metadata?.role as string);
       const tenantId = profile?.tenant_id || (role === 'admin' ? '00000000-0000-0000-0000-000000000001' : undefined);
 
       if (!tenantId) throw new Error("Aucun tenant associé à l'utilisateur");

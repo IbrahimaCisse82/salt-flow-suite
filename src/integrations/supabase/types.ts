@@ -537,7 +537,6 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
-          role: string | null
           tenant_id: string | null
           updated_at: string | null
         }
@@ -548,7 +547,6 @@ export type Database = {
           full_name?: string | null
           id: string
           phone?: string | null
-          role?: string | null
           tenant_id?: string | null
           updated_at?: string | null
         }
@@ -559,7 +557,6 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
-          role?: string | null
           tenant_id?: string | null
           updated_at?: string | null
         }
@@ -666,6 +663,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      security_audit_log: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string | null
+          id: string
+          ip_address: string | null
+          new_value: string | null
+          old_value: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          ip_address?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          ip_address?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       tenants: {
         Row: {
@@ -784,11 +817,82 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      profiles_with_roles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          phone: string | null
+          role: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          phone?: string | null
+          role?: never
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          phone?: string | null
+          role?: never
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      get_primary_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: string
@@ -796,6 +900,17 @@ export type Database = {
       get_user_tenant_id: {
         Args: { user_id: string }
         Returns: string
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_manager_or_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
       }
       update_own_profile: {
         Args: {
@@ -808,7 +923,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "gerant" | "commercial" | "comptable" | "production"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -935,6 +1050,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "gerant", "commercial", "comptable", "production"],
+    },
   },
 } as const

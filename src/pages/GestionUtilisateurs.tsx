@@ -80,28 +80,48 @@ const GestionUtilisateurs = () => {
       
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role, tenant_id')
+        .select('tenant_id')
         .eq('id', user.id)
         .single();
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .order('role')
+        .limit(1)
+        .maybeSingle();
       
-      return { user, profile };
+      return { user, profile: { ...profile, role: roleData?.role } };
     }
   });
 
-  // Récupérer tous les utilisateurs du tenant
+  // Récupérer tous les utilisateurs du tenant avec leurs rôles
   const { data: users = [] } = useQuery({
     queryKey: ['tenant-users'],
     queryFn: async () => {
       if (!currentUser?.profile?.tenant_id) return [];
       
-      const { data, error } = await supabase
+      const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('tenant_id', currentUser.profile.tenant_id)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
-      return data || [];
+      if (!profiles) return [];
+
+      // Fetch roles for all users
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', profiles.map(p => p.id));
+
+      // Map roles to profiles
+      return profiles.map(profile => ({
+        ...profile,
+        role: rolesData?.find(r => r.user_id === profile.id)?.role || null
+      }));
     },
     enabled: !!currentUser?.profile?.tenant_id
   });
