@@ -30,14 +30,20 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Vérifier que l'utilisateur est gérant
+    // Vérifier que l'utilisateur est gérant via la table user_roles
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('role, tenant_id')
+      .select('tenant_id')
       .eq('id', user.id)
       .single()
 
-    if (profileError || !profile || profile.role !== 'gerant') {
+    const { data: roleData, error: roleError } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+
+    if (profileError || !profile || roleError || !roleData || roleData.role !== 'gerant') {
       return new Response(
         JSON.stringify({ error: 'Non autorisé - seuls les gérants peuvent supprimer des utilisateurs' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -214,7 +214,6 @@ const Equipes = () => {
 
   const handleEmployeeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("New employee submitted:", employeeFormData);
     toast({
       title: "Employé ajouté",
       description: `${employeeFormData.firstName} ${employeeFormData.lastName} a été ajouté avec succès`,
@@ -248,7 +247,6 @@ const Equipes = () => {
 
   const handleTeamSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Team updated:", teamFormData);
     toast({
       title: "Équipe mise à jour",
       description: `${teamFormData.name} a été mise à jour avec succès`,

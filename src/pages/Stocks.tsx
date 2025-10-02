@@ -200,7 +200,6 @@ const Stocks = () => {
 
   const handleMovementSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Stock movement submitted:", movementFormData);
     toast({
       title: "Mouvement enregistré",
       description: `${movementFormData.movementType} de ${movementFormData.quantity} tonnes de ${movementFormData.saltType}`,
@@ -218,7 +217,6 @@ const Stocks = () => {
 
   const handleStockSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("New stock submitted:", stockFormData);
     toast({
       title: "Stock ajouté",
       description: `${stockFormData.quantity} tonnes de ${stockFormData.saltType} ajoutées`,
@@ -238,7 +236,6 @@ const Stocks = () => {
 
   const handleWarehouseSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("New warehouse submitted:", warehouseFormData);
     toast({
       title: "Entrepôt créé",
       description: `L'entrepôt ${warehouseFormData.name} a été créé avec succès à la position (${warehouseFormData.latitude.toFixed(6)}, ${warehouseFormData.longitude.toFixed(6)})`,

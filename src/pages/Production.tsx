@@ -109,7 +109,6 @@ const Production = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
     toast({
       title: "Récolte enregistrée",
       description: `${formData.quantity} tonnes de ${formData.type} enregistrées avec succès`,
