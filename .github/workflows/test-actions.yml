@@ -1,0 +1,27 @@
+name: Test Actions Runner
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print runner info
+        run: |
+          echo "RUNNER: $(uname -a)"
+          echo "USER: $(whoami)"
+
+      - name: Print env
+        run: env | sort
+
+      - name: Echo secret presence
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then echo "NETLIFY_AUTH_TOKEN=MISSING"; else echo "NETLIFY_AUTH_TOKEN=SET"; fi
+          if [ -z "$NETLIFY_SITE_ID" ]; then echo "NETLIFY_SITE_ID=MISSING"; else echo "NETLIFY_SITE_ID=SET"; fi
+
+      - name: Success
+        run: echo "smoke test OK"
