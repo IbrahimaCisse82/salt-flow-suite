@@ -1057,6 +1057,38 @@ export type Database = {
           },
         ]
       }
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles_with_roles: {
         Row: {
           avatar_url: string | null
@@ -1132,6 +1164,23 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
           tenant_id: string
           updated_at: string
+        }[]
+      }
+      get_public_profiles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string
+          full_name: string
+          id: string
+        }[]
+      }
+      get_tenant_public_info: {
+        Args: { _tenant_id: string }
+        Returns: {
+          id: string
+          is_active: boolean
+          logo_url: string
+          name: string
         }[]
       }
       get_user_role: {
