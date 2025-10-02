@@ -34,9 +34,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Users, UserPlus, Mail, Trash2, Shield, Loader2 } from "lucide-react";
-import { z } from "zod";
-
-const emailSchema = z.string().email("Email invalide");
+import { inviteUserSchema } from "@/utils/validation";
 
 const roleLabels: Record<string, { label: string; description: string; color: string }> = {
   gerant: {
@@ -133,16 +131,13 @@ const GestionUtilisateurs = () => {
         throw new Error('Tenant non trouvé');
       }
 
-      // Validation
-      emailSchema.parse(inviteEmail);
-      
-      if (!inviteFullName.trim()) {
-        throw new Error('Le nom complet est obligatoire');
-      }
-      
-      if (!invitePassword || invitePassword.length < 6) {
-        throw new Error('Le mot de passe doit contenir au moins 6 caractères');
-      }
+      // Validation with sanitization
+      const validated = inviteUserSchema.parse({
+        email: inviteEmail,
+        password: invitePassword,
+        fullName: inviteFullName,
+        role: inviteRole,
+      });
 
       // Récupérer le token d'authentification
       const { data: { session } } = await supabase.auth.getSession();
@@ -151,10 +146,10 @@ const GestionUtilisateurs = () => {
       // Appeler la Edge Function pour créer l'utilisateur
       const { data, error } = await supabase.functions.invoke('invite-user', {
         body: {
-          email: inviteEmail,
-          password: invitePassword,
-          full_name: inviteFullName.trim(),
-          role: inviteRole
+          email: validated.email,
+          password: validated.password,
+          full_name: validated.fullName,
+          role: validated.role
         }
       });
 
@@ -381,6 +376,7 @@ const GestionUtilisateurs = () => {
                 placeholder="Jean Dupont"
                 value={inviteFullName}
                 onChange={(e) => setInviteFullName(e.target.value)}
+                maxLength={100}
               />
             </div>
             
@@ -392,6 +388,7 @@ const GestionUtilisateurs = () => {
                 placeholder="jean@example.com"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
+                maxLength={255}
               />
             </div>
 
@@ -403,6 +400,7 @@ const GestionUtilisateurs = () => {
                 placeholder="Min. 6 caractères"
                 value={invitePassword}
                 onChange={(e) => setInvitePassword(e.target.value)}
+                maxLength={128}
               />
               <p className="text-xs text-muted-foreground">
                 L'utilisateur pourra le changer après sa première connexion

@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { z } from "zod";
 import { logger } from "@/utils/logger";
+import { loginFormSchema, signupFormSchema, emailSchema } from "@/utils/validation";
 import {
   Dialog,
   DialogContent,
@@ -20,9 +20,6 @@ import {
 } from "@/components/ui/dialog";
 import saltLogo from "@/assets/salt-logo.png";
 import saltMarshesBg from "@/assets/salt-marshes-bg.jpg";
-
-const emailSchema = z.string().email("Email invalide");
-const passwordSchema = z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères");
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -69,14 +66,16 @@ const Auth = () => {
     
     try {
       // Validation
-      emailSchema.parse(loginEmail);
-      passwordSchema.parse(loginPassword);
+      const validated = loginFormSchema.parse({
+        email: loginEmail,
+        password: loginPassword,
+      });
       
       setLoading(true);
       
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password: loginPassword,
+        email: validated.email,
+        password: validated.password,
       });
 
       if (error) {
@@ -110,26 +109,22 @@ const Auth = () => {
     e.preventDefault();
     
     try {
-      // Validation
-      emailSchema.parse(signupEmail);
-      passwordSchema.parse(signupPassword);
-      
-      if (!signupFullName.trim()) {
-        throw new Error("Le nom complet est obligatoire");
-      }
-      
-      if (!signupTenantName.trim()) {
-        throw new Error("Le nom de l'entreprise est obligatoire");
-      }
+      // Validation with sanitization
+      const validated = signupFormSchema.parse({
+        email: signupEmail,
+        password: signupPassword,
+        fullName: signupFullName,
+        tenantName: signupTenantName,
+      });
       
       setLoading(true);
 
       // 1) Créer l'utilisateur via une Edge Function (pas d'email requis)
       const { data: createData, error: createErr } = await supabase.functions.invoke('create-user', {
         body: {
-          email: signupEmail,
-          password: signupPassword,
-          full_name: signupFullName.trim(),
+          email: validated.email,
+          password: validated.password,
+          full_name: validated.fullName,
           role: 'gerant',
         }
       });
@@ -139,8 +134,8 @@ const Auth = () => {
 
       // 2) Se connecter pour obtenir une session (requis par RLS)
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: signupEmail,
-        password: signupPassword,
+        email: validated.email,
+        password: validated.password,
       });
       if (signInError) throw signInError;
       if (!signInData.session) throw new Error("Impossible d'ouvrir une session");
@@ -163,7 +158,7 @@ const Auth = () => {
           .join('');
       };
 
-      const baseSubdomain = slugify(signupTenantName.trim());
+      const baseSubdomain = slugify(validated.tenantName);
       let subdomain = baseSubdomain || `tenant-${genSuffix()}`;
 
       // Try inserting tenant, handle duplicate subdomain by retrying with a unique suffix
@@ -173,9 +168,9 @@ const Auth = () => {
           .from('tenants')
           .insert({
             id: tenantId,
-            name: signupTenantName.trim(),
+            name: validated.tenantName,
             subdomain,
-            contact_email: signupEmail,
+            contact_email: validated.email,
           });
 
         if (!error) {
@@ -202,7 +197,7 @@ const Auth = () => {
       const user = signInData.session.user;
       const { error: profileUpdateError } = await supabase
         .from('profiles')
-        .update({ tenant_id: tenantId, role: 'gerant', full_name: signupFullName.trim(), email: signupEmail })
+        .update({ tenant_id: tenantId, role: 'gerant', full_name: validated.fullName, email: validated.email })
         .eq('id', user.id);
 
       if (profileUpdateError) throw profileUpdateError;
@@ -290,6 +285,7 @@ const Auth = () => {
                     placeholder="votre@email.com"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
+                    maxLength={255}
                     required
                     disabled={loading}
                   />
@@ -302,6 +298,7 @@ const Auth = () => {
                     placeholder="••••••••"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
+                    maxLength={128}
                     required
                     disabled={loading}
                   />
@@ -343,6 +340,7 @@ const Auth = () => {
                           placeholder="votre@email.com"
                           value={resetEmail}
                           onChange={(e) => setResetEmail(e.target.value)}
+                          maxLength={255}
                           required
                           disabled={resetLoading}
                         />
@@ -377,6 +375,7 @@ const Auth = () => {
                     placeholder="Jean Dupont"
                     value={signupFullName}
                     onChange={(e) => setSignupFullName(e.target.value)}
+                    maxLength={100}
                     required
                     disabled={loading}
                   />
@@ -389,6 +388,7 @@ const Auth = () => {
                     placeholder="Salines du Sénégal"
                     value={signupTenantName}
                     onChange={(e) => setSignupTenantName(e.target.value)}
+                    maxLength={200}
                     required
                     disabled={loading}
                   />
@@ -401,6 +401,7 @@ const Auth = () => {
                     placeholder="votre@email.com"
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
+                    maxLength={255}
                     required
                     disabled={loading}
                   />
@@ -413,6 +414,7 @@ const Auth = () => {
                     placeholder="••••••••"
                     value={signupPassword}
                     onChange={(e) => setSignupPassword(e.target.value)}
+                    maxLength={128}
                     required
                     disabled={loading}
                   />
