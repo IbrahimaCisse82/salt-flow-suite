@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logger } from '../_shared/logger.ts'
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -78,7 +79,7 @@ Deno.serve(async (req) => {
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
     if (deleteError) {
-      console.error('Erreur suppression utilisateur:', deleteError)
+      logger.error('Erreur suppression utilisateur:', deleteError)
       return new Response(
         JSON.stringify({ error: deleteError.message }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -91,7 +92,7 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Erreur:', error)
+    logger.error('Erreur:', error)
     const message = error instanceof Error ? error.message : 'Erreur inconnue'
     return new Response(
       JSON.stringify({ error: message }),

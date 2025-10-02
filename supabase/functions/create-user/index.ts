@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0'
 import { corsHeaders } from '../_shared/cors.ts'
+import { logger } from '../_shared/logger.ts'
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -33,7 +34,7 @@ Deno.serve(async (req) => {
     })
 
     if (error) {
-      console.error('create-user error:', error)
+      logger.error('create-user error:', error)
       return new Response(
         JSON.stringify({ error: error.message }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -46,7 +47,7 @@ Deno.serve(async (req) => {
     )
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur inconnue'
-    console.error('create-user exception:', message)
+    logger.error('create-user exception:', message)
     return new Response(
       JSON.stringify({ error: message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
