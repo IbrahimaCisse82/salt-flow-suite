@@ -1,0 +1,61 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+
+export const useCampagneBudgets = (campagneId?: string) => {
+  const queryClient = useQueryClient();
+
+  const { data: phaseBudgets = [], isLoading } = useQuery({
+    queryKey: ['phase-budgets', campagneId],
+    enabled: !!campagneId,
+    queryFn: async () => {
+      if (!campagneId) return [];
+      
+      const { data, error } = await supabase
+        .from('campagne_phase_budgets')
+        .select('*')
+        .eq('campagne_id', campagneId)
+        .order('phase');
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const upsertPhaseBudgetMutation = useMutation({
+    mutationFn: async (budgetData: {
+      campagne_id: string;
+      phase: string;
+      budgeted_amount: number;
+    }) => {
+      const { error } = await supabase
+        .from('campagne_phase_budgets')
+        .upsert(budgetData, {
+          onConflict: 'campagne_id,phase'
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['phase-budgets'] });
+      toast({
+        title: "Budget mis à jour",
+        description: "Le budget de phase a été enregistré",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de mettre à jour le budget",
+        variant: "destructive"
+      });
+    }
+  });
+
+  return {
+    phaseBudgets,
+    isLoading,
+    upsertPhaseBudget: upsertPhaseBudgetMutation.mutateAsync,
+    isUpdating: upsertPhaseBudgetMutation.isPending
+  };
+};

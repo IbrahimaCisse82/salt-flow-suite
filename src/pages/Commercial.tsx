@@ -30,7 +30,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useClients } from "@/hooks/useClients";
+import { useSales } from "@/hooks/useSales";
 import { useAuth } from "@/contexts/AuthContext";
+import { z } from "zod";
 import { 
   TrendingUp,
   Plus,
@@ -100,11 +102,22 @@ const Commercial = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [selectedClient, setSelectedClient] = useState<any>(null);
 
-  // Fetch clients from database with role-based access
+  // Fetch clients and sales from database with role-based access
   const { data: clients = [], isLoading: clientsLoading } = useClients();
+  const { sales, createSale, updateSale, isCreating } = useSales();
 
   const userRole = profile?.role;
   const canManageClients = userRole === 'admin' || userRole === 'gerant' || userRole === 'commercial';
+
+  // Validation schema for order form
+  const orderSchema = z.object({
+    clientId: z.string().min(1, "Client requis"),
+    saltType: z.string().min(1, "Type de sel requis"),
+    quantity: z.string().refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Quantité invalide"),
+    unitPrice: z.string().refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Prix unitaire invalide"),
+    deliveryDate: z.string().min(1, "Date de livraison requise"),
+    paymentTerms: z.string().min(1, "Conditions de paiement requises")
+  });
 
   // Query pour récupérer les ventes prêtes à être livrées depuis Supabase
   const { data: deliverySales = [] } = useQuery({
@@ -194,31 +207,6 @@ const Commercial = () => {
     notes: ""
   });
 
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: "1",
-      orderNumber: "CMD-0001",
-      invoiceNumber: "",
-      deliveryNumber: "",
-      client: "Grossiste Dakar",
-      clientType: "local",
-      saltType: "Sel gros",
-      quantity: 50,
-      unitPrice: 150,
-      discount: 0,
-      totalAmount: 7500,
-      deliveryDate: "2025-03-20",
-      paymentTerms: "30j",
-      notes: "",
-      date: "2025-03-15",
-      validated: false,
-      invoiced: false,
-      invoiceValidated: false,
-      paid: false,
-      canBeDelivered: false,
-      delivered: false
-    }
-  ]);
 
   const [orderFormData, setOrderFormData] = useState({
     clientId: "",
@@ -249,126 +237,64 @@ const Commercial = () => {
     }
   };
 
-  const handleOrderSubmit = (e: React.FormEvent) => {
+  const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const totalAmount = (parseFloat(orderFormData.quantity) * parseFloat(orderFormData.unitPrice)) - (parseFloat(orderFormData.discount) || 0);
     
-    const orderNumber = generateOrderNumber(orders);
-    
-    const newOrder: Order = {
-      id: Date.now().toString(),
-      orderNumber: orderNumber,
-      invoiceNumber: "",
-      deliveryNumber: "",
-      client: orderFormData.clientName,
-      clientType: orderFormData.clientType,
-      saltType: orderFormData.saltType,
-      quantity: parseFloat(orderFormData.quantity),
-      unitPrice: parseFloat(orderFormData.unitPrice),
-      discount: parseFloat(orderFormData.discount) || 0,
-      totalAmount,
-      deliveryDate: orderFormData.deliveryDate,
-      paymentTerms: orderFormData.paymentTerms,
-      notes: orderFormData.notes,
-      date: new Date().toISOString().split('T')[0],
-      validated: false,
-      invoiced: false,
-      invoiceValidated: false,
-      paid: false,
-      canBeDelivered: false,
-      delivered: false
-    };
-
-    setOrders([...orders, newOrder]);
-    toast({
-      title: "Commande créée",
-      description: `Commande ${orderNumber} pour ${orderFormData.clientName} d'un montant de ${totalAmount.toLocaleString()} FCFA`,
-    });
-    setIsNewOrderDialogOpen(false);
-    setOrderFormData({
-      clientId: "",
-      clientName: "",
-      clientType: "",
-      saltType: "",
-      quantity: "",
-      unitPrice: "",
-      discount: "",
-      deliveryDate: "",
-      paymentTerms: "",
-      notes: ""
-    });
-  };
-
-  const handleValidateOrder = (orderId: string) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, validated: true } : order
-    ));
-    toast({
-      title: "Commande validée",
-      description: "La commande peut maintenant être facturée",
-    });
-  };
-
-  const handleCreateInvoice = (order: Order) => {
-    if (!order.validated) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "La commande doit être validée avant de créer une facture",
+    try {
+      // Validate form data
+      orderSchema.parse(orderFormData);
+      
+      await createSale({
+        client_id: orderFormData.clientId,
+        salt_type: orderFormData.saltType,
+        quantity: parseFloat(orderFormData.quantity),
+        unit_price: parseFloat(orderFormData.unitPrice),
+        discount: parseFloat(orderFormData.discount) || 0,
+        delivery_date: orderFormData.deliveryDate,
+        payment_status: orderFormData.paymentTerms,
+        notes: orderFormData.notes
       });
-      return;
+      
+      setIsNewOrderDialogOpen(false);
+      setOrderFormData({
+        clientId: "",
+        clientName: "",
+        clientType: "",
+        saltType: "",
+        quantity: "",
+        unitPrice: "",
+        discount: "",
+        deliveryDate: "",
+        paymentTerms: "",
+        notes: ""
+      });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Erreur de validation",
+          description: error.errors[0]?.message || "Veuillez vérifier les champs",
+          variant: "destructive"
+        });
+      }
     }
-    setSelectedOrder(order);
-    setIsInvoiceDialogOpen(true);
   };
 
-  const handleInvoiceSubmit = () => {
-    if (!selectedOrder) return;
-    
+  const handleCreateInvoice = async (saleId: string) => {
     const invoiceNumber = generateInvoiceNumber();
     
-    setOrders(orders.map(order => 
-      order.id === selectedOrder.id ? { ...order, invoiced: true, invoiceNumber: invoiceNumber } : order
-    ));
-    toast({
-      title: "Facture créée",
-      description: `Facture ${invoiceNumber} générée avec succès`,
-    });
-    setIsInvoiceDialogOpen(false);
-    setSelectedOrder(null);
-  };
-
-  const handleValidateInvoice = (orderId: string) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, invoiceValidated: true } : order
-    ));
-    toast({
-      title: "Facture validée",
-      description: "La facture est maintenant disponible dans Comptabilité pour le paiement",
-    });
-  };
-
-  const handleDelivery = (orderId: string) => {
-    const order = orders.find(o => o.id === orderId);
-    if (!order?.canBeDelivered) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "La commande n'est pas marquée comme pouvant être livrée",
+    try {
+      await updateSale({
+        id: saleId,
+        invoice_number: invoiceNumber
       });
-      return;
+      
+      toast({
+        title: "Facture créée",
+        description: `Facture ${invoiceNumber} générée avec succès`,
+      });
+    } catch (error) {
+      logger.error('Invoice creation error:', error);
     }
-
-    const deliveryNumber = generateDeliveryNumber();
-
-    setOrders(orders.map(o => 
-      o.id === orderId ? { ...o, delivered: true, deliveryNumber: deliveryNumber } : o
-    ));
-    
-    toast({
-      title: "Livraison effectuée",
-      description: `Livraison ${deliveryNumber} - Le stock a été automatiquement décrémenté`,
-    });
   };
 
   const handleClientSubmit = async (e: React.FormEvent) => {
@@ -625,7 +551,7 @@ const Commercial = () => {
                     <Button variant="outline" onClick={() => setIsInvoiceDialogOpen(false)} className="flex-1">
                       Annuler
                     </Button>
-                    <Button onClick={handleInvoiceSubmit} className="flex-1 bg-gradient-to-r from-primary to-accent">
+                    <Button onClick={handleCreateInvoice.bind(null, selectedOrder?.id || '')} className="flex-1 bg-gradient-to-r from-primary to-accent">
                       Générer la facture
                     </Button>
                   </div>
@@ -925,40 +851,40 @@ const Commercial = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {orders.map((order) => (
-                      <div key={order.id} className="p-4 border rounded-lg space-y-3">
+                    {sales.map((sale) => (
+                      <div key={sale.id} className="p-4 border rounded-lg space-y-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-semibold text-lg">{order.client}</p>
+                            <p className="font-semibold text-lg">{sale.client?.name || 'N/A'}</p>
                             <p className="text-sm text-muted-foreground">
-                              {order.invoiceNumber ? `Facture ${order.invoiceNumber}` : `Commande ${order.orderNumber}`} - {order.date}
+                              {sale.invoice_number ? `Facture ${sale.invoice_number}` : `CMD-${sale.id.slice(0, 6)}`} - {sale.sale_date}
                             </p>
                           </div>
-                          <Badge variant={order.validated ? "default" : "outline"}>
-                            {order.validated ? "Validée" : "En attente"}
+                          <Badge variant={sale.invoice_number ? "default" : "outline"}>
+                            {sale.invoice_number ? "Facturée" : "En attente"}
                           </Badge>
                         </div>
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
                             <p className="text-muted-foreground">Type</p>
-                            <p className="font-medium">{order.saltType}</p>
+                            <p className="font-medium">{sale.salt_type}</p>
                           </div>
                           <div>
                             <p className="text-muted-foreground">Quantité</p>
-                            <p className="font-medium">{order.quantity} tonnes</p>
+                            <p className="font-medium">{sale.quantity} tonnes</p>
                           </div>
                           <div>
                             <p className="text-muted-foreground">Montant</p>
-                            <p className="font-medium text-primary">{order.totalAmount.toLocaleString()} FCFA</p>
+                            <p className="font-medium text-primary">{Number(sale.total_amount).toLocaleString()} FCFA</p>
                           </div>
                         </div>
-                        {!order.validated && (
+                        {!sale.invoice_number && (
                           <Button 
-                            onClick={() => handleValidateOrder(order.id)}
+                            onClick={() => handleCreateInvoice(sale.id)}
                             className="w-full bg-gradient-to-r from-primary to-accent"
                           >
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Valider la commande
+                            <FileText className="h-4 w-4 mr-2" />
+                            Créer facture
                           </Button>
                         )}
                       </div>
@@ -976,70 +902,34 @@ const Commercial = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {orders.filter(o => o.validated).map((order) => (
-                      <div key={order.id} className="p-4 border rounded-lg space-y-3">
+                    {sales.filter(s => s.invoice_number).map((sale) => (
+                      <div key={sale.id} className="p-4 border rounded-lg space-y-3">
                         <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-lg">{order.client}</p>
-                        <p className="text-sm text-muted-foreground">Commande {order.orderNumber} - {order.date}</p>
+                        <p className="font-semibold text-lg">{sale.client?.name || 'N/A'}</p>
+                        <p className="text-sm text-muted-foreground">Facture {sale.invoice_number} - {sale.sale_date}</p>
                       </div>
                           <div className="flex gap-2">
-                            {order.invoiced && (
-                              <Badge variant={order.invoiceValidated ? "default" : "outline"}>
-                                {order.invoiceValidated ? "Validée" : "En attente"}
-                              </Badge>
-                            )}
-                            {order.paid && (
-                              <Badge variant="default" className="bg-green-600">
-                                Payée
-                              </Badge>
-                            )}
+                            <Badge variant={sale.payment_status === 'paid' ? "default" : "outline"}>
+                              {sale.payment_status === 'paid' ? "Payée" : "En attente"}
+                            </Badge>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <p className="text-muted-foreground">Quantité</p>
-                            <p className="font-medium">{order.quantity} tonnes</p>
+                            <p className="font-medium">{sale.quantity} tonnes</p>
                           </div>
                           <div>
                             <p className="text-muted-foreground">Montant</p>
-                            <p className="font-medium text-primary">{order.totalAmount.toLocaleString()} FCFA</p>
+                            <p className="font-medium text-primary">{Number(sale.total_amount).toLocaleString()} FCFA</p>
                           </div>
-                        </div>
-                        <div className="flex gap-2">
-                          {!order.invoiced && (
-                            <Button 
-                              onClick={() => handleCreateInvoice(order)}
-                              className="flex-1 bg-gradient-to-r from-primary to-accent"
-                            >
-                              <FileText className="h-4 w-4 mr-2" />
-                              Créer facture
-                            </Button>
-                          )}
-                          {order.invoiced && !order.invoiceValidated && (
-                            <Button 
-                              onClick={() => handleValidateInvoice(order.id)}
-                              className="flex-1 bg-gradient-to-r from-primary to-accent"
-                            >
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Valider facture
-                            </Button>
-                          )}
-                          {order.invoiceValidated && !order.paid && (
-                            <Button 
-                              disabled
-                              variant="outline"
-                              className="flex-1"
-                            >
-                              Paiement à effectuer dans Comptabilité
-                            </Button>
-                          )}
                         </div>
                       </div>
                     ))}
-                    {orders.filter(o => o.validated).length === 0 && (
+                    {sales.filter(s => s.invoice_number).length === 0 && (
                       <p className="text-center text-muted-foreground py-8">
-                        Aucune commande validée à facturer
+                        Aucune facture créée
                       </p>
                     )}
                   </div>

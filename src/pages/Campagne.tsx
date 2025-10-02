@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useCampagnes } from "@/hooks/useCampagnes";
+import { useCampagneBudgets } from "@/hooks/useCampagneBudgets";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +39,11 @@ const Campagne = () => {
   const { isOpen } = useSidebar();
   const [showNewCampagneDialog, setShowNewCampagneDialog] = useState(false);
   const [showBudgetDialog, setShowBudgetDialog] = useState(false);
+  
+  // Use custom hooks for data management
+  const { activeCampagne, createCampagne, isCreating } = useCampagnes();
+  const { phaseBudgets, upsertPhaseBudget, isUpdating } = useCampagneBudgets(activeCampagne?.id);
+  
   const [phaseExpenses, setPhaseExpenses] = useState<Record<string, BudgetExpense[]>>({
     'preparation-bassins': [],
     'mise-en-eau': [],
@@ -50,7 +57,7 @@ const Campagne = () => {
     "Mise en eau"
   ]));
   
-  const [activePhaseIndex, setActivePhaseIndex] = useState(2); // Index de la phase en cours (Évaporation)
+  const [activePhaseIndex, setActivePhaseIndex] = useState(2);
 
   // Récupérer les statistiques de la campagne
   const { data: campagneStats } = useQuery({
