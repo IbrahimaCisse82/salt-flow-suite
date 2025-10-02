@@ -1,18 +1,20 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import saltLogo from "@/assets/salt-logo.png";
 
 const CGU = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/auth">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Retour à la connexion
             </Button>
           </Link>
+          <img src={saltLogo} alt="G-Suite Sel" className="h-12" />
         </div>
       </header>
 
