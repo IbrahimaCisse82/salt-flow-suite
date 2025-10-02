@@ -35,6 +35,9 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useEmployees } from "@/hooks/useEmployees";
+import { useDailyWorkers } from "@/hooks/useDailyWorkers";
+import { useAuth } from "@/contexts/AuthContext";
 
 const permanents = [
   {
@@ -108,45 +111,35 @@ const teams = [
 const Equipes = () => {
   const { toast } = useToast();
   const { isOpen } = useSidebar();
+  const { profile } = useAuth();
   const [isAddEmployeeDialogOpen, setIsAddEmployeeDialogOpen] = useState(false);
   const [isManageTeamDialogOpen, setIsManageTeamDialogOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
 
-  // Récupérer les statistiques des employés
-  const { data: employeeStats } = useQuery({
-    queryKey: ['employee-stats'],
-    queryFn: async () => {
-      const { data: employees, error: empError } = await supabase
-        .from('employees')
-        .select('*');
-      
-      const { data: dailyWorkers, error: dwError } = await supabase
-        .from('daily_workers')
-        .select('*');
+  // Use custom hooks for data fetching with role-based access
+  const { data: employees = [] } = useEmployees();
+  const { data: dailyWorkers = [] } = useDailyWorkers();
 
-      if (empError) throw empError;
-      if (dwError) throw dwError;
+  const userRole = profile?.role;
+  const canViewSalary = userRole === 'admin' || userRole === 'gerant' || userRole === 'comptable';
 
-      const permanentCount = employees?.filter(e => e.employee_type === 'permanent' && e.is_active).length || 0;
-      const journalierCount = employees?.filter(e => e.employee_type === 'journalier' && e.is_active).length || 0;
-      const dailyWorkersCount = dailyWorkers?.length || 0;
-      const totalEmployees = permanentCount + journalierCount + dailyWorkersCount;
+  // Calculate employee statistics
+  const employeeStats = {
+    totalEmployees: employees.length + dailyWorkers.length,
+    permanentCount: employees.filter(e => e.employee_type === 'permanent' && e.is_active).length,
+    journalierCount: employees.filter(e => e.employee_type === 'journalier' && e.is_active).length,
+    dailyWorkersCount: dailyWorkers.length,
+    employees,
+    dailyWorkers
+  };
 
-      return {
-        totalEmployees,
-        permanentCount,
-        journalierCount,
-        dailyWorkersCount,
-        employees: employees || [],
-        dailyWorkers: dailyWorkers || []
-      };
-    }
-  });
-
-  // Récupérer les salaires du mois en cours
+  // Fetch salary stats only if user can view salaries
   const { data: salaryStats } = useQuery({
-    queryKey: ['salary-stats'],
+    queryKey: ['salary-stats', canViewSalary],
+    enabled: canViewSalary,
     queryFn: async () => {
+      if (!canViewSalary) return null;
+
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -156,8 +149,8 @@ const Equipes = () => {
         .select('*')
         .eq('transaction_type', 'depense')
         .ilike('description', '%Salaire%')
-        .gte('date', startOfMonth.toISOString().split('T')[0])
-        .lte('date', endOfMonth.toISOString().split('T')[0]);
+        .gte('transaction_date', startOfMonth.toISOString().split('T')[0])
+        .lte('transaction_date', endOfMonth.toISOString().split('T')[0]);
 
       if (error) throw error;
 
@@ -168,7 +161,7 @@ const Equipes = () => {
       };
 
       transactions?.forEach(t => {
-        const desc = t.description.toLowerCase();
+        const desc = t.description?.toLowerCase() || '';
         if (desc.includes('permanent')) {
           salaryByType.permanent += Number(t.amount);
         } else if (desc.includes('journalier')) {
@@ -363,16 +356,18 @@ const Equipes = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="salary">Salaire (FCFA)</Label>
-                    <Input
-                      id="salary"
-                      type="number"
-                      value={employeeFormData.salary}
-                      onChange={(e) => setEmployeeFormData({...employeeFormData, salary: e.target.value})}
-                      placeholder="Ex: 150000"
-                    />
-                  </div>
+                  {canViewSalary && (
+                    <div className="space-y-2">
+                      <Label htmlFor="salary">Salaire (FCFA)</Label>
+                      <Input
+                        id="salary"
+                        type="number"
+                        value={employeeFormData.salary}
+                        onChange={(e) => setEmployeeFormData({...employeeFormData, salary: e.target.value})}
+                        placeholder="Ex: 150000"
+                      />
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="specialization">Spécialisation</Label>
                     <Input

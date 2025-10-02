@@ -29,6 +29,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { useClients } from "@/hooks/useClients";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   TrendingUp,
   Plus,
@@ -90,12 +92,19 @@ const Commercial = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isOpen } = useSidebar();
+  const { profile } = useAuth();
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = useState(false);
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
   const [isClientDetailsDialogOpen, setIsClientDetailsDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+
+  // Fetch clients from database with role-based access
+  const { data: clients = [], isLoading: clientsLoading } = useClients();
+
+  const userRole = profile?.role;
+  const canManageClients = userRole === 'admin' || userRole === 'gerant' || userRole === 'commercial';
 
   // Query pour récupérer les ventes prêtes à être livrées depuis Supabase
   const { data: deliverySales = [] } = useQuery({
@@ -173,47 +182,6 @@ const Commercial = () => {
     }
   });
 
-  const [clients, setClients] = useState([
-    {
-      id: "1",
-      clientNumber: "CLI-0001",
-      name: "Grossiste Dakar",
-      type: "local",
-      email: "contact@grossistedakar.sn",
-      phone: "+221 77 123 45 67",
-      address: "Rue 10, Dakar",
-      totalOrders: 28,
-      totalRevenue: 142000,
-      paymentTerms: "30j",
-      status: "actif"
-    },
-    {
-      id: "2",
-      clientNumber: "CLI-0002",
-      name: "Export Maroc",
-      type: "export",
-      email: "export@marocsel.ma",
-      phone: "+212 6 12 34 56 78",
-      address: "Casablanca, Maroc",
-      totalOrders: 12,
-      totalRevenue: 185000,
-      paymentTerms: "60j",
-      status: "actif"
-    },
-    {
-      id: "3",
-      clientNumber: "CLI-0003",
-      name: "Industrie Chimique SN",
-      type: "local",
-      email: "achats@chimiesn.com",
-      phone: "+221 77 987 65 43",
-      address: "Zone Industrielle, Thiès",
-      totalOrders: 8,
-      totalRevenue: 98500,
-      paymentTerms: "45j",
-      status: "actif"
-    }
-  ]);
 
   const [clientFormData, setClientFormData] = useState({
     name: "",
@@ -276,7 +244,7 @@ const Commercial = () => {
         ...orderFormData,
         clientId: clientId,
         clientName: selectedClient.name,
-        clientType: selectedClient.type
+        clientType: selectedClient.client_type || 'local'
       });
     }
   };
@@ -403,41 +371,48 @@ const Commercial = () => {
     });
   };
 
-  const handleClientSubmit = (e: React.FormEvent) => {
+  const handleClientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const clientNumber = generateClientNumber(clients);
-    
-    const newClient = {
-      id: Date.now().toString(),
-      clientNumber: clientNumber,
-      name: clientFormData.name,
-      type: clientFormData.type,
-      email: clientFormData.email,
-      phone: clientFormData.phone,
-      address: clientFormData.address,
-      totalOrders: 0,
-      totalRevenue: 0,
-      paymentTerms: clientFormData.paymentTerms,
-      status: "actif"
-    };
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .insert({
+          name: clientFormData.name,
+          client_type: clientFormData.type,
+          email: clientFormData.email,
+          phone: clientFormData.phone,
+          address: clientFormData.address
+        });
 
-    setClients([...clients, newClient]);
-    toast({
-      title: "Client créé",
-      description: `${clientFormData.name} (${clientNumber}) a été ajouté avec succès`,
-    });
-    setIsNewClientDialogOpen(false);
-    setClientFormData({
-      name: "",
-      type: "",
-      email: "",
-      phone: "",
-      address: "",
-      paymentTerms: "",
-      taxId: "",
-      notes: ""
-    });
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      
+      toast({
+        title: "Client créé",
+        description: `${clientFormData.name} a été ajouté avec succès`,
+      });
+      
+      setIsNewClientDialogOpen(false);
+      setClientFormData({
+        name: "",
+        type: "",
+        email: "",
+        phone: "",
+        address: "",
+        paymentTerms: "",
+        taxId: "",
+        notes: ""
+      });
+    } catch (error: any) {
+      logger.error('Client creation error:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le client",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleViewClientDetails = (client: any) => {
@@ -903,33 +878,22 @@ const Commercial = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-semibold text-lg">{client.name}</p>
-                            <p className="text-sm text-muted-foreground">{client.clientNumber} - {client.email}</p>
+                            <p className="text-sm text-muted-foreground">{client.email || 'N/A'}</p>
                           </div>
                           <div className="flex gap-2 items-center">
                             <Badge variant="outline">
-                              {client.type === "local" ? "Local" : "Export"}
-                            </Badge>
-                            <Badge variant={client.status === "actif" ? "default" : "outline"}>
-                              {client.status}
+                              {client.client_type === "local" ? "Local" : "Export"}
                             </Badge>
                           </div>
                         </div>
-                        <div className="grid grid-cols-4 gap-4 text-sm">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <p className="text-muted-foreground">Téléphone</p>
-                            <p className="font-medium">{client.phone}</p>
+                            <p className="font-medium">{client.phone || 'N/A'}</p>
                           </div>
                           <div>
-                            <p className="text-muted-foreground">Commandes</p>
-                            <p className="font-medium">{client.totalOrders}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">CA Total</p>
-                            <p className="font-medium text-primary">{client.totalRevenue.toLocaleString()} FCFA</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Paiement</p>
-                            <p className="font-medium">{client.paymentTerms}</p>
+                            <p className="text-muted-foreground">Adresse</p>
+                            <p className="font-medium">{client.address || 'N/A'}</p>
                           </div>
                         </div>
                         <Button 
