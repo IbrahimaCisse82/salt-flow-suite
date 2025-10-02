@@ -71,6 +71,9 @@ export const signupFormSchema = z.object({
   password: passwordSchema,
   fullName: nameSchema,
   tenantName: companyNameSchema,
+  acceptTerms: z.boolean().refine((val) => val === true, {
+    message: "Vous devez accepter les Conditions Générales d'Utilisation",
+  }),
 });
 
 export const inviteUserSchema = z.object({

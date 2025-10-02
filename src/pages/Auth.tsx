@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +37,7 @@ const Auth = () => {
   const [signupPassword, setSignupPassword] = useState("");
   const [signupFullName, setSignupFullName] = useState("");
   const [signupTenantName, setSignupTenantName] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   // États pour la réinitialisation du mot de passe
   const [resetEmail, setResetEmail] = useState("");
@@ -116,6 +118,7 @@ const Auth = () => {
         password: signupPassword,
         fullName: signupFullName,
         tenantName: signupTenantName,
+        acceptTerms: acceptTerms,
       });
       
       setLoading(true);
@@ -427,10 +430,26 @@ const Auth = () => {
                     Au moins 6 caractères
                   </p>
                 </div>
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="accept-terms"
+                    checked={acceptTerms}
+                    onCheckedChange={(checked) => setAcceptTerms(checked === true)}
+                    required
+                    disabled={loading}
+                    className="mt-1"
+                  />
+                  <Label htmlFor="accept-terms" className="text-sm leading-relaxed cursor-pointer">
+                    J'ai lu et j'accepte les{" "}
+                    <Link to="/cgu" target="_blank" className="text-primary hover:underline font-medium">
+                      Conditions Générales d'Utilisation
+                    </Link>
+                  </Label>
+                </div>
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-primary to-accent"
-                  disabled={loading}
+                  disabled={loading || !acceptTerms}
                 >
                   {loading ? (
                     <>
