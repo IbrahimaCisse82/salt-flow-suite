@@ -710,13 +710,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "sales_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients_safe"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "sales_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -916,37 +909,7 @@ export type Database = {
           tenant_id: string | null
           updated_at: string | null
         }
-        Insert: {
-          address?: never
-          client_type?: string | null
-          created_at?: string | null
-          email?: never
-          id?: string | null
-          name?: string | null
-          phone?: never
-          tenant_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          address?: never
-          client_type?: string | null
-          created_at?: string | null
-          email?: never
-          id?: string | null
-          name?: string | null
-          phone?: never
-          tenant_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "clients_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       employees_safe: {
         Row: {
@@ -964,45 +927,7 @@ export type Database = {
           tenant_id: string | null
           updated_at: string | null
         }
-        Insert: {
-          created_at?: string | null
-          email?: never
-          employee_number?: string | null
-          employee_type?: string | null
-          full_name?: string | null
-          hire_date?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          phone?: never
-          position?: string | null
-          salary?: number | null
-          tenant_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: never
-          employee_number?: string | null
-          employee_type?: string | null
-          full_name?: string | null
-          hire_date?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          phone?: never
-          position?: string | null
-          salary?: number | null
-          tenant_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "employees_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles_safe: {
         Row: {
@@ -1013,31 +938,7 @@ export type Database = {
           tenant_id: string | null
           updated_at: string | null
         }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string | null
-          tenant_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string | null
-          tenant_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles_with_roles: {
         Row: {
@@ -1055,9 +956,52 @@ export type Database = {
       }
     }
     Functions: {
+      get_clients_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          address: string
+          client_type: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          tenant_id: string
+          updated_at: string
+        }[]
+      }
+      get_employees_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          email: string
+          employee_number: string
+          employee_type: string
+          full_name: string
+          hire_date: string
+          id: string
+          is_active: boolean
+          phone: string
+          position: string
+          salary: number
+          tenant_id: string
+          updated_at: string
+        }[]
+      }
       get_primary_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_profiles_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string
+          created_at: string
+          full_name: string
+          id: string
+          tenant_id: string
+          updated_at: string
+        }[]
       }
       get_profiles_with_roles: {
         Args: Record<PropertyKey, never>
