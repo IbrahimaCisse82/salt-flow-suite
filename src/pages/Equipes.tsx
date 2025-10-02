@@ -40,6 +40,9 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useDailyWorkers } from "@/hooks/useDailyWorkers";
 import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/contexts/AuthContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TeamAttendanceForm } from "@/components/Payroll/TeamAttendanceForm";
+import { AttendanceValidationTable } from "@/components/Payroll/AttendanceValidationTable";
 
 
 const Equipes = () => {
@@ -472,8 +475,16 @@ const Equipes = () => {
             </Button>
           </div>
 
-          {/* Stats RH */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <Tabs defaultValue="equipes" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="equipes">Équipes</TabsTrigger>
+              <TabsTrigger value="pointage">Pointage</TabsTrigger>
+              <TabsTrigger value="validation">Validation</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="equipes" className="space-y-4 mt-6">
+              {/* Stats RH */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <Card>
               <CardContent className="p-4 md:p-6">
                 <div className="flex items-center justify-between mb-3">
@@ -691,6 +702,40 @@ const Equipes = () => {
               </CardContent>
             </Card>
           </div>
+          </TabsContent>
+
+          <TabsContent value="pointage" className="space-y-6 mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TeamAttendanceForm />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Instructions de pointage</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Comment pointer une équipe ?</h4>
+                    <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                      <li>Sélectionnez l'équipe et l'employé</li>
+                      <li>Entrez la date de travail</li>
+                      <li>Indiquez les heures travaillées</li>
+                      <li>Saisissez le taux journalier</li>
+                      <li>Le montant sera calculé automatiquement</li>
+                    </ol>
+                  </div>
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm">
+                      <strong>Note:</strong> Le pointage doit être validé par un gérant avant que le paiement puisse être effectué par le comptable.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="validation" className="space-y-6 mt-6">
+            <AttendanceValidationTable />
+          </TabsContent>
+        </Tabs>
         </main>
       </div>
     </div>

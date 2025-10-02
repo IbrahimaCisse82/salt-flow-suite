@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      accountant_notifications: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string | null
+          notification_type: string
+          reference_id: string
+          tenant_id: string | null
+          title: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          notification_type: string
+          reference_id: string
+          tenant_id?: string | null
+          title: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          notification_type?: string
+          reference_id?: string
+          tenant_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accountant_notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           account_name: string
@@ -522,6 +566,86 @@ export type Database = {
           },
         ]
       }
+      payroll_payments: {
+        Row: {
+          attendance_id: string | null
+          balance_due: number | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          paid_amount: number
+          paid_to: string | null
+          payment_account_id: string | null
+          payment_date: string
+          payment_method: string | null
+          processed_by: string | null
+          receiver_signature: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attendance_id?: string | null
+          balance_due?: number | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          paid_to?: string | null
+          payment_account_id?: string | null
+          payment_date: string
+          payment_method?: string | null
+          processed_by?: string | null
+          receiver_signature?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attendance_id?: string | null
+          balance_due?: number | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          paid_to?: string | null
+          payment_account_id?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          processed_by?: string | null
+          receiver_signature?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_payments_attendance_id_fkey"
+            columns: ["attendance_id"]
+            isOneToOne: false
+            referencedRelation: "team_attendance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_payments_paid_to_fkey"
+            columns: ["paid_to"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_payments_payment_account_id_fkey"
+            columns: ["payment_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       production_records: {
         Row: {
           bassin_id: string | null
@@ -753,6 +877,79 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      team_attendance: {
+        Row: {
+          attendance_date: string
+          calculated_amount: number | null
+          created_at: string | null
+          daily_rate: number | null
+          employee_id: string | null
+          hours_worked: number | null
+          id: string
+          notes: string | null
+          status: string | null
+          team_id: string | null
+          tenant_id: string | null
+          updated_at: string | null
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          attendance_date: string
+          calculated_amount?: number | null
+          created_at?: string | null
+          daily_rate?: number | null
+          employee_id?: string | null
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          team_id?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          attendance_date?: string
+          calculated_amount?: number | null
+          created_at?: string | null
+          daily_rate?: number | null
+          employee_id?: string | null
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          team_id?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_attendance_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_attendance_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_members: {
         Row: {

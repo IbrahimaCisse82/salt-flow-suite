@@ -30,6 +30,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { JournalEntryForm } from "@/components/Accounting/JournalEntryForm";
 import { ChartOfAccountsTable } from "@/components/Accounting/ChartOfAccountsTable";
+import { AccountantNotificationWidget } from "@/components/Payroll/AccountantNotificationWidget";
+import { PayrollPaymentForm } from "@/components/Payroll/PayrollPaymentForm";
 import {
   Wallet,
   Plus,
@@ -1037,47 +1039,44 @@ const Comptabilite = () => {
 
             {/* Onglet Salaires */}
             <TabsContent value="salaires" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Salaires</h2>
-                <Button 
-                  className="gap-2 bg-gradient-to-r from-primary to-accent"
-                  onClick={() => {
-                    setTransactionType("salaire");
-                    setShowTransactionDialog(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Nouveau paiement de salaire
-                </Button>
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Gestion des Salaires RH</h2>
+                <p className="text-muted-foreground">Notifications de pointages validés et paiements du personnel</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <AccountantNotificationWidget />
+                <PayrollPaymentForm />
               </div>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Paiements de salaires récents</CardTitle>
+                  <CardTitle>Historique des paiements RH</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {recentTransactions.filter(t => t.type === "depense" && t.description.includes('Salaire')).map((transaction) => (
-                      <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <TrendingDown className="h-5 w-5 text-blue-600" />
+                    {recentTransactions.filter(t => t.description?.toLowerCase().includes('salaire') || t.description?.toLowerCase().includes('rh')).length > 0 ? (
+                      recentTransactions.filter(t => t.description?.toLowerCase().includes('salaire') || t.description?.toLowerCase().includes('rh')).map((transaction) => (
+                        <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <TrendingDown className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-semibold">{transaction.description}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {transaction.date} • {transaction.account}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-semibold">{transaction.description}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {transaction.date} • {transaction.account}
-                            </p>
-                          </div>
+                          <p className="text-lg font-bold text-blue-600">
+                            -{transaction.amount.toLocaleString()} FCFA
+                          </p>
                         </div>
-                        <p className="text-lg font-bold text-blue-600">
-                          -{transaction.amount.toLocaleString()} FCFA
-                        </p>
-                      </div>
-                    ))}
-                    {recentTransactions.filter(t => t.type === "depense" && t.description.includes('Salaire')).length === 0 && (
-                      <p className="text-center text-muted-foreground py-4">
-                        Aucun paiement de salaire enregistré
+                      ))
+                    ) : (
+                      <p className="text-center text-muted-foreground py-8">
+                        Aucun paiement RH enregistré
                       </p>
                     )}
                   </div>
