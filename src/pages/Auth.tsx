@@ -94,7 +94,10 @@ const Auth = () => {
         setTimeout(() => navigate("/"), 100);
       }
     } catch (error: any) {
-      console.error("Login error:", error);
+      // Log errors only in development mode
+      if (import.meta.env.DEV) {
+        console.error("Login error:", error);
+      }
       toast({
         title: "Erreur de connexion",
         description: error.message || "Impossible de se connecter",
@@ -213,7 +216,10 @@ const Auth = () => {
       // Attendre que la session soit propagée avant de rediriger
       setTimeout(() => navigate("/"), 100);
     } catch (error: any) {
-      console.error("Signup error:", error);
+      // Log errors only in development mode
+      if (import.meta.env.DEV) {
+        console.error("Signup error:", error);
+      }
       toast({
         title: "Erreur d'inscription",
         description: error.message || "Impossible de créer le compte",
@@ -246,7 +252,10 @@ const Auth = () => {
       setResetDialogOpen(false);
       setResetEmail("");
     } catch (error: any) {
-      console.error("Password reset error:", error);
+      // Log errors only in development mode
+      if (import.meta.env.DEV) {
+        console.error("Password reset error:", error);
+      }
       toast({
         title: "Erreur",
         description: error.message || "Impossible d'envoyer l'email de réinitialisation",
