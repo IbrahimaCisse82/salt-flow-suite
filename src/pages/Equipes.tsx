@@ -37,76 +37,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useDailyWorkers } from "@/hooks/useDailyWorkers";
+import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/contexts/AuthContext";
 
-const permanents = [
-  {
-    name: "Mohamed Diallo",
-    role: "Chef d'exploitation",
-    initials: "MD",
-    experience: "15 ans",
-    status: "actif",
-    performance: 95,
-    specialite: "Gestion bassins"
-  },
-  {
-    name: "Fatou Sène",
-    role: "Contremaître",
-    initials: "FS",
-    experience: "8 ans",
-    status: "actif",
-    performance: 92,
-    specialite: "Contrôle qualité"
-  },
-  {
-    name: "Ibrahima Ndiaye",
-    role: "Chef saunier",
-    initials: "IN",
-    experience: "12 ans",
-    status: "actif",
-    performance: 98,
-    specialite: "Production"
-  },
-  {
-    name: "Aminata Ba",
-    role: "Responsable stock",
-    initials: "AB",
-    experience: "6 ans",
-    status: "actif",
-    performance: 90,
-    specialite: "Logistique"
-  },
-];
-
-const teams = [
-  {
-    name: "Équipe Alpha",
-    leader: "Mohamed Diallo",
-    members: 12,
-    sector: "Secteur Nord",
-    status: "active",
-    production: "125 tonnes",
-    efficiency: 94
-  },
-  {
-    name: "Équipe Beta",
-    leader: "Fatou Sène",
-    members: 10,
-    sector: "Secteur Sud",
-    status: "active",
-    production: "98 tonnes",
-    efficiency: 89
-  },
-  {
-    name: "Équipe Gamma",
-    leader: "Ibrahima Ndiaye",
-    members: 8,
-    sector: "Secteur Est",
-    status: "repos",
-    production: "87 tonnes",
-    efficiency: 91
-  },
-];
 
 const Equipes = () => {
   const { toast } = useToast();
@@ -119,9 +52,13 @@ const Equipes = () => {
   // Use custom hooks for data fetching with role-based access
   const { data: employees = [] } = useEmployees();
   const { data: dailyWorkers = [] } = useDailyWorkers();
+  const { teams, createTeam, updateTeam, isCreating, isUpdating } = useTeams();
 
   const userRole = profile?.role;
   const canViewSalary = userRole === 'admin' || userRole === 'gerant' || userRole === 'comptable';
+
+  // Get permanent employees for team leaders
+  const permanentEmployees = employees.filter(e => e.employee_type === 'permanent' && e.is_active);
 
   // Calculate employee statistics
   const employeeStats = {
@@ -230,21 +167,46 @@ const Equipes = () => {
     setSelectedTeam(team);
     setTeamFormData({
       name: team.name,
-      leader: team.leader,
-      sector: team.sector,
-      status: team.status,
-      members: team.members.toString()
+      leader: team.leader_id || '',
+      sector: team.sector || '',
+      status: team.status || 'active',
+      members: team.members?.length?.toString() || '0'
     });
     setIsManageTeamDialogOpen(true);
   };
 
-  const handleTeamSubmit = (e: React.FormEvent) => {
+  const handleTeamSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Équipe mise à jour",
-      description: `${teamFormData.name} a été mise à jour avec succès`,
-    });
-    setIsManageTeamDialogOpen(false);
+    
+    try {
+      if (selectedTeam) {
+        await updateTeam({
+          id: selectedTeam.id,
+          name: teamFormData.name,
+          leader_id: teamFormData.leader || null,
+          sector: teamFormData.sector,
+          status: teamFormData.status
+        });
+      } else {
+        await createTeam({
+          name: teamFormData.name,
+          leader_id: teamFormData.leader || undefined,
+          sector: teamFormData.sector,
+          status: teamFormData.status
+        });
+      }
+      
+      setIsManageTeamDialogOpen(false);
+      setTeamFormData({
+        name: "",
+        leader: "",
+        sector: "",
+        status: "",
+        members: ""
+      });
+    } catch (error) {
+      console.error('Team operation error:', error);
+    }
   };
 
   return (
@@ -434,9 +396,9 @@ const Equipes = () => {
                       <SelectValue placeholder="Sélectionner un chef" />
                     </SelectTrigger>
                     <SelectContent>
-                      {permanents.map((person) => (
-                        <SelectItem key={person.name} value={person.name}>
-                          {person.name} - {person.role}
+                      {permanentEmployees.map((person) => (
+                        <SelectItem key={person.id} value={person.id}>
+                          {person.full_name} - {person.position}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -572,43 +534,38 @@ const Equipes = () => {
             </CardHeader>
             <CardContent className="p-4 md:p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {permanents.map((person, index) => (
+                {permanentEmployees.map((person) => (
                   <div 
-                    key={index}
+                    key={person.id}
                     className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/30 transition-colors"
                   >
                     <Avatar className="h-16 w-16 bg-gradient-to-br from-primary to-accent">
                       <AvatarFallback className="text-white font-bold text-lg">
-                        {person.initials}
+                        {person.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'NA'}
                       </AvatarFallback>
                     </Avatar>
                     
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold">{person.name}</h3>
-                        <Badge variant="outline" className="text-green-600 border-green-600">
-                          {person.status}
+                        <h3 className="font-semibold">{person.full_name}</h3>
+                        <Badge variant="outline" className="border-primary text-primary">
+                          Actif
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{person.role}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{person.position}</p>
                       <div className="flex gap-4 text-xs">
-                        <span className="text-muted-foreground">
-                          📚 {person.experience}
-                        </span>
-                        <span className="text-muted-foreground">
-                          🎯 {person.specialite}
-                        </span>
-                        <span className="text-primary font-medium">
-                          ⭐ {person.performance}%
+                        <span className="px-2 py-1 bg-muted rounded">
+                          {person.email || 'N/A'}
                         </span>
                       </div>
                     </div>
-
-                    <Button variant="outline" size="sm">
-                      Voir profil
-                    </Button>
                   </div>
                 ))}
+                {permanentEmployees.length === 0 && (
+                  <p className="col-span-2 text-center text-muted-foreground py-8">
+                    Aucun employé permanent enregistré
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -642,27 +599,27 @@ const Equipes = () => {
                           >
                             {team.status === "active" ? "En activité" : "Repos"}
                           </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Chef: {team.leader} • {team.sector}
-                        </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold">{team.members}</p>
-                        <p className="text-xs text-muted-foreground">membres</p>
-                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Chef: {team.leader?.full_name || 'Non assigné'} • {team.sector || 'N/A'}
+                      </p>
                     </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold">{team.members?.length || 0}</p>
+                      <p className="text-xs text-muted-foreground">membres</p>
+                    </div>
+                  </div>
 
-                    <div className="grid grid-cols-3 gap-4 pt-3 border-t">
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">Production</p>
-                        <p className="font-semibold">{team.production}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">Efficacité</p>
-                        <p className="font-semibold text-primary">{team.efficiency}%</p>
-                      </div>
-                      <div className="flex items-end justify-end">
+                  <div className="grid grid-cols-3 gap-4 pt-3 border-t">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Objectif</p>
+                      <p className="font-semibold">{team.production_target || 0} T</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Efficacité</p>
+                      <p className="font-semibold text-primary">{team.efficiency_rate || 0}%</p>
+                    </div>
+                    <div className="flex items-end justify-end">
                         <Button onClick={() => handleManageTeam(team)} variant="outline" size="sm">
                           Gérer équipe
                         </Button>
@@ -670,6 +627,11 @@ const Equipes = () => {
                     </div>
                   </div>
                 ))}
+                {teams.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">
+                    Aucune équipe créée
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

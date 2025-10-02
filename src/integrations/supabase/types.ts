@@ -754,6 +754,113 @@ export type Database = {
         }
         Relationships: []
       }
+      team_members: {
+        Row: {
+          employee_id: string
+          id: string
+          joined_at: string | null
+          role: string | null
+          team_id: string
+        }
+        Insert: {
+          employee_id: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          team_id: string
+        }
+        Update: {
+          employee_id?: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string | null
+          efficiency_rate: number | null
+          id: string
+          leader_id: string | null
+          name: string
+          production_target: number | null
+          sector: string | null
+          status: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          efficiency_rate?: number | null
+          id?: string
+          leader_id?: string | null
+          name: string
+          production_target?: number | null
+          sector?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          efficiency_rate?: number | null
+          id?: string
+          leader_id?: string | null
+          name?: string
+          production_target?: number | null
+          sector?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "employees_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           address: string | null
