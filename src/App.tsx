@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 // Lazy load toutes les pages pour améliorer le temps de chargement initial
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const CGU = lazy(() => import("./pages/CGU"));
 const Bassins = lazy(() => import("./pages/Bassins"));
 const Campagne = lazy(() => import("./pages/Campagne"));
 const Production = lazy(() => import("./pages/Production"));
@@ -61,6 +62,7 @@ const App = () => (
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/cgu" element={<CGU />} />
                 <Route path="/admin/setup" element={<AdminSetup />} />
                 <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
                 <Route path="/bassins" element={<RoleProtectedRoute><Bassins /></RoleProtectedRoute>} />
