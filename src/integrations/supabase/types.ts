@@ -897,20 +897,6 @@ export type Database = {
       }
     }
     Views: {
-      clients_safe: {
-        Row: {
-          address: string | null
-          client_type: string | null
-          created_at: string | null
-          email: string | null
-          id: string | null
-          name: string | null
-          phone: string | null
-          tenant_id: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
       employees_safe: {
         Row: {
           created_at: string | null
