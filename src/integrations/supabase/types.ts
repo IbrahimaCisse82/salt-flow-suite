@@ -323,7 +323,7 @@ export type Database = {
           full_name: string
           id: string
           phone: string | null
-          tenant_id: string | null
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -332,7 +332,7 @@ export type Database = {
           full_name: string
           id?: string
           phone?: string | null
-          tenant_id?: string | null
+          tenant_id: string
           updated_at?: string | null
         }
         Update: {
@@ -341,7 +341,7 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -367,7 +367,7 @@ export type Database = {
           phone: string | null
           position: string | null
           salary: number | null
-          tenant_id: string | null
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -382,7 +382,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           salary?: number | null
-          tenant_id?: string | null
+          tenant_id: string
           updated_at?: string | null
         }
         Update: {
@@ -397,7 +397,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           salary?: number | null
-          tenant_id?: string | null
+          tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -715,7 +715,7 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
-          tenant_id: string | null
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -725,7 +725,7 @@ export type Database = {
           full_name?: string | null
           id: string
           phone?: string | null
-          tenant_id?: string | null
+          tenant_id: string
           updated_at?: string | null
         }
         Update: {
@@ -735,7 +735,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [

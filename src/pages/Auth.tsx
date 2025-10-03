@@ -427,7 +427,7 @@ const Auth = () => {
                     disabled={loading}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Au moins 6 caractères
+                    Au moins 8 caractères (1 majuscule, 1 minuscule, 1 chiffre)
                   </p>
                 </div>
                 <div className="flex items-start space-x-2">

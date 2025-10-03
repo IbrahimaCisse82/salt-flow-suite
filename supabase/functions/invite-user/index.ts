@@ -64,10 +64,28 @@ Deno.serve(async (req) => {
     // Récupérer les données du nouvel utilisateur
     const { email, password, full_name, role } = await req.json()
 
-    // Validation
+    // SECURITY: Input validation and sanitization
     if (!email || !password || !full_name || !role) {
       return new Response(
         JSON.stringify({ error: 'Données manquantes' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email) || email.length > 255) {
+      return new Response(
+        JSON.stringify({ error: 'Format d\'email invalide' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Sanitize and validate full_name
+    const sanitizedFullName = String(full_name).trim().slice(0, 100)
+    if (sanitizedFullName.length === 0 || !/^[a-zA-ZÀ-ÿ\s'-]+$/.test(sanitizedFullName)) {
+      return new Response(
+        JSON.stringify({ error: 'Nom invalide - utilisez uniquement des lettres, espaces, tirets et apostrophes' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -108,11 +126,11 @@ Deno.serve(async (req) => {
 
     // Créer l'utilisateur avec l'API Admin
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
+      email: email.toLowerCase().trim(),
       password,
       email_confirm: true,
       user_metadata: {
-        full_name: full_name.trim(),
+        full_name: sanitizedFullName,
         tenant_id: profile.tenant_id,
         role
       }

@@ -11,9 +11,37 @@ Deno.serve(async (req) => {
   try {
     const { email, password, full_name, role = 'gerant' } = await req.json()
 
+    // SECURITY: Input validation and sanitization
     if (!email || !password || !full_name) {
       return new Response(
         JSON.stringify({ error: 'Champs requis manquants' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email) || email.length > 255) {
+      return new Response(
+        JSON.stringify({ error: 'Format d\'email invalide' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Sanitize and validate full_name
+    const sanitizedFullName = String(full_name).trim().slice(0, 100)
+    if (sanitizedFullName.length === 0 || !/^[a-zA-ZÀ-ÿ\s'-]+$/.test(sanitizedFullName)) {
+      return new Response(
+        JSON.stringify({ error: 'Nom invalide - utilisez uniquement des lettres, espaces, tirets et apostrophes' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validate role
+    const validRoles = ['admin', 'gerant', 'commercial', 'comptable', 'production']
+    if (!validRoles.includes(role)) {
+      return new Response(
+        JSON.stringify({ error: 'Rôle invalide' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -37,13 +65,13 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const admin = createClient(supabaseUrl, serviceKey)
 
-    // Crée l’utilisateur sans envoi d’email (confirmation forcée)
+    // Crée l'utilisateur sans envoi d'email (confirmation forcée)
     const { data, error } = await admin.auth.admin.createUser({
-      email,
+      email: email.toLowerCase().trim(),
       password,
       email_confirm: true,
       user_metadata: {
-        full_name: String(full_name).trim(),
+        full_name: sanitizedFullName,
         role,
       },
     })
