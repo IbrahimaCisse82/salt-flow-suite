@@ -6,7 +6,7 @@ import { logger } from '@/utils/logger';
 
 interface Profile {
   id: string;
-  tenant_id: string;
+  tenant_id: string | null;
   role?: string;
   email: string;
   full_name: string | null;
@@ -62,18 +62,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (profileError) throw profileError;
 
-      // Charger le tenant séparément (nécessaire car pas inclus dans get_profiles_with_roles)
-      const { data: tenant, error: tenantError } = await supabase
-        .from('tenants')
-        .select('id, name, logo_url')
-        .eq('id', profilesData.tenant_id)
-        .single();
+      // Charger le tenant séparément si tenant_id existe
+      let tenant = null;
+      if (profilesData.tenant_id) {
+        const { data: tenantData, error: tenantError } = await supabase
+          .from('tenants')
+          .select('id, name, logo_url')
+          .eq('id', profilesData.tenant_id)
+          .single();
 
-      if (tenantError) throw tenantError;
+        if (tenantError) {
+          logger.error('Error loading tenant:', tenantError);
+        } else {
+          tenant = tenantData;
+        }
+      }
       
       return {
         profile: profilesData as Profile,
-        tenant: tenant as Tenant
+        tenant: tenant as Tenant | null
       };
     },
     enabled: !!user?.id,
