@@ -65,52 +65,47 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const admin = createClient(supabaseUrl, serviceKey)
 
-    // Get the authorization header to identify the creating user
+    // Get the authorization header (optional for initial signup)
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    let tenantId: string | null = null
 
-    // Get the creating user's tenant_id
-    const userClient = createClient(supabaseUrl, serviceKey, {
-      global: { headers: { Authorization: authHeader } }
-    })
-    
-    const { data: { user: creatingUser }, error: userError } = await userClient.auth.getUser()
-    if (userError || !creatingUser) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to authenticate user' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    // If there's an authorization header, get the tenant_id from the creating user
+    if (authHeader) {
+      const userClient = createClient(supabaseUrl, serviceKey, {
+        global: { headers: { Authorization: authHeader } }
+      })
+      
+      const { data: { user: creatingUser }, error: userError } = await userClient.auth.getUser()
+      if (!userError && creatingUser) {
+        // Get tenant_id from the creating user's profile
+        const { data: profile } = await admin
+          .from('profiles')
+          .select('tenant_id')
+          .eq('id', creatingUser.id)
+          .single()
 
-    // Get tenant_id from the creating user's profile
-    const { data: profile, error: profileError } = await admin
-      .from('profiles')
-      .select('tenant_id')
-      .eq('id', creatingUser.id)
-      .single()
-
-    if (profileError || !profile?.tenant_id) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to get tenant information' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+        if (profile?.tenant_id) {
+          tenantId = profile.tenant_id
+        }
+      }
     }
 
     // Crée l'utilisateur sans envoi d'email (confirmation forcée)
+    const userMetadata: any = {
+      full_name: sanitizedFullName,
+      role,
+    }
+
+    // Add tenant_id to metadata if available (for invite scenario)
+    if (tenantId) {
+      userMetadata.tenant_id = tenantId
+    }
+
     const { data, error } = await admin.auth.admin.createUser({
       email: email.toLowerCase().trim(),
       password,
       email_confirm: true,
-      user_metadata: {
-        full_name: sanitizedFullName,
-        role,
-        tenant_id: profile.tenant_id,
-      },
+      user_metadata: userMetadata,
     })
 
     if (error) {
