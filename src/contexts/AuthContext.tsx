@@ -58,9 +58,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { data: profilesData, error: profileError } = await supabase
         .rpc('get_profiles_with_roles')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        logger.error('Error loading profile:', profileError);
+        throw profileError;
+      }
+
+      if (!profilesData) {
+        logger.warn('No profile found for user:', user.id);
+        return { profile: null, tenant: null };
+      }
 
       // Charger le tenant séparément si tenant_id existe
       let tenant = null;
@@ -69,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           .from('tenants')
           .select('id, name, logo_url')
           .eq('id', profilesData.tenant_id)
-          .single();
+          .maybeSingle();
 
         if (tenantError) {
           logger.error('Error loading tenant:', tenantError);
