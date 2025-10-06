@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, password, full_name, role = 'gerant' } = await req.json()
+    const { email, password, full_name, role = 'production' } = await req.json()
 
     // SECURITY: Input validation and sanitization
     if (!email || !password || !full_name) {
@@ -68,8 +68,9 @@ Deno.serve(async (req) => {
     // Get the authorization header (optional for initial signup)
     const authHeader = req.headers.get('Authorization')
     let tenantId: string | null = null
+    let isAdmin = false
 
-    // If there's an authorization header, get the tenant_id from the creating user
+    // If there's an authorization header, get the tenant_id and role from the creating user
     if (authHeader) {
       const userClient = createClient(supabaseUrl, serviceKey, {
         global: { headers: { Authorization: authHeader } }
@@ -87,13 +88,34 @@ Deno.serve(async (req) => {
         if (profile?.tenant_id) {
           tenantId = profile.tenant_id
         }
+
+        // Check if creating user is admin
+        const { data: adminRole } = await admin
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', creatingUser.id)
+          .eq('role', 'admin')
+          .maybeSingle()
+
+        if (adminRole) {
+          isAdmin = true
+        }
       }
+    }
+
+    // Determine final role based on auth context to avoid privilege escalation
+    const isSelfSignup = !authHeader
+    let finalRole = role
+    if (isSelfSignup) {
+      finalRole = 'production'
+    } else if (!isAdmin && (role === 'admin' || role === 'gerant')) {
+      finalRole = 'production'
     }
 
     // Crée l'utilisateur sans envoi d'email (confirmation forcée)
     const userMetadata: any = {
       full_name: sanitizedFullName,
-      role,
+      role: finalRole,
     }
 
     // Add tenant_id to metadata if available (for invite scenario)
