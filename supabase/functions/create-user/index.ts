@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, password, full_name, role = 'production' } = await req.json()
+    const { email, password, full_name, role = 'gerant' } = await req.json()
 
     // SECURITY: Input validation and sanitization
     if (!email || !password || !full_name) {
@@ -103,12 +103,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Determine final role based on auth context to avoid privilege escalation
+    // Determine final role based on auth context
+    // Self-signup: allow 'gerant' (creating their own company)
+    // Invited by admin: allow any role
+    // Invited by non-admin: only allow non-privileged roles
     const isSelfSignup = !authHeader
     let finalRole = role
-    if (isSelfSignup) {
+    
+    if (!isSelfSignup && !isAdmin && role === 'admin') {
+      // Only admins can assign 'admin' role
       finalRole = 'production'
-    } else if (!isAdmin && (role === 'admin' || role === 'gerant')) {
+    } else if (!isSelfSignup && !isAdmin && role === 'gerant') {
+      // Non-admins can't invite other gerants
       finalRole = 'production'
     }
 
