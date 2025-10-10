@@ -5,9 +5,8 @@ const ALLOWED_ORIGINS = [
   'http://localhost:8080', // Development
   'https://mwxybozfksdxrsipywlh.supabase.co', // Supabase
   'https://a879894c-887f-41e8-9be4-ab73e08c3d84.lovableproject.com', // Lovable Production
-  // Add your custom domain here when ready:
-  // 'https://sel.g-suiteapp.com',
-  // 'https://www.sel.g-suiteapp.com',
+  'https://sel.g-suiteapp.com', // Custom domain
+  'https://www.sel.g-suiteapp.com', // Custom domain with www
 ];
 
 // SECURITY: Get proper CORS headers based on origin
