@@ -10,13 +10,9 @@ const ALLOWED_ORIGINS = [
   // 'https://www.sel.g-suiteapp.com',
 ];
 
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // TODO: Restrict to ALLOWED_ORIGINS in production
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Helper function to get proper CORS headers based on origin
-export const getCorsHeaders = (origin?: string) => {
+// SECURITY: Get proper CORS headers based on origin
+// Returns origin-specific headers for allowed origins, default headers otherwise
+export const getCorsHeaders = (origin?: string | null): Record<string, string> => {
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
     return {
       'Access-Control-Allow-Origin': origin,
@@ -24,5 +20,14 @@ export const getCorsHeaders = (origin?: string) => {
       'Access-Control-Allow-Credentials': 'true',
     };
   }
-  return corsHeaders;
+  
+  // Default to first allowed origin for security
+  return {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Credentials': 'false',
+  };
 };
+
+// Backward compatibility - deprecated, use getCorsHeaders instead
+export const corsHeaders = getCorsHeaders();
