@@ -1187,20 +1187,7 @@ export type Database = {
       }
     }
     Views: {
-      profiles_with_roles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          id: string | null
-          phone: string | null
-          role: Database["public"]["Enums"]["app_role"] | null
-          tenant_id: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_clients_safe: {
