@@ -30,6 +30,7 @@ const AdminChartOfAccounts = lazy(() => import("./pages/admin/ChartOfAccounts"))
 const AdminExpenseTypes = lazy(() => import("./pages/admin/ExpenseTypes"));
 const AdminSetup = lazy(() => import("./pages/admin/Setup"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Install = lazy(() => import("./pages/Install"));
 
 // Optimized QueryClient with better caching
 const queryClient = new QueryClient({
@@ -63,6 +64,7 @@ const App = () => (
                 <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/cgu" element={<CGU />} />
+                <Route path="/install" element={<Install />} />
                 <Route path="/admin/setup" element={<AdminSetup />} />
                 <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
                 <Route path="/bassins" element={<RoleProtectedRoute><Bassins /></RoleProtectedRoute>} />

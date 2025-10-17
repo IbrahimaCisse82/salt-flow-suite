@@ -1,12 +1,15 @@
 {
   "name": "G-Suite Sel - Gestion des Marais Salants",
   "short_name": "G-Suite Sel",
-  "description": "Solution SaaS complète pour la gestion des exploitations salines",
+  "description": "Solution SaaS complète pour la gestion des exploitations salines : bassins, production, stocks, équipes et campagnes",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0EA5E9",
-  "orientation": "portrait-primary",
+  "orientation": "portrait",
+  "lang": "fr-FR",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/salt-logo.png",
