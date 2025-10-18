@@ -1,13 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const useTeams = () => {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   const { data: teams = [], isLoading } = useQuery({
-    queryKey: ['teams'],
+    queryKey: ['teams', profile?.tenant_id],
     queryFn: async () => {
+      if (!profile?.tenant_id) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('teams')
         .select(`
@@ -20,9 +26,14 @@ export const useTeams = () => {
         `)
         .order('name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading teams:', error);
+        return [];
+      }
       return data || [];
-    }
+    },
+    enabled: !!profile?.tenant_id,
+    retry: 1
   });
 
   const createTeamMutation = useMutation({

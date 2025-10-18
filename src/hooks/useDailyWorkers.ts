@@ -7,12 +7,12 @@ export const useDailyWorkers = () => {
   const userRole = profile?.role;
 
   return useQuery({
-    queryKey: ['daily-workers', userRole],
+    queryKey: ['daily-workers', userRole, profile?.tenant_id],
     queryFn: async () => {
       // Only managers and accountants can view daily workers
       const canViewWorkers = userRole === 'admin' || userRole === 'gerant' || userRole === 'comptable';
 
-      if (!canViewWorkers) {
+      if (!canViewWorkers || !profile?.tenant_id) {
         return [];
       }
 
@@ -21,8 +21,13 @@ export const useDailyWorkers = () => {
         .select('*')
         .order('full_name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading daily workers:', error);
+        return [];
+      }
       return data || [];
-    }
+    },
+    enabled: !!profile?.tenant_id,
+    retry: 1
   });
 };

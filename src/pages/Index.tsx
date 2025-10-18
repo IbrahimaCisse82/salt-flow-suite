@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   UserCheck,
   UserCog,
-  UsersRound
+  UsersRound,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,13 +27,24 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const { isOpen } = useSidebar();
-  const { profile } = useAuth();
+  const { profile, loading } = useAuth();
+  
+  // Attendre que le profil soit chargé avant d'exécuter les hooks
   const { data: employees = [] } = useEmployees();
   const { data: dailyWorkers = [] } = useDailyWorkers();
   const { teams } = useTeams();
 
+  // Afficher un loader pendant le chargement du profil
+  if (loading || !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   // Calculer les statistiques du personnel pour les gérants
-  const isManager = profile?.role === 'admin' || profile?.role === 'gerant';
+  const isManager = profile.role === 'admin' || profile.role === 'gerant';
   const permanentCount = employees.filter(e => e.employee_type === 'permanent').length;
   const seasonalCount = employees.filter(e => e.employee_type === 'saisonnier').length;
   const activeTeamsCount = teams?.filter(t => t.status === 'active').length || 0;

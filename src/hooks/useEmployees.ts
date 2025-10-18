@@ -7,13 +7,13 @@ export const useEmployees = () => {
   const userRole = profile?.role;
 
   return useQuery({
-    queryKey: ['employees', userRole],
+    queryKey: ['employees', userRole, profile?.tenant_id],
     queryFn: async () => {
       // Only managers (gérants) and admins can see employee data
       const canViewEmployees = userRole === 'admin' || userRole === 'gerant';
 
-      if (!canViewEmployees) {
-        // Users without permission get empty array
+      if (!canViewEmployees || !profile?.tenant_id) {
+        // Users without permission or tenant get empty array
         return [];
       }
 
@@ -22,9 +22,14 @@ export const useEmployees = () => {
         .select('*')
         .order('full_name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading employees:', error);
+        return [];
+      }
       return data || [];
-    }
+    },
+    enabled: !!profile?.tenant_id,
+    retry: 1
   });
 };
 
