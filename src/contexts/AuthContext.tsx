@@ -45,8 +45,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const inactivityTimerRef = useRef<NodeJS.Timeout>();
   const queryClient = useQueryClient();
   
-  // Session timeout: 30 minutes of inactivity
-  const SESSION_TIMEOUT = 30 * 60 * 1000;
+  // Session timeout: 2 hours of inactivity (better for mobile)
+  const SESSION_TIMEOUT = 2 * 60 * 60 * 1000;
 
   // Charger profil, tenant ET rôle en une seule requête optimisée via la fonction get_profiles_with_roles
   const { data: profileData } = useQuery({
@@ -136,24 +136,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [session]);
 
   useEffect(() => {
-    // Écouter les changements d'authentification
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-      
-      // Vider le cache React Query lors de la déconnexion
-      if (event === 'SIGNED_OUT') {
-        queryClient.clear();
-        logger.info('Cache cleared due to logout');
-      }
-    });
-
-    // Vérifier la session au démarrage
+    // Vérifier la session d'abord
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+    });
+
+    // Puis écouter les changements d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      logger.info('Auth state changed:', event);
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+      
+      // Gérer les différents événements
+      if (event === 'SIGNED_OUT') {
+        queryClient.clear();
+        logger.info('Cache cleared due to logout');
+      } else if (event === 'TOKEN_REFRESHED') {
+        logger.info('Token refreshed successfully');
+      } else if (event === 'USER_UPDATED') {
+        logger.info('User data updated');
+      }
     });
 
     return () => subscription.unsubscribe();

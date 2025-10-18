@@ -42,15 +42,24 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // Ne pas mettre en cache les pages d'authentification
+        navigateFallbackDenylist: [/^\/auth/],
         runtimeCaching: [
           {
+            // Exclure les endpoints d'authentification du cache
+            urlPattern: /^https:\/\/mwxybozfksdxrsipywlh\.supabase\.co\/auth\/.*/i,
+            handler: 'NetworkOnly'
+          },
+          {
+            // Autres endpoints Supabase avec NetworkFirst
             urlPattern: /^https:\/\/mwxybozfksdxrsipywlh\.supabase\.co\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-cache',
+              networkTimeoutSeconds: 10,
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                maxAgeSeconds: 60 * 60 // 1 hour (réduit pour mobile)
               },
               cacheableResponse: {
                 statuses: [0, 200]
