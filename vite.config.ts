@@ -41,6 +41,8 @@ export default defineConfig(({ mode }) => ({
         ]
       },
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         // Ne pas mettre en cache les pages d'authentification
         navigateFallbackDenylist: [/^\/auth/],

@@ -24,6 +24,23 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('ErrorBoundary caught an error:', error, errorInfo);
+
+    // Auto-reload once on chunk/dynamic import errors (common after PWA updates)
+    const msg = String(error?.message || '');
+    const isChunkError =
+      msg.includes('Loading chunk') ||
+      msg.includes('ChunkLoadError') ||
+      msg.includes('Failed to fetch dynamically imported module');
+
+    if (isChunkError) {
+      const didReload = sessionStorage.getItem('chunk-reload-attempted');
+      if (!didReload) {
+        sessionStorage.setItem('chunk-reload-attempted', '1');
+        window.location.reload();
+      } else {
+        sessionStorage.removeItem('chunk-reload-attempted');
+      }
+    }
   }
 
   private handleReset = () => {
