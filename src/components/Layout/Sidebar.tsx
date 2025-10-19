@@ -23,6 +23,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCampagnes } from "@/hooks/useCampagnes";
 
 interface NavItem {
   icon: React.ElementType;
@@ -57,6 +58,7 @@ const SidebarComponent = () => {
   const navigate = useNavigate();
   const { isOpen, toggle } = useSidebar();
   const { profile } = useAuth();
+  const { activeCampagne } = useCampagnes();
 
   // Utiliser le rôle du contexte Auth au lieu d'une requête séparée
   const userRole = (profile?.role as UserRole) ?? null;
@@ -113,14 +115,25 @@ const SidebarComponent = () => {
       </div>
       
       {/* Afficher le widget campagne uniquement pour les non-admins et en mode ouvert */}
-      {userRole !== 'admin' && isOpen && (
+      {userRole !== 'admin' && isOpen && activeCampagne && (
         <div className="border-t p-4">
           <div className="rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 p-4">
-            <p className="text-sm font-medium mb-1">Campagne 2025</p>
-            <p className="text-xs text-muted-foreground">85% complété</p>
-            <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
-              <div className="h-full w-[85%] bg-gradient-to-r from-primary to-accent rounded-full" />
-            </div>
+            <p className="text-sm font-medium mb-1">{activeCampagne.name}</p>
+            {activeCampagne.target_production > 0 && (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  {Math.round((Number(activeCampagne.actual_production) / Number(activeCampagne.target_production)) * 100)}% complété
+                </p>
+                <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all" 
+                    style={{ 
+                      width: `${Math.min(Math.round((Number(activeCampagne.actual_production) / Number(activeCampagne.target_production)) * 100), 100)}%` 
+                    }}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

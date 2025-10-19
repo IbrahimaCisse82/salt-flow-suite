@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Waves, Menu, Bell, User, LogOut, CheckCircle2, AlertCircle, Building2, PanelLeft, PanelLeftClose } from "lucide-react";
+import { Waves, Menu, Bell, User, LogOut, Building2, PanelLeft, PanelLeftClose } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/drawer";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
 import {
@@ -44,33 +43,11 @@ import {
   X
 } from "lucide-react";
 import saltLogo from "@/assets/salt-logo.png";
-
-const mockNotifications = [
-  {
-    id: 1,
-    type: "success",
-    title: "Production enregistrée",
-    message: "125 tonnes de sel gros ajoutées au stock",
-    time: "Il y a 2h",
-    read: false
-  },
-  {
-    id: 2,
-    type: "warning",
-    title: "Vente en attente",
-    message: "Commande client #1234 nécessite validation",
-    time: "Il y a 5h",
-    read: false
-  },
-  {
-    id: 3,
-    type: "info",
-    title: "Rapport disponible",
-    message: "Rapport mensuel de mars prêt à télécharger",
-    time: "Hier",
-    read: true
-  }
-];
+import { 
+  useAccountantNotifications, 
+  useUnreadNotificationsCount,
+  useMarkNotificationAsRead 
+} from "@/hooks/useAccountantNotifications";
 
 const adminNavItems = [
   { icon: LayoutDashboard, label: "Tableau de bord", href: "/admin" },
@@ -97,9 +74,13 @@ const HeaderComponent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile, tenant } = useAuth();
-  const [notifications, setNotifications] = useState(mockNotifications);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toggle: toggleSidebar, isOpen: sidebarOpen } = useSidebar();
+  
+  // Utiliser les vraies notifications de la base de données
+  const { data: accountantNotifications = [] } = useAccountantNotifications();
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
+  const markAsReadMutation = useMarkNotificationAsRead();
 
   // Utiliser le rôle du contexte Auth au lieu d'une requête séparée
   const userRole = (profile?.role as UserRole) ?? null;
@@ -109,14 +90,34 @@ const HeaderComponent = () => {
     hasAccessToPage(userRole || null, item.href)
   );
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const markAllAsRead = async () => {
+    try {
+      await Promise.all(
+        accountantNotifications
+          .filter(n => !n.is_read)
+          .map(n => markAsReadMutation.mutateAsync(n.id))
+      );
+      toast({
+        title: "Notifications marquées comme lues",
+        description: "Toutes les notifications ont été lues",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de marquer les notifications comme lues",
+        variant: "destructive"
+      });
+    }
+  };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-    toast({
-      title: "Notifications marquées comme lues",
-      description: "Toutes les notifications ont été lues",
-    });
+  const handleNotificationClick = async (notificationId: string, isRead: boolean) => {
+    if (!isRead) {
+      try {
+        await markAsReadMutation.mutateAsync(notificationId);
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
+    }
   };
 
   const queryClient = useQueryClient();
@@ -209,33 +210,22 @@ const HeaderComponent = () => {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="max-h-[400px] overflow-y-auto">
-                {notifications.length > 0 ? (
-                  notifications.map((notification) => (
+                {accountantNotifications.length > 0 ? (
+                  accountantNotifications.map((notification) => (
                     <DropdownMenuItem
                       key={notification.id}
                       className="flex gap-3 p-3 cursor-pointer"
-                      onClick={() => {
-                        const updatedNotifications = notifications.map(n =>
-                          n.id === notification.id ? { ...n, read: true } : n
-                        );
-                        setNotifications(updatedNotifications);
-                      }}
+                      onClick={() => handleNotificationClick(notification.id, notification.is_read)}
                     >
                       <div className="flex-shrink-0">
-                        {notification.type === "success" ? (
-                          <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                        ) : notification.type === "warning" ? (
-                          <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
-                        ) : (
-                          <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                        )}
+                        <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                       </div>
                       <div className="flex-1 space-y-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <p className={`text-xs sm:text-sm font-medium truncate ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          <p className={`text-xs sm:text-sm font-medium truncate ${!notification.is_read ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {notification.title}
                           </p>
-                          {!notification.read && (
+                          {!notification.is_read && (
                             <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
                           )}
                         </div>
@@ -243,7 +233,7 @@ const HeaderComponent = () => {
                           {notification.message}
                         </p>
                         <p className="text-[10px] sm:text-xs text-muted-foreground">
-                          {notification.time}
+                          {new Date(notification.created_at).toLocaleString('fr-FR')}
                         </p>
                       </div>
                     </DropdownMenuItem>
