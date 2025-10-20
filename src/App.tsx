@@ -62,10 +62,10 @@ const App = () => (
             <BrowserRouter>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/cgu" element={<CGU />} />
-                <Route path="/install" element={<Install />} />
-                <Route path="/admin/setup" element={<AdminSetup />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/install" element={<Install />} />
+                  <Route path="/cgu" element={<CGU />} />
+                  <Route path="/admin/setup" element={<AdminSetup />} />
                 <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
                 <Route path="/bassins" element={<RoleProtectedRoute><Bassins /></RoleProtectedRoute>} />
                 <Route path="/campagne" element={<RoleProtectedRoute><Campagne /></RoleProtectedRoute>} />
