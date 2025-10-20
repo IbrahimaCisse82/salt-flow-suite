@@ -8,8 +8,10 @@ export const useSales = () => {
   const queryClient = useQueryClient();
 
   const { data: sales = [], isLoading } = useQuery({
-    queryKey: ['sales'],
+    queryKey: ['sales', profile?.tenant_id],
     queryFn: async () => {
+      if (!profile?.tenant_id) return [];
+
       const { data, error } = await supabase
         .from('sales')
         .select(`
@@ -18,9 +20,14 @@ export const useSales = () => {
         `)
         .order('sale_date', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading sales:', error);
+        return [];
+      }
       return data || [];
-    }
+    },
+    enabled: !!profile?.tenant_id,
+    retry: 1
   });
 
   const createSaleMutation = useMutation({
@@ -34,12 +41,17 @@ export const useSales = () => {
       payment_status: string;
       notes?: string;
     }) => {
+      if (!profile?.tenant_id) {
+        throw new Error("Tenant ID manquant");
+      }
+
       const totalAmount = (saleData.quantity * saleData.unit_price) - (saleData.discount || 0);
       
       const { data, error } = await supabase
         .from('sales')
         .insert({
           ...saleData,
+          tenant_id: profile.tenant_id,
           total_amount: totalAmount,
           sale_date: new Date().toISOString().split('T')[0],
           can_be_delivered: false,

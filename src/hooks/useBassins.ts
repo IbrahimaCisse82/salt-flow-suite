@@ -35,9 +35,16 @@ export const useBassins = () => {
       location?: string;
       is_active?: boolean;
     }) => {
+      if (!profile?.tenant_id) {
+        throw new Error("Tenant ID manquant");
+      }
+
       const { data, error } = await supabase
         .from('bassins')
-        .insert(bassinData)
+        .insert({
+          ...bassinData,
+          tenant_id: profile.tenant_id
+        })
         .select()
         .single();
       

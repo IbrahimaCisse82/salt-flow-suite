@@ -1,35 +1,51 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const useCampagnes = () => {
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: campagnes = [], isLoading } = useQuery({
-    queryKey: ['campagnes'],
+    queryKey: ['campagnes', profile?.tenant_id],
     queryFn: async () => {
+      if (!profile?.tenant_id) return [];
+
       const { data, error } = await supabase
         .from('campagnes')
         .select('*')
         .order('year', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading campagnes:', error);
+        return [];
+      }
       return data || [];
-    }
+    },
+    enabled: !!profile?.tenant_id,
+    retry: 1
   });
 
   const { data: activeCampagne } = useQuery({
-    queryKey: ['active-campagne'],
+    queryKey: ['active-campagne', profile?.tenant_id],
     queryFn: async () => {
+      if (!profile?.tenant_id) return null;
+
       const { data, error } = await supabase
         .from('campagnes')
         .select('*')
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) {
+        console.error('Error loading active campagne:', error);
+        return null;
+      }
       return data;
-    }
+    },
+    enabled: !!profile?.tenant_id,
+    retry: 1
   });
 
   const createCampagneMutation = useMutation({
@@ -41,10 +57,15 @@ export const useCampagnes = () => {
       target_production: number;
       budget_total: number;
     }) => {
+      if (!profile?.tenant_id) {
+        throw new Error("Tenant ID manquant");
+      }
+
       const { data, error } = await supabase
         .from('campagnes')
         .insert({
           ...campagneData,
+          tenant_id: profile.tenant_id,
           status: 'active'
         })
         .select()

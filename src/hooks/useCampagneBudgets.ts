@@ -1,15 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const useCampagneBudgets = (campagneId?: string) => {
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: phaseBudgets = [], isLoading } = useQuery({
-    queryKey: ['phase-budgets', campagneId],
-    enabled: !!campagneId,
+    queryKey: ['phase-budgets', campagneId, profile?.tenant_id],
+    enabled: !!campagneId && !!profile?.tenant_id,
     queryFn: async () => {
-      if (!campagneId) return [];
+      if (!campagneId || !profile?.tenant_id) return [];
       
       const { data, error } = await supabase
         .from('campagne_phase_budgets')
@@ -17,9 +19,13 @@ export const useCampagneBudgets = (campagneId?: string) => {
         .eq('campagne_id', campagneId)
         .order('phase');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading phase budgets:', error);
+        return [];
+      }
       return data || [];
-    }
+    },
+    retry: 1
   });
 
   const upsertPhaseBudgetMutation = useMutation({
