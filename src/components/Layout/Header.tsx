@@ -127,15 +127,22 @@ const HeaderComponent = () => {
       // Vider le cache avant la déconnexion
       queryClient.clear();
       
+      // Déconnexion de Supabase
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Forcer la suppression de toutes les données de session
+      localStorage.clear();
+      sessionStorage.clear();
       
       toast({
         title: "Déconnexion réussie",
         description: "À bientôt !",
       });
       
-      navigate("/auth");
+      // Utiliser window.location pour forcer un rechargement complet
+      // Ceci garantit que la PWA recharge complètement et efface tous les états
+      window.location.href = "/auth";
     } catch (error) {
       logger.error("Logout error:", error);
       toast({

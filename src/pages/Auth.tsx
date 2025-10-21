@@ -51,22 +51,24 @@ const Auth = () => {
   // Vérifier si l'utilisateur est déjà connecté
   useEffect(() => {
     const checkUser = async () => {
+      // Nettoyer les caches en cas de retour sur la page d'authentification
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/", { replace: true });
+        // Si une session existe, rediriger immédiatement
+        window.location.href = "/";
       }
     };
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && event === 'SIGNED_IN') {
-        // Redirection immédiate lors d'un nouveau sign-in
-        navigate("/", { replace: true });
+        // Redirection immédiate lors d'un nouveau sign-in avec rechargement complet
+        window.location.href = "/";
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
