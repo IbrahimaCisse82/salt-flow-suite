@@ -20,7 +20,10 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['salt-logo.png', 'robots.txt'],
+      includeAssets: ['salt-logo.png', 'robots.txt', 'sw-push.js'],
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw-push.js',
       manifest: {
         name: 'G-Suite Sel - Gestion des Marais Salants',
         short_name: 'G-Suite Sel',
@@ -69,6 +72,10 @@ export default defineConfig(({ mode }) => ({
             }
           }
         ]
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module'
       }
     })
   ].filter(Boolean),

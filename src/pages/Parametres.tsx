@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
+import { PushNotificationSettings } from "@/components/Settings/PushNotificationSettings";
 import { 
   Settings,
   Bell,
@@ -775,6 +776,9 @@ const Parametres = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Notifications Push - Import du nouveau composant */}
+          <PushNotificationSettings />
 
           {/* Données */}
           {isGerant && (
