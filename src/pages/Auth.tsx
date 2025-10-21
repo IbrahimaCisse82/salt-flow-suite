@@ -36,10 +36,12 @@ const Auth = () => {
   // États pour l'inscription
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [signupPasswordConfirm, setSignupPasswordConfirm] = useState("");
   const [signupFullName, setSignupFullName] = useState("");
   const [signupTenantName, setSignupTenantName] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showSignupPasswordConfirm, setShowSignupPasswordConfirm] = useState(false);
 
   // États pour la réinitialisation du mot de passe
   const [resetEmail, setResetEmail] = useState("");
@@ -113,6 +115,16 @@ const Auth = () => {
     e.preventDefault();
     
     try {
+      // Vérifier que les mots de passe correspondent
+      if (signupPassword !== signupPasswordConfirm) {
+        toast({
+          title: "Erreur",
+          description: "Les mots de passe ne correspondent pas",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Validation with sanitization
       const validated = signupFormSchema.parse({
         email: signupEmail,
@@ -463,6 +475,36 @@ const Auth = () => {
                   <p className="text-xs text-muted-foreground">
                     Au moins 8 caractères (1 majuscule, 1 minuscule, 1 chiffre)
                   </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password-confirm">Confirmer le mot de passe</Label>
+                  <div className="relative">
+                    <Input
+                      id="signup-password-confirm"
+                      type={showSignupPasswordConfirm ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={signupPasswordConfirm}
+                      onChange={(e) => setSignupPasswordConfirm(e.target.value)}
+                      maxLength={128}
+                      required
+                      disabled={loading}
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowSignupPasswordConfirm(!showSignupPasswordConfirm)}
+                      disabled={loading}
+                    >
+                      {showSignupPasswordConfirm ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex items-start space-x-2">
                   <Checkbox
