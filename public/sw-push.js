@@ -1,4 +1,9 @@
 // Service Worker pour gérer les notifications push
+import { precacheAndRoute } from 'workbox-precaching';
+
+// Injecter le manifest Workbox (nécessaire pour vite-plugin-pwa)
+precacheAndRoute(self.__WB_MANIFEST || []);
+
 self.addEventListener('push', function(event) {
   console.log('[Service Worker] Push reçu', event);
 
