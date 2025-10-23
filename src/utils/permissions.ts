@@ -16,6 +16,7 @@ export const rolePermissions: Record<UserRole, string[]> = {
     '/production',
     '/stocks',
     '/equipes',
+    '/conges',
     '/commercial',
     '/comptabilite',
     '/rapports',
@@ -38,6 +39,7 @@ export const rolePermissions: Record<UserRole, string[]> = {
     '/production',
     '/stocks',
     '/equipes',
+    '/conges',
     '/parametres'
   ]
 };

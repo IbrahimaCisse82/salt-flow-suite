@@ -20,6 +20,7 @@ const Campagne = lazy(() => import("./pages/Campagne"));
 const Production = lazy(() => import("./pages/Production"));
 const Stocks = lazy(() => import("./pages/Stocks"));
 const Equipes = lazy(() => import("./pages/Equipes"));
+const Conges = lazy(() => import("./pages/Conges"));
 const Commercial = lazy(() => import("./pages/Commercial"));
 const Rapports = lazy(() => import("./pages/Rapports"));
 const Parametres = lazy(() => import("./pages/Parametres"));
@@ -74,6 +75,7 @@ const App = () => (
                   <Route path="/production" element={<RoleProtectedRoute><Production /></RoleProtectedRoute>} />
                   <Route path="/stocks" element={<RoleProtectedRoute><Stocks /></RoleProtectedRoute>} />
                   <Route path="/equipes" element={<RoleProtectedRoute><Equipes /></RoleProtectedRoute>} />
+                  <Route path="/conges" element={<RoleProtectedRoute><Conges /></RoleProtectedRoute>} />
                   <Route path="/commercial" element={<RoleProtectedRoute><Commercial /></RoleProtectedRoute>} />
                   <Route path="/rapports" element={<RoleProtectedRoute><Rapports /></RoleProtectedRoute>} />
                   <Route path="/parametres" element={<RoleProtectedRoute><Parametres /></RoleProtectedRoute>} />

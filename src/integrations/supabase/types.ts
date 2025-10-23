@@ -515,6 +515,63 @@ export type Database = {
           },
         ]
       }
+      leaves: {
+        Row: {
+          created_at: string
+          days_count: number | null
+          employee_id: string
+          end_date: string
+          id: string
+          leave_type: string
+          notes: string | null
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+          rejection_reason: string | null
+          requested_at: string
+          start_date: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          days_count?: number | null
+          employee_id: string
+          end_date: string
+          id?: string
+          leave_type: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          rejection_reason?: string | null
+          requested_at?: string
+          start_date: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days_count?: number | null
+          employee_id?: string
+          end_date?: string
+          id?: string
+          leave_type?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          rejection_reason?: string | null
+          requested_at?: string
+          start_date?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number | null
@@ -1218,7 +1275,7 @@ export type Database = {
     }
     Functions: {
       get_clients_safe: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           address: string
           client_type: string
@@ -1232,7 +1289,7 @@ export type Database = {
         }[]
       }
       get_employees_safe: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           email: string
@@ -1254,7 +1311,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       get_profiles_safe: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avatar_url: string
           created_at: string
@@ -1265,7 +1322,7 @@ export type Database = {
         }[]
       }
       get_profiles_with_roles: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avatar_url: string
           created_at: string
@@ -1279,7 +1336,7 @@ export type Database = {
         }[]
       }
       get_public_profiles: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avatar_url: string
           full_name: string
@@ -1295,14 +1352,8 @@ export type Database = {
           name: string
         }[]
       }
-      get_user_role: {
-        Args: { user_id: string }
-        Returns: string
-      }
-      get_user_tenant_id: {
-        Args: { user_id: string }
-        Returns: string
-      }
+      get_user_role: { Args: { user_id: string }; Returns: string }
+      get_user_tenant_id: { Args: { user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1310,10 +1361,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_manager_or_admin: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      is_manager_or_admin: { Args: { _user_id: string }; Returns: boolean }
       update_own_profile: {
         Args: {
           new_avatar_url?: string
