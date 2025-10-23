@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/Layout/Sidebar";
 import { StatsCard } from "@/components/Dashboard/StatsCard";
 import { BassinOverview } from "@/components/Dashboard/BassinOverview";
 import { ProductionChart } from "@/components/Dashboard/ProductionChart";
+import { WeatherWidget } from "@/components/Dashboard/WeatherWidget";
 import { 
   Droplets, 
   TrendingUp, 
@@ -172,8 +173,14 @@ const Index = () => {
           {/* Charts and Overview */}
           <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <ProductionChart />
-            <BassinOverview />
+            <WeatherWidget 
+              latitude={14.6928}
+              longitude={-17.4467}
+              location="Dakar, Sénégal"
+            />
           </div>
+          
+          <BassinOverview />
         </main>
       </div>
     </div>
