@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Waves, Menu, Bell, User, LogOut, Building2, PanelLeft, PanelLeftClose } from "lucide-react";
+import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -176,6 +177,8 @@ const HeaderComponent = () => {
         </div>
 
         <div className="flex items-center gap-1 sm:gap-4">
+          <OfflineSyncIndicator />
+          
           {profile && (
             <div className="hidden md:flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-2 rounded-lg bg-muted/50 min-w-0 max-w-[200px]">
               {tenant?.logo_url ? (

@@ -572,6 +572,50 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_history: {
+        Row: {
+          id: string
+          message: string
+          notification_type: string
+          reference_id: string | null
+          sent_at: string | null
+          status: string | null
+          tenant_id: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          message: string
+          notification_type: string
+          reference_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          message?: string
+          notification_type?: string
+          reference_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number | null
@@ -1362,6 +1406,18 @@ export type Database = {
         Returns: boolean
       }
       is_manager_or_admin: { Args: { _user_id: string }; Returns: boolean }
+      send_attendance_validation_reminders: { Args: never; Returns: undefined }
+      send_push_notification: {
+        Args: {
+          p_message: string
+          p_notification_type?: string
+          p_reference_id?: string
+          p_tenant_id: string
+          p_title: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       update_own_profile: {
         Args: {
           new_avatar_url?: string

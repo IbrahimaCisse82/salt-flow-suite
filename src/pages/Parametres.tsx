@@ -14,6 +14,7 @@ import { UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { PushNotificationSettings } from "@/components/Settings/PushNotificationSettings";
+import { NotificationHistoryWidget } from "@/components/Settings/NotificationHistoryWidget";
 import { 
   Settings,
   Bell,
@@ -779,6 +780,9 @@ const Parametres = () => {
 
           {/* Notifications Push - Import du nouveau composant */}
           <PushNotificationSettings />
+
+          {/* Historique des notifications */}
+          <NotificationHistoryWidget />
 
           {/* Données */}
           {isGerant && (
