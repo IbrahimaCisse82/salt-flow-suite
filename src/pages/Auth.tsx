@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { logger } from "@/utils/logger";
 import { loginFormSchema, signupFormSchema, emailSchema } from "@/utils/validation";
+import { Capacitor } from '@capacitor/core';
 import {
   Dialog,
   DialogContent,
@@ -246,8 +247,13 @@ const Auth = () => {
       
       setResetLoading(true);
       
+      // Définir l'URL de redirection selon la plateforme
+      const redirectUrl = Capacitor.isNativePlatform()
+        ? 'app.lovable.a879894c887f41e89be4ab73e08c3d84://auth'
+        : `${window.location.origin}/auth`;
+      
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: redirectUrl,
       });
 
       if (error) throw error;
