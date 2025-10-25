@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOfflineMutation } from "@/hooks/useOfflineMutation";
 
 export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 export type LeaveType = 'conge_annuel' | 'conge_maladie' | 'conge_maternite' | 'conge_sans_solde' | 'autre';
@@ -49,7 +50,9 @@ export const useLeaves = () => {
     retry: 1
   });
 
-  const createLeaveMutation = useMutation({
+  const createLeaveMutation = useOfflineMutation({
+    tableName: 'leaves',
+    operation: 'insert',
     mutationFn: async (leaveData: {
       employee_id: string;
       leave_type: LeaveType;
@@ -77,7 +80,9 @@ export const useLeaves = () => {
       queryClient.invalidateQueries({ queryKey: ['leaves'] });
       toast({
         title: "Demande créée",
-        description: "Votre demande de congé a été soumise avec succès",
+        description: navigator.onLine
+          ? "Votre demande de congé a été soumise avec succès"
+          : "Votre demande sera synchronisée quand vous serez en ligne",
       });
     },
     onError: (error: any) => {
@@ -89,7 +94,10 @@ export const useLeaves = () => {
     }
   });
 
-  const updateLeaveStatusMutation = useMutation({
+  const updateLeaveStatusMutation = useOfflineMutation({
+    tableName: 'leaves',
+    operation: 'update',
+    getRecordId: (vars: { id: string; status: LeaveStatus; rejection_reason?: string }) => vars.id,
     mutationFn: async ({
       id,
       status,
@@ -125,7 +133,9 @@ export const useLeaves = () => {
                         variables.status === 'rejected' ? 'rejetée' : 'annulée';
       toast({
         title: "Statut mis à jour",
-        description: `La demande a été ${statusText}`,
+        description: navigator.onLine
+          ? `La demande a été ${statusText}`
+          : `La mise à jour sera synchronisée quand vous serez en ligne`,
       });
     },
     onError: (error: any) => {
@@ -137,7 +147,10 @@ export const useLeaves = () => {
     }
   });
 
-  const deleteLeaveM = useMutation({
+  const deleteLeaveM = useOfflineMutation({
+    tableName: 'leaves',
+    operation: 'delete',
+    getRecordId: (id: string) => id,
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('leaves')
@@ -145,12 +158,15 @@ export const useLeaves = () => {
         .eq('id', id);
       
       if (error) throw error;
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leaves'] });
       toast({
         title: "Demande supprimée",
-        description: "La demande de congé a été supprimée",
+        description: navigator.onLine
+          ? "La demande de congé a été supprimée"
+          : "La suppression sera synchronisée quand vous serez en ligne",
       });
     },
     onError: (error: any) => {

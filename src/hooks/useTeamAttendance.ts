@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useOfflineMutation } from "@/hooks/useOfflineMutation";
 
 export interface TeamAttendance {
   id: string;
@@ -62,7 +63,9 @@ export const useTeamAttendance = (filters?: { status?: string; teamId?: string; 
 export const useCreateAttendance = () => {
   const queryClient = useQueryClient();
   
-  return useMutation({
+  return useOfflineMutation({
+    tableName: 'team_attendance',
+    operation: 'insert',
     mutationFn: async (attendance: Omit<TeamAttendance, 'id' | 'created_at' | 'updated_at' | 'calculated_amount' | 'status'>) => {
       const { data: userData } = await supabase.auth.getUser();
       const { data: profile } = await supabase
@@ -88,7 +91,9 @@ export const useCreateAttendance = () => {
       queryClient.invalidateQueries({ queryKey: ['team-attendance'] });
       toast({
         title: "Pointage enregistré",
-        description: "Le pointage a été enregistré avec succès",
+        description: navigator.onLine 
+          ? "Le pointage a été enregistré avec succès"
+          : "Le pointage sera synchronisé quand vous serez en ligne",
       });
     },
     onError: (error: any) => {
@@ -104,7 +109,10 @@ export const useCreateAttendance = () => {
 export const useValidateAttendance = () => {
   const queryClient = useQueryClient();
   
-  return useMutation({
+  return useOfflineMutation({
+    tableName: 'team_attendance',
+    operation: 'update',
+    getRecordId: (attendanceId: string) => attendanceId,
     mutationFn: async (attendanceId: string) => {
       const { data: userData } = await supabase.auth.getUser();
       
@@ -126,7 +134,9 @@ export const useValidateAttendance = () => {
       queryClient.invalidateQueries({ queryKey: ['team-attendance'] });
       toast({
         title: "Pointage validé",
-        description: "Le pointage a été validé et une notification a été envoyée au comptable",
+        description: navigator.onLine
+          ? "Le pointage a été validé et une notification a été envoyée au comptable"
+          : "La validation sera synchronisée quand vous serez en ligne",
       });
     },
     onError: (error: any) => {
