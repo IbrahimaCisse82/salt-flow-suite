@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOfflineMutation } from "@/hooks/useOfflineMutation";
 
 export const useCampagnes = () => {
   const { profile } = useAuth();
@@ -48,7 +49,9 @@ export const useCampagnes = () => {
     retry: 1
   });
 
-  const createCampagneMutation = useMutation({
+  const createCampagneMutation = useOfflineMutation({
+    tableName: 'campagnes',
+    operation: 'insert',
     mutationFn: async (campagneData: {
       name: string;
       year: number;
@@ -79,7 +82,9 @@ export const useCampagnes = () => {
       queryClient.invalidateQueries({ queryKey: ['active-campagne'] });
       toast({
         title: "Campagne créée",
-        description: "La nouvelle campagne a été créée avec succès",
+        description: navigator.onLine
+          ? "La nouvelle campagne a été créée avec succès"
+          : "La campagne sera synchronisée quand vous serez en ligne",
       });
     },
     onError: (error: any) => {
@@ -91,7 +96,10 @@ export const useCampagnes = () => {
     }
   });
 
-  const updateCampagneMutation = useMutation({
+  const updateCampagneMutation = useOfflineMutation({
+    tableName: 'campagnes',
+    operation: 'update',
+    getRecordId: (data: { id: string; [key: string]: any }) => data.id,
     mutationFn: async ({ id, ...updates }: any) => {
       const { error } = await supabase
         .from('campagnes')
@@ -99,10 +107,17 @@ export const useCampagnes = () => {
         .eq('id', id);
       
       if (error) throw error;
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campagnes'] });
       queryClient.invalidateQueries({ queryKey: ['active-campagne'] });
+      toast({
+        title: "Campagne mise à jour",
+        description: navigator.onLine
+          ? "La campagne a été mise à jour avec succès"
+          : "La mise à jour sera synchronisée quand vous serez en ligne",
+      });
     }
   });
 

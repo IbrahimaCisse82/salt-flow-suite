@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { useOfflineMutation } from "@/hooks/useOfflineMutation";
 
 export const useSales = () => {
   const { profile } = useAuth();
@@ -30,7 +31,9 @@ export const useSales = () => {
     retry: 1
   });
 
-  const createSaleMutation = useMutation({
+  const createSaleMutation = useOfflineMutation({
+    tableName: 'sales',
+    operation: 'insert',
     mutationFn: async (saleData: {
       client_id: string;
       salt_type: string;
@@ -67,7 +70,9 @@ export const useSales = () => {
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       toast({
         title: "Commande créée",
-        description: "La commande a été enregistrée avec succès",
+        description: navigator.onLine 
+          ? "La commande a été enregistrée avec succès"
+          : "La commande sera synchronisée quand vous serez en ligne",
       });
     },
     onError: (error: any) => {
@@ -79,7 +84,10 @@ export const useSales = () => {
     }
   });
 
-  const updateSaleMutation = useMutation({
+  const updateSaleMutation = useOfflineMutation({
+    tableName: 'sales',
+    operation: 'update',
+    getRecordId: (data: { id: string; [key: string]: any }) => data.id,
     mutationFn: async ({ id, ...updates }: any) => {
       const { error } = await supabase
         .from('sales')
@@ -87,9 +95,16 @@ export const useSales = () => {
         .eq('id', id);
       
       if (error) throw error;
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sales'] });
+      toast({
+        title: "Commande mise à jour",
+        description: navigator.onLine
+          ? "La commande a été mise à jour avec succès"
+          : "La mise à jour sera synchronisée quand vous serez en ligne",
+      });
     }
   });
 

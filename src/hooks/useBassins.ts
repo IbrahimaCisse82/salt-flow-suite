@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOfflineMutation } from "@/hooks/useOfflineMutation";
 
 export const useBassins = () => {
   const { profile } = useAuth();
@@ -27,7 +28,9 @@ export const useBassins = () => {
     retry: 1
   });
 
-  const createBassinMutation = useMutation({
+  const createBassinMutation = useOfflineMutation({
+    tableName: 'bassins',
+    operation: 'insert',
     mutationFn: async (bassinData: {
       name: string;
       code?: string;
@@ -55,7 +58,9 @@ export const useBassins = () => {
       queryClient.invalidateQueries({ queryKey: ['bassins'] });
       toast({
         title: "Bassin créé",
-        description: "Le nouveau bassin a été créé avec succès",
+        description: navigator.onLine
+          ? "Le nouveau bassin a été créé avec succès"
+          : "Le bassin sera synchronisé quand vous serez en ligne",
       });
     },
     onError: (error: any) => {

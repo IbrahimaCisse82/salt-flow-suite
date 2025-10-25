@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useOfflineMutation } from "@/hooks/useOfflineMutation";
 
 export interface PayrollPayment {
   id: string;
@@ -49,7 +50,9 @@ export const usePayrollPayments = () => {
 export const useCreatePayrollPayment = () => {
   const queryClient = useQueryClient();
   
-  return useMutation({
+  return useOfflineMutation({
+    tableName: 'payroll_payments',
+    operation: 'insert',
     mutationFn: async (payment: Omit<PayrollPayment, 'id' | 'created_at' | 'updated_at' | 'processed_by'>) => {
       const { data: userData } = await supabase.auth.getUser();
       const { data: profile } = await supabase
@@ -77,7 +80,9 @@ export const useCreatePayrollPayment = () => {
       queryClient.invalidateQueries({ queryKey: ['accountant-notifications'] });
       toast({
         title: "Paiement enregistré",
-        description: "Le paiement RH a été enregistré avec succès",
+        description: navigator.onLine
+          ? "Le paiement RH a été enregistré avec succès"
+          : "Le paiement sera synchronisé quand vous serez en ligne",
       });
     },
     onError: (error: any) => {
