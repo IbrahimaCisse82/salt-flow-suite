@@ -141,8 +141,12 @@ Deno.serve(async (req) => {
 
     if (createError) {
       logger.error('Erreur création utilisateur:', createError)
+      // SECURITY: Sanitize error message - don't expose database details
+      const sanitizedError = createError.message?.includes('duplicate')
+        ? 'Un compte avec cet email existe déjà'
+        : 'Impossible de créer le compte utilisateur'
       return new Response(
-        JSON.stringify({ error: createError.message }),
+        JSON.stringify({ error: sanitizedError }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -154,9 +158,9 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     logger.error('Erreur:', error)
-    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    // SECURITY: Return generic error message to client, log details server-side
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ error: 'Une erreur est survenue lors de l\'invitation' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

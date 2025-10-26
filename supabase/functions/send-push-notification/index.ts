@@ -150,7 +150,8 @@ serve(async (req) => {
 
     const payload: NotificationPayload = await req.json();
 
-    console.log('Sending push notification:', payload);
+    // SECURITY: Log only non-sensitive metadata, not the full payload
+    console.log('Sending push notification type:', payload.notification_type);
 
     // Récupérer les abonnements des utilisateurs concernés
     let query = supabaseClient
@@ -202,6 +203,7 @@ serve(async (req) => {
 
     const successCount = results.filter(r => r.status === 'fulfilled' && r.value).length;
 
+    // SECURITY: Log only statistics, not user data
     console.log(`Push notifications sent: ${successCount}/${subscriptions.length}`);
 
     return new Response(
@@ -217,10 +219,10 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in send-push-notification function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    // SECURITY: Return generic error message to client, log details server-side
     return new Response(
       JSON.stringify({ 
-        error: errorMessage
+        error: 'Impossible d\'envoyer les notifications push'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

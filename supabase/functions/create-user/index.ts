@@ -141,8 +141,12 @@ Deno.serve(async (req) => {
 
     if (error) {
       logger.error('create-user error:', error)
+      // SECURITY: Sanitize error message - don't expose database details
+      const sanitizedError = error.message?.includes('duplicate') 
+        ? 'Un compte avec cet email existe déjà'
+        : 'Impossible de créer le compte utilisateur'
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ error: sanitizedError }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -152,10 +156,10 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Erreur inconnue'
-    logger.error('create-user exception:', message)
+    logger.error('create-user exception:', err)
+    // SECURITY: Return generic error message to client, log details server-side
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ error: 'Une erreur est survenue lors de la création du compte' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
