@@ -300,6 +300,15 @@ const Commercial = () => {
   const handleClientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!profile?.tenant_id) {
+      toast({
+        title: "Erreur",
+        description: "Tenant ID manquant",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const { error } = await supabase
         .from('clients')
@@ -308,7 +317,8 @@ const Commercial = () => {
           client_type: clientFormData.type,
           email: clientFormData.email,
           phone: clientFormData.phone,
-          address: clientFormData.address
+          address: clientFormData.address,
+          tenant_id: profile.tenant_id
         });
 
       if (error) throw error;

@@ -43,9 +43,16 @@ export const useTeams = () => {
       sector?: string;
       status?: string;
     }) => {
+      if (!profile?.tenant_id) {
+        throw new Error('Tenant ID manquant');
+      }
+
       const { data, error } = await supabase
         .from('teams')
-        .insert(teamData)
+        .insert({
+          ...teamData,
+          tenant_id: profile.tenant_id
+        })
         .select()
         .single();
       
