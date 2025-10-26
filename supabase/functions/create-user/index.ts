@@ -107,18 +107,22 @@ Deno.serve(async (req) => {
     }
 
     // Determine final role based on auth context
-    // Self-signup: allow 'gerant' (creating their own company)
-    // Invited by admin: allow any role
-    // Invited by non-admin: only allow non-privileged roles
     const isSelfSignup = !authHeader
-    let finalRole = role
+    let finalRole: string
     
-    if (!isSelfSignup && !isAdmin && role === 'admin') {
-      // Only admins can assign 'admin' role
-      finalRole = 'production'
-    } else if (!isSelfSignup && !isAdmin && role === 'gerant') {
-      // Non-admins can't invite other gerants
-      finalRole = 'production'
+    if (isSelfSignup) {
+      // Self-signup: always 'gerant' (creating their own company)
+      finalRole = 'gerant'
+    } else if (isAdmin) {
+      // Admins can assign any role
+      finalRole = role
+    } else {
+      // Non-admins inviting users: only allow non-privileged roles
+      if (role === 'admin' || role === 'gerant') {
+        finalRole = 'production'
+      } else {
+        finalRole = role
+      }
     }
 
     // Crée l'utilisateur sans envoi d'email (confirmation forcée)
