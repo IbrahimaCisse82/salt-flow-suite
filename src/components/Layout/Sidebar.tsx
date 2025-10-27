@@ -36,6 +36,7 @@ interface NavItem {
 const adminNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Tableau de bord", href: "/admin" },
   { icon: Building2, label: "Entreprises", href: "/admin/tenants" },
+  { icon: Users, label: "Gestion utilisateurs", href: "/admin/users" },
   { icon: Shield, label: "Rôles & Permissions", href: "/admin/roles" },
   { icon: BookOpen, label: "Plan comptable", href: "/admin/chart-of-accounts" },
   { icon: Receipt, label: "Types de dépenses", href: "/admin/expense-types" },

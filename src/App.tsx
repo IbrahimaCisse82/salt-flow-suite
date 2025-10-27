@@ -29,6 +29,7 @@ const GestionUtilisateurs = lazy(() => import("./pages/GestionUtilisateurs"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminTenants = lazy(() => import("./pages/admin/Tenants"));
 const AdminRoles = lazy(() => import("./pages/admin/Roles"));
+const AdminUserManagement = lazy(() => import("./pages/admin/UserManagement"));
 const AdminChartOfAccounts = lazy(() => import("./pages/admin/ChartOfAccounts"));
 const AdminExpenseTypes = lazy(() => import("./pages/admin/ExpenseTypes"));
 const AdminSetup = lazy(() => import("./pages/admin/Setup"));
@@ -84,6 +85,7 @@ const App = () => (
                   <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
                   <Route path="/admin" element={<RoleProtectedRoute><AdminDashboard /></RoleProtectedRoute>} />
                   <Route path="/admin/tenants" element={<RoleProtectedRoute><AdminTenants /></RoleProtectedRoute>} />
+                  <Route path="/admin/users" element={<RoleProtectedRoute><AdminUserManagement /></RoleProtectedRoute>} />
                   <Route path="/admin/roles" element={<RoleProtectedRoute><AdminRoles /></RoleProtectedRoute>} />
                   <Route path="/admin/chart-of-accounts" element={<RoleProtectedRoute><AdminChartOfAccounts /></RoleProtectedRoute>} />
                   <Route path="/admin/expense-types" element={<RoleProtectedRoute><AdminExpenseTypes /></RoleProtectedRoute>} />

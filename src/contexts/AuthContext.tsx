@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { logger } from '@/utils/logger';
+import { toast } from 'sonner';
 
 interface Profile {
   id: string;
@@ -164,6 +165,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => subscription.unsubscribe();
   }, [queryClient]);
+
+  // Écouter les changements de rôles en temps réel
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('user-role-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_roles',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          logger.info('Role changed, invalidating cache and refetching profile');
+          
+          // Invalider le cache du profil pour forcer un rechargement
+          queryClient.invalidateQueries({ queryKey: ['profile-with-tenant-role'] });
+          
+          // Afficher un message à l'utilisateur
+          toast.info('Votre rôle a été modifié', {
+            description: 'Rechargement de la page pour appliquer les changements...',
+            duration: 3000,
+          });
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   return (
     <AuthContext.Provider value={{ user, session, profile: profile ?? null, tenant: tenant ?? null, loading }}>
