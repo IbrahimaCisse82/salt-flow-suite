@@ -26,16 +26,20 @@ export const rolePermissions: Record<UserRole, string[]> = {
   commercial: [
     '/',
     '/commercial',
+    '/rapports',
     '/parametres'
   ],
   comptable: [
     '/',
     '/comptabilite',
+    '/campagne',
+    '/rapports',
     '/parametres'
   ],
   production: [
     '/',
     '/bassins',
+    '/campagne',
     '/production',
     '/stocks',
     '/equipes',
