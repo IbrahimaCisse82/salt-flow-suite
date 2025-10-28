@@ -65,10 +65,10 @@ export const AdminDashboard = () => {
             <CardTitle className="text-sm font-medium">
               Comptes Actifs
             </CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CheckCircle className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-primary">
               {tenantStats?.active || 0}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -82,10 +82,10 @@ export const AdminDashboard = () => {
             <CardTitle className="text-sm font-medium">
               Comptes Inactifs
             </CardTitle>
-            <XCircle className="h-4 w-4 text-orange-600" />
+            <XCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
+            <div className="text-2xl font-bold text-muted-foreground">
               {tenantStats?.inactive || 0}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -122,7 +122,7 @@ export const AdminDashboard = () => {
                   {performanceMetrics.uptime}%
                 </span>
               </div>
-              <Progress value={performanceMetrics.uptime} className="bg-green-100" />
+              <Progress value={performanceMetrics.uptime} />
             </div>
 
             <div className="pt-4 border-t">
@@ -178,36 +178,36 @@ export const AdminDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
                 <span className="text-sm font-medium">Base de données</span>
               </div>
-              <span className="text-xs text-green-700">Opérationnel</span>
+              <span className="text-xs text-primary">Opérationnel</span>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
                 <span className="text-sm font-medium">API</span>
               </div>
-              <span className="text-xs text-green-700">Opérationnel</span>
+              <span className="text-xs text-primary">Opérationnel</span>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
                 <span className="text-sm font-medium">Authentification</span>
               </div>
-              <span className="text-xs text-green-700">Opérationnel</span>
+              <span className="text-xs text-primary">Opérationnel</span>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
                 <span className="text-sm font-medium">Stockage</span>
               </div>
-              <span className="text-xs text-green-700">Opérationnel</span>
+              <span className="text-xs text-primary">Opérationnel</span>
             </div>
           </div>
         </CardContent>

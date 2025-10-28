@@ -63,13 +63,23 @@ export default function Tenants() {
           "flex-1 p-6 overflow-auto transition-all duration-300",
           isOpen ? "md:ml-64" : "md:ml-16"
         )}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-primary" />
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Gestion des Entreprises
-              </CardTitle>
-            </CardHeader>
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Gérer l'activation et les informations des entreprises clientes
+              </p>
+            </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  Liste des Entreprises
+                </CardTitle>
+              </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div>Chargement...</div>
@@ -116,7 +126,8 @@ export default function Tenants() {
                 </div>
               )}
             </CardContent>
-          </Card>
+            </Card>
+          </div>
         </main>
       </div>
     </div>

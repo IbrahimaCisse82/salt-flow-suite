@@ -152,17 +152,23 @@ export default function ChartOfAccounts() {
           "flex-1 p-6 overflow-auto transition-all duration-300",
           isOpen ? "md:ml-64" : "md:ml-16"
         )}>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                  Plan Comptable SYSCOHADA (Global)
-                </CardTitle>
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Plan Comptable
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Gestion du plan comptable SYSCOHADA pour toutes les entreprises
+              </p>
+            </div>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Comptes Comptables</CardTitle>
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
+                    <Button className="gap-2">
+                      <Plus className="h-4 w-4" />
                       Ajouter un compte
                     </Button>
                   </DialogTrigger>
@@ -208,8 +214,7 @@ export default function ChartOfAccounts() {
                     </div>
                   </DialogContent>
                 </Dialog>
-              </div>
-            </CardHeader>
+              </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div>Chargement...</div>
@@ -248,7 +253,8 @@ export default function ChartOfAccounts() {
                 </div>
               )}
             </CardContent>
-          </Card>
+            </Card>
+          </div>
         </main>
       </div>
     </div>

@@ -224,21 +224,23 @@ export default function ExpenseTypes() {
           "flex-1 p-6 overflow-auto transition-all duration-300",
           isOpen ? "md:ml-64" : "md:ml-16"
         )}>
-          <div className="container mx-auto space-y-6">
+          <div className="space-y-6">
             <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Types de dépenses</h1>
-          <p className="text-muted-foreground mt-2">
-            Gérez les catégories de dépenses pour vos campagnes
-          </p>
-        </div>
-        <Button onClick={() => handleOpenDialog()} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nouveau type
-        </Button>
-      </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Types de Dépenses
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  Gérer les catégories de dépenses liées au plan comptable SYSCOHADA
+                </p>
+              </div>
+              <Button onClick={() => handleOpenDialog()} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nouveau type
+              </Button>
+            </div>
 
-      <Card>
+            <Card>
         <CardHeader>
           <CardTitle>Liste des types de dépenses</CardTitle>
         </CardHeader>
@@ -266,17 +268,17 @@ export default function ExpenseTypes() {
                     <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
                       {expense.observations}
                     </TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                          expense.is_active
-                            ? "bg-green-50 text-green-700"
-                            : "bg-gray-50 text-gray-600"
-                        }`}
-                      >
-                        {expense.is_active ? "Actif" : "Inactif"}
-                      </span>
-                    </TableCell>
+                     <TableCell>
+                       <span
+                         className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                           expense.is_active
+                             ? "bg-primary/10 text-primary"
+                             : "bg-muted text-muted-foreground"
+                         }`}
+                       >
+                         {expense.is_active ? "Actif" : "Inactif"}
+                       </span>
+                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -300,10 +302,10 @@ export default function ExpenseTypes() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+            </CardContent>
+            </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
@@ -385,9 +387,9 @@ export default function ExpenseTypes() {
                 {editingExpense ? "Modifier" : "Créer"}
               </Button>
             </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </form>
+          </DialogContent>
+        </Dialog>
           </div>
         </main>
       </div>
