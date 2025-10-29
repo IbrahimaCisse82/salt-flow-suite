@@ -44,6 +44,7 @@ import {
   CheckCircle,
   Package
 } from "lucide-react";
+import { AutomaticReminders } from "@/components/Commercial/AutomaticReminders";
 
 type Order = {
   id: string;
@@ -906,6 +907,9 @@ const Commercial = () => {
 
             {/* Onglet Facturation */}
             <TabsContent value="facturation" className="space-y-4">
+              {/* Relances automatiques */}
+              <AutomaticReminders />
+              
               <Card>
                 <CardHeader>
                   <CardTitle>Facturation</CardTitle>

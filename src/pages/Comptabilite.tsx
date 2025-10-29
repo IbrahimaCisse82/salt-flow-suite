@@ -32,6 +32,7 @@ import { JournalEntryForm } from "@/components/Accounting/JournalEntryForm";
 import { ChartOfAccountsTable } from "@/components/Accounting/ChartOfAccountsTable";
 import { AccountantNotificationWidget } from "@/components/Payroll/AccountantNotificationWidget";
 import { PayrollPaymentForm } from "@/components/Payroll/PayrollPaymentForm";
+import { BankReconciliation } from "@/components/Accounting/BankReconciliation";
 import {
   Wallet,
   Plus,
@@ -972,13 +973,14 @@ const Comptabilite = () => {
 
           {/* Onglets principaux */}
           <Tabs defaultValue="achats" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="achats">Achats</TabsTrigger>
               <TabsTrigger value="salaires">Salaires</TabsTrigger>
               <TabsTrigger value="vente">Vente</TabsTrigger>
               <TabsTrigger value="virement">Virement interne</TabsTrigger>
               <TabsTrigger value="divers">Divers</TabsTrigger>
               <TabsTrigger value="plan-comptable">Plan comptable</TabsTrigger>
+              <TabsTrigger value="rapprochement">Rapprochement</TabsTrigger>
             </TabsList>
 
             {/* Onglet Achats (anciennement Dépenses) */}
@@ -1301,6 +1303,11 @@ const Comptabilite = () => {
             {/* Onglet Plan Comptable */}
             <TabsContent value="plan-comptable">
               <ChartOfAccountsTable />
+            </TabsContent>
+
+            {/* Onglet Rapprochement bancaire */}
+            <TabsContent value="rapprochement" className="space-y-4">
+              <BankReconciliation />
             </TabsContent>
           </Tabs>
 
