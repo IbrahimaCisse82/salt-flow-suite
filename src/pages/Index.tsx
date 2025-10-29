@@ -23,6 +23,7 @@ import { useBassins } from "@/hooks/useBassins";
 import { useProductionStats } from "@/hooks/useProductionRecords";
 import { useStockStats } from "@/hooks/useStockStats";
 import { useCampagnes } from "@/hooks/useCampagnes";
+import { DashboardSkeleton } from "@/components/LoadingSkeletons/DashboardSkeleton";
 
 const Index = () => {
   const { isOpen } = useSidebar();
@@ -40,8 +41,17 @@ const Index = () => {
   // Afficher un loader pendant le chargement du profil
   if (loading || !profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex">
+          <Sidebar />
+          <main className={cn(
+            "flex-1 p-6 transition-all duration-300",
+            isOpen ? "md:ml-64" : "md:ml-16"
+          )}>
+            <DashboardSkeleton />
+          </main>
+        </div>
       </div>
     );
   }

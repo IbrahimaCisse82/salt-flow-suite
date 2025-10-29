@@ -3,6 +3,7 @@ import { Waves, Menu, Bell, User, LogOut, Building2, PanelLeft, PanelLeftClose }
 import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -196,6 +197,8 @@ const HeaderComponent = () => {
               </div>
             </div>
           )}
+          
+          <ThemeToggle />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
