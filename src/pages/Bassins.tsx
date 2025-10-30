@@ -32,108 +32,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useBassins } from "@/hooks/useBassins";
 
 // Lazy load MapPicker pour améliorer les performances
 const MapPicker = lazy(() => import("@/components/Map/MapPicker"));
-
-const bassins = [
-  {
-    id: "B1",
-    name: "Bassin Nord A",
-    type: "surface_preparatoire",
-    surface: 2.5,
-    status: "active",
-    salinity: 28,
-    waterLevel: 85,
-    location: "Secteur Nord",
-    lastHarvest: "2025-02-15",
-    production: "12.5 tonnes",
-  },
-  {
-    id: "B2",
-    name: "Bassin Nord B",
-    type: "table_salante",
-    surface: 3.0,
-    status: "active",
-    salinity: 32,
-    waterLevel: 78,
-    location: "Secteur Nord",
-    lastHarvest: "2025-02-10",
-    production: "15.2 tonnes",
-  },
-  {
-    id: "B3",
-    name: "Bassin Sud A",
-    type: "surface_preparatoire",
-    surface: 2.8,
-    status: "repos",
-    salinity: 15,
-    waterLevel: 45,
-    location: "Secteur Sud",
-    lastHarvest: "2025-01-28",
-    production: "11.8 tonnes",
-  },
-  {
-    id: "B4",
-    name: "Bassin Sud B",
-    type: "table_salante",
-    surface: 3.2,
-    status: "maintenance",
-    salinity: 0,
-    waterLevel: 0,
-    location: "Secteur Sud",
-    lastHarvest: "2025-01-20",
-    production: "0 tonnes",
-  },
-  {
-    id: "B5",
-    name: "Bassin Est A",
-    type: "surface_preparatoire",
-    surface: 2.2,
-    status: "active",
-    salinity: 30,
-    waterLevel: 82,
-    location: "Secteur Est",
-    lastHarvest: "2025-02-18",
-    production: "10.5 tonnes",
-  },
-  {
-    id: "B6",
-    name: "Bassin Est B",
-    type: "table_salante",
-    surface: 2.7,
-    status: "active",
-    salinity: 29,
-    waterLevel: 88,
-    location: "Secteur Est",
-    lastHarvest: "2025-02-12",
-    production: "13.1 tonnes",
-  },
-  {
-    id: "B7",
-    name: "Bassin Ouest A",
-    type: "surface_preparatoire",
-    surface: 3.5,
-    status: "repos",
-    salinity: 18,
-    waterLevel: 50,
-    location: "Secteur Ouest",
-    lastHarvest: "2025-02-01",
-    production: "16.8 tonnes",
-  },
-  {
-    id: "B8",
-    name: "Bassin Ouest B",
-    type: "table_salante",
-    surface: 3.1,
-    status: "repos",
-    salinity: 12,
-    waterLevel: 40,
-    location: "Secteur Ouest",
-    lastHarvest: "2025-01-25",
-    production: "14.2 tonnes",
-  },
-];
 
 const bassinTypeLabels = {
   surface_preparatoire: "Surface préparatoire",
@@ -158,12 +60,21 @@ const statusConfig = {
 const Bassins = () => {
   const { toast } = useToast();
   const { isOpen } = useSidebar();
+  const { bassins, isLoading } = useBassins();
   const [selectedBassin, setSelectedBassin] = useState(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showManageDialog, setShowManageDialog] = useState(false);
   const [newBassinLocation, setNewBassinLocation] = useState({ lat: 14.7167, lng: -17.4677 });
   const [manageBassinLocation, setManageBassinLocation] = useState({ lat: 14.7167, lng: -17.4677 });
+
+  // Calculer les stats dynamiquement
+  const stats = {
+    actifs: bassins.filter(b => b.is_active).length,
+    repos: bassins.filter(b => !b.is_active).length,
+    maintenance: 0, // À implémenter avec un champ status
+    surfaceTotale: bassins.reduce((sum, b) => sum + (b.area || 0), 0).toFixed(1)
+  };
 
   const handleViewDetails = (bassin) => {
     setSelectedBassin(bassin);
@@ -223,7 +134,7 @@ const Bassins = () => {
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Gestion des Bassins Salants</h1>
               <p className="text-sm sm:text-base text-muted-foreground break-words">
-                Vue d'ensemble et suivi de vos {bassins.length} bassins de production
+                {isLoading ? "Chargement..." : `Vue d'ensemble et suivi de vos ${bassins.length} bassins de production`}
               </p>
             </div>
             <Button 
@@ -243,7 +154,9 @@ const Bassins = () => {
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">Actifs</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-600">4</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-600">
+                      {isLoading ? <Skeleton className="h-8 w-12" /> : stats.actifs}
+                    </p>
                   </div>
                   <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
                     <Droplets className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
@@ -257,7 +170,9 @@ const Bassins = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">En repos</p>
-                    <p className="text-2xl font-bold text-yellow-600">3</p>
+                    <p className="text-2xl font-bold text-yellow-600">
+                      {isLoading ? <Skeleton className="h-8 w-12" /> : stats.repos}
+                    </p>
                   </div>
                   <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
                     <Droplets className="h-6 w-6 text-yellow-600" />
@@ -271,7 +186,9 @@ const Bassins = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Maintenance</p>
-                    <p className="text-2xl font-bold text-red-600">1</p>
+                    <p className="text-2xl font-bold text-red-600">
+                      {isLoading ? <Skeleton className="h-8 w-12" /> : stats.maintenance}
+                    </p>
                   </div>
                   <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center">
                     <Settings className="h-6 w-6 text-red-600" />
@@ -285,7 +202,9 @@ const Bassins = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Surface totale</p>
-                    <p className="text-2xl font-bold">23 ha</p>
+                    <p className="text-2xl font-bold">
+                      {isLoading ? <Skeleton className="h-8 w-16" /> : `${stats.surfaceTotale} ha`}
+                    </p>
                   </div>
                   <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <MapPin className="h-6 w-6 text-primary" />
@@ -296,87 +215,102 @@ const Bassins = () => {
           </div>
 
           {/* Liste des bassins */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {bassins.map((bassin) => (
-              <Card key={bassin.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="p-4 md:p-6">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg md:text-xl break-words">{bassin.name}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-sm text-muted-foreground">
-                          <MapPin className="h-3 w-3 inline mr-1" />
-                          {bassin.location}
-                        </p>
-                        <span className="text-muted-foreground">•</span>
-                        <span className="text-sm font-medium text-primary">
-                          {bassinTypeLabels[bassin.type]}
-                        </span>
-                      </div>
-                    </div>
-                    <Badge className={statusConfig[bassin.status].className}>
-                      {statusConfig[bassin.status].label}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4 p-4 md:p-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Surface</p>
-                      <p className="text-lg font-semibold">{bassin.surface} ha</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Production</p>
-                      <p className="text-lg font-semibold">{bassin.production}</p>
-                    </div>
-                  </div>
-
-                  {bassin.status === "active" && (
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <ThermometerSun className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">Salinité</span>
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2 mt-2" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-24 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : bassins.length === 0 ? (
+            <Card className="col-span-full">
+              <CardContent className="p-12 text-center">
+                <Droplets className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <h3 className="text-lg font-semibold mb-2">Aucun bassin</h3>
+                <p className="text-muted-foreground mb-4">Commencez par créer votre premier bassin de production</p>
+                <Button onClick={handleAddBassin} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Créer un bassin
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {bassins.map((bassin) => (
+                <Card key={bassin.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="p-4 md:p-6">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg md:text-xl break-words">{bassin.name}</CardTitle>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-sm text-muted-foreground">
+                            <MapPin className="h-3 w-3 inline mr-1" />
+                            {bassin.location || "Non spécifié"}
+                          </p>
+                          {bassin.code && (
+                            <>
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-sm font-medium text-primary">
+                                {bassin.code}
+                              </span>
+                            </>
+                          )}
                         </div>
-                        <p className="text-xl font-bold text-primary">{bassin.salinity}%</p>
+                      </div>
+                      <Badge className={bassin.is_active ? statusConfig.active.className : statusConfig.repos.className}>
+                        {bassin.is_active ? statusConfig.active.label : statusConfig.repos.label}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4 p-4 md:p-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Surface</p>
+                        <p className="text-lg font-semibold">{bassin.area ? `${bassin.area} ha` : "Non spécifié"}</p>
                       </div>
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <Droplets className="h-4 w-4 text-accent" />
-                          <span className="text-sm font-medium">Niveau</span>
-                        </div>
-                        <p className="text-xl font-bold text-accent">{bassin.waterLevel}%</p>
+                        <p className="text-sm text-muted-foreground">Statut</p>
+                        <p className="text-lg font-semibold">{bassin.is_active ? "Actif" : "Inactif"}</p>
                       </div>
                     </div>
-                  )}
 
-                  <div className="pt-4 border-t">
-                    <p className="text-sm text-muted-foreground mb-1">Dernière récolte</p>
-                    <p className="text-sm font-medium">{bassin.lastHarvest}</p>
-                  </div>
+                    <div className="pt-4 border-t">
+                      <p className="text-sm text-muted-foreground mb-1">Créé le</p>
+                      <p className="text-sm font-medium">
+                        {new Date(bassin.created_at).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
 
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      className="flex-1 gap-2"
-                      onClick={() => handleViewDetails(bassin)}
-                    >
-                      <Eye className="h-4 w-4" />
-                      Détails
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="flex-1 gap-2"
-                      onClick={() => handleManage(bassin)}
-                    >
-                      <Settings className="h-4 w-4" />
-                      Gérer
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1 gap-2"
+                        onClick={() => handleViewDetails(bassin)}
+                      >
+                        <Eye className="h-4 w-4" />
+                        Détails
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="flex-1 gap-2"
+                        onClick={() => handleManage(bassin)}
+                      >
+                        <Settings className="h-4 w-4" />
+                        Gérer
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Dialog Détails du bassin */}
           <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
@@ -395,50 +329,37 @@ const Bassins = () => {
                       <p className="text-lg font-semibold">{selectedBassin.id}</p>
                     </div>
                     <div>
-                      <Label>Surface</Label>
-                      <p className="text-lg font-semibold">{selectedBassin.surface} ha</p>
+                      <Label>Code</Label>
+                      <p className="text-lg font-semibold">{selectedBassin.code || "Non défini"}</p>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>Type de bassin</Label>
-                      <p className="text-sm font-medium">{bassinTypeLabels[selectedBassin.type]}</p>
+                      <Label>Surface</Label>
+                      <p className="text-lg font-semibold">{selectedBassin.area ? `${selectedBassin.area} ha` : "Non spécifié"}</p>
                     </div>
                     <div>
                       <Label>Localisation</Label>
-                      <p className="text-sm">{selectedBassin.location}</p>
+                      <p className="text-sm">{selectedBassin.location || "Non spécifiée"}</p>
                     </div>
                   </div>
 
                   <div>
                     <Label>Statut</Label>
-                    <Badge className={statusConfig[selectedBassin.status].className}>
-                      {statusConfig[selectedBassin.status].label}
+                    <Badge className={selectedBassin.is_active ? statusConfig.active.className : statusConfig.repos.className}>
+                      {selectedBassin.is_active ? statusConfig.active.label : statusConfig.repos.label}
                     </Badge>
                   </div>
 
-                  {selectedBassin.status === "active" && (
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                      <div>
-                        <Label>Salinité</Label>
-                        <p className="text-2xl font-bold text-primary">{selectedBassin.salinity}%</p>
-                      </div>
-                      <div>
-                        <Label>Niveau d'eau</Label>
-                        <p className="text-2xl font-bold text-accent">{selectedBassin.waterLevel}%</p>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="pt-4 border-t">
-                    <Label>Dernière récolte</Label>
-                    <p className="text-sm">{selectedBassin.lastHarvest}</p>
+                    <Label>Date de création</Label>
+                    <p className="text-sm">{new Date(selectedBassin.created_at).toLocaleDateString('fr-FR')}</p>
                   </div>
 
                   <div>
-                    <Label>Production totale</Label>
-                    <p className="text-lg font-semibold">{selectedBassin.production}</p>
+                    <Label>Dernière modification</Label>
+                    <p className="text-sm">{new Date(selectedBassin.updated_at).toLocaleDateString('fr-FR')}</p>
                   </div>
                 </div>
               )}
@@ -463,7 +384,7 @@ const Bassins = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="manage-code">Code</Label>
-                      <Input id="manage-code" defaultValue={selectedBassin.id} />
+                      <Input id="manage-code" defaultValue={selectedBassin.code} />
                     </div>
                   </div>
 
@@ -473,7 +394,7 @@ const Bassins = () => {
                       <Input 
                         id="manage-surface" 
                         type="number" 
-                        defaultValue={selectedBassin.surface} 
+                        defaultValue={selectedBassin.area} 
                       />
                     </div>
                     <div className="space-y-2">
@@ -482,54 +403,18 @@ const Bassins = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="manage-type">Type de bassin</Label>
-                      <Select defaultValue={selectedBassin.type}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="surface_preparatoire">Surface préparatoire</SelectItem>
-                          <SelectItem value="table_salante">Table salante</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="manage-status">Statut</Label>
-                      <Select defaultValue={selectedBassin.status}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active">En production</SelectItem>
-                          <SelectItem value="repos">Repos</SelectItem>
-                          <SelectItem value="maintenance">Maintenance</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="manage-status">Statut</Label>
+                    <Select defaultValue={selectedBassin.is_active ? "active" : "repos"}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Actif</SelectItem>
+                        <SelectItem value="repos">Inactif</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-
-                  {selectedBassin.status === "active" && (
-                    <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/30">
-                      <div className="space-y-2">
-                        <Label htmlFor="manage-salinity">Salinité (%)</Label>
-                        <Input 
-                          id="manage-salinity" 
-                          type="number" 
-                          defaultValue={selectedBassin.salinity} 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="manage-waterLevel">Niveau d'eau (%)</Label>
-                        <Input 
-                          id="manage-waterLevel" 
-                          type="number" 
-                          defaultValue={selectedBassin.waterLevel} 
-                        />
-                      </div>
-                    </div>
-                  )}
 
                   <div className="space-y-2">
                     <Label>Localisation GPS</Label>
@@ -585,8 +470,8 @@ const Bassins = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="surface">Surface (ha)</Label>
-                    <Input id="surface" type="number" placeholder="2.5" />
+                    <Label htmlFor="area">Surface (ha)</Label>
+                    <Input id="area" type="number" step="0.1" placeholder="2.5" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="location">Localisation</Label>
@@ -594,32 +479,17 @@ const Bassins = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="type">Type de bassin</Label>
-                    <Select defaultValue="surface_preparatoire">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="surface_preparatoire">Surface préparatoire</SelectItem>
-                        <SelectItem value="table_salante">Table salante</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Statut initial</Label>
-                    <Select defaultValue="repos">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un statut" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">En production</SelectItem>
-                        <SelectItem value="repos">Repos</SelectItem>
-                        <SelectItem value="maintenance">Maintenance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Statut initial</Label>
+                  <Select defaultValue="false">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Actif</SelectItem>
+                      <SelectItem value="false">Inactif</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
