@@ -61,10 +61,7 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && event === 'SIGNED_IN') {
-        // Attendre un peu pour que la session soit bien persistée
-        setTimeout(() => {
-          navigate("/", { replace: true });
-        }, 100);
+        navigate("/", { replace: true });
       }
     });
 
@@ -100,7 +97,8 @@ const Auth = () => {
           title: "Connexion réussie",
           description: "Bienvenue !",
         });
-        // La navigation sera gérée par onAuthStateChange
+        // Navigation explicite après connexion réussie
+        navigate("/", { replace: true });
       }
     } catch (error: any) {
       logger.error("Login error:", error);
@@ -226,7 +224,8 @@ const Auth = () => {
         title: "Inscription réussie",
         description: "Votre entreprise et votre compte ont été créés",
       });
-      // La navigation sera gérée par onAuthStateChange
+      // Navigation explicite après inscription réussie
+      navigate("/", { replace: true });
     } catch (error: any) {
       logger.error("Signup error:", error);
       toast({
