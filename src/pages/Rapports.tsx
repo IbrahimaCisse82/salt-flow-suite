@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
+import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton";
+import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -128,7 +131,7 @@ const Rapports = () => {
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
 
   // Récupérer les données pour les rapports
-  const { data: campagnes = [] } = useQuery({
+  const { data: campagnes = [], isLoading: campagnesLoading } = useQuery({
     queryKey: ['campagnes'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -140,7 +143,7 @@ const Rapports = () => {
     }
   });
 
-  const { data: productionRecords = [] } = useQuery({
+  const { data: productionRecords = [], isLoading: productionLoading } = useQuery({
     queryKey: ['production-records'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -157,7 +160,7 @@ const Rapports = () => {
     }
   });
 
-  const { data: transactions = [] } = useQuery({
+  const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['transactions'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -173,7 +176,7 @@ const Rapports = () => {
     }
   });
 
-  const { data: sales = [] } = useQuery({
+  const { data: sales = [], isLoading: salesLoading } = useQuery({
     queryKey: ['sales'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -189,7 +192,7 @@ const Rapports = () => {
     }
   });
 
-  const { data: employees = [] } = useQuery({
+  const { data: employees = [], isLoading: employeesLoading } = useQuery({
     queryKey: ['employees'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -698,8 +701,11 @@ const Rapports = () => {
             </TabsList>
 
             <TabsContent value="rapports" className="space-y-6">
-          {/* Types de rapports */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Types de rapports */}
+              {(campagnesLoading || productionLoading || transactionsLoading || salesLoading || employeesLoading) ? (
+                <CardGridSkeleton cards={6} columns={3} />
+              ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {reportTypes.map((report, index) => (
                   <Card 
                     key={index}
@@ -743,6 +749,7 @@ const Rapports = () => {
                   </Card>
                 ))}
               </div>
+              )}
 
               {/* Rapports récents */}
               <Card>

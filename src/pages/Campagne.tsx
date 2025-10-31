@@ -33,6 +33,9 @@ import {
   Clock,
   DollarSign
 } from "lucide-react";
+import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
+import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Campagne = () => {
   const { toast } = useToast();
@@ -60,7 +63,7 @@ const Campagne = () => {
   const [activePhaseIndex, setActivePhaseIndex] = useState(2);
 
   // Récupérer les statistiques de la campagne
-  const { data: campagneStats } = useQuery({
+  const { data: campagneStats, isLoading: statsLoading } = useQuery({
     queryKey: ['campagne-stats'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -349,7 +352,18 @@ const Campagne = () => {
           {/* Vue d'ensemble */}
           <Card className="border-l-4 border-l-primary">
             <CardContent className="p-4 sm:p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+              {statsLoading ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-6 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground mb-1 truncate">Période</p>
                   <p className="text-sm sm:text-lg font-semibold break-words">
@@ -407,10 +421,14 @@ const Campagne = () => {
                   </p>
                 </div>
               </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Objectifs principaux */}
+          {statsLoading ? (
+            <CardGridSkeleton cards={3} columns={3} />
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card>
               <CardHeader>
@@ -511,6 +529,7 @@ const Campagne = () => {
               </CardContent>
             </Card>
           </div>
+          )}
 
           {/* Timeline des phases */}
           <Card>

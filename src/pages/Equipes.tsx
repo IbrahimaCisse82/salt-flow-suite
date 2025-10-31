@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
+import { TableSkeleton } from "@/components/LoadingSkeletons/TableSkeleton";
+import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
+import { ListSkeleton } from "@/components/LoadingSkeletons/ListSkeleton";
 import {
   Dialog,
   DialogContent,
@@ -484,6 +487,9 @@ const Equipes = () => {
 
             <TabsContent value="equipes" className="space-y-4 mt-6">
               {/* Stats RH */}
+              {!employees || !dailyWorkers || !teams ? (
+                <StatsSkeleton count={4} />
+              ) : (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <Card>
               <CardContent className="p-4 md:p-6">
@@ -535,6 +541,7 @@ const Equipes = () => {
               </CardContent>
             </Card>
           </div>
+          )}
 
           {/* Personnel permanent */}
           <Card>
@@ -545,6 +552,12 @@ const Equipes = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 md:p-6">
+              {!employees || employees.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Award className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucun employé permanent enregistré</p>
+                </div>
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {permanentEmployees.map((person) => (
                   <div 
@@ -573,12 +586,8 @@ const Equipes = () => {
                     </div>
                   </div>
                 ))}
-                {permanentEmployees.length === 0 && (
-                  <p className="col-span-2 text-center text-muted-foreground py-8">
-                    Aucun employé permanent enregistré
-                  </p>
-                )}
               </div>
+              )}
             </CardContent>
           </Card>
 

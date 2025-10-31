@@ -45,6 +45,9 @@ import {
   Package
 } from "lucide-react";
 import { AutomaticReminders } from "@/components/Commercial/AutomaticReminders";
+import { ListSkeleton } from "@/components/LoadingSkeletons/ListSkeleton";
+import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Order = {
   id: string;
@@ -808,8 +811,16 @@ const Commercial = () => {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                 <CardContent>
+                  {clientsLoading ? (
+                    <ListSkeleton items={4} showAvatar={false} />
+                  ) : clients.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>Aucun client enregistré</p>
+                    </div>
+                  ) : (
+                   <div className="space-y-4">
                     {clients.map((client) => (
                       <div key={client.id} className="p-4 border rounded-lg space-y-3 hover:bg-muted/30 transition-colors">
                         <div className="flex items-center justify-between">
@@ -842,10 +853,11 @@ const Commercial = () => {
                           Voir détails
                         </Button>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                     ))}
+                   </div>
+                  )}
+                 </CardContent>
+               </Card>
             </TabsContent>
 
             {/* Onglet Commandes */}
@@ -860,7 +872,15 @@ const Commercial = () => {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
+                 <CardContent>
+                  {clientsLoading ? (
+                    <ListSkeleton items={3} showAvatar={false} />
+                  ) : sales.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <ShoppingCart className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>Aucune commande enregistrée</p>
+                    </div>
+                  ) : (
                   <div className="space-y-4">
                     {sales.map((sale) => (
                       <div key={sale.id} className="p-4 border rounded-lg space-y-3">
@@ -899,10 +919,11 @@ const Commercial = () => {
                           </Button>
                         )}
                       </div>
-                    ))}
+                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                  )}
+                 </CardContent>
+               </Card>
             </TabsContent>
 
             {/* Onglet Facturation */}

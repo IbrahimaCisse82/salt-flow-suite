@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { logger } from "@/utils/logger";
+import { TableSkeleton } from "@/components/LoadingSkeletons/TableSkeleton";
+import { ListSkeleton } from "@/components/LoadingSkeletons/ListSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +42,8 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
-  CreditCard
+  CreditCard,
+  FileText
 } from "lucide-react";
 
 const expenseCategories = [
@@ -194,7 +198,7 @@ const Comptabilite = () => {
   });
 
   // Récupérer les comptes depuis Supabase
-  const { data: accounts = [] } = useQuery({
+  const { data: accounts = [], isLoading: accountsLoading } = useQuery({
     queryKey: ['accounts'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -208,7 +212,7 @@ const Comptabilite = () => {
   });
 
   // Récupérer les factures en attente depuis Supabase
-  const { data: pendingInvoices = [] } = useQuery({
+  const { data: pendingInvoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ['pending-invoices'],
     queryFn: async () => {
       const { data: salesData, error } = await supabase
@@ -252,7 +256,7 @@ const Comptabilite = () => {
   });
 
   // Récupérer les transactions récentes
-  const { data: recentTransactions = [] } = useQuery({
+  const { data: recentTransactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ['recent-transactions'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -1101,8 +1105,16 @@ const Comptabilite = () => {
                     <CardHeader>
                       <CardTitle>Factures en attente de paiement - Vente Locale</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
+                 <CardContent>
+                  {invoicesLoading ? (
+                    <ListSkeleton items={3} showAvatar={false} />
+                  ) : pendingInvoices.filter(inv => inv.clientType === "local" && inv.balance > 0).length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>Aucune facture en attente</p>
+                    </div>
+                  ) : (
+                  <div className="space-y-3">
                         {pendingInvoices.filter(inv => inv.clientType === "local" && inv.balance > 0).map((invoice) => (
                           <div key={invoice.id} className="p-4 border rounded-lg space-y-3">
                             <div className="flex items-center justify-between">
@@ -1136,6 +1148,7 @@ const Comptabilite = () => {
                           </div>
                         ))}
                       </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -1146,6 +1159,14 @@ const Comptabilite = () => {
                       <CardTitle>Factures en attente de paiement - Vente Export</CardTitle>
                     </CardHeader>
                     <CardContent>
+                      {invoicesLoading ? (
+                        <ListSkeleton items={3} showAvatar={false} />
+                      ) : pendingInvoices.filter(inv => inv.clientType === "export" && inv.balance > 0).length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                          <p>Aucune facture export en attente</p>
+                        </div>
+                      ) : (
                       <div className="space-y-3">
                         {pendingInvoices.filter(inv => inv.clientType === "export" && inv.balance > 0).map((invoice) => (
                           <div key={invoice.id} className="p-4 border rounded-lg space-y-3">
@@ -1180,6 +1201,7 @@ const Comptabilite = () => {
                           </div>
                         ))}
                       </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
