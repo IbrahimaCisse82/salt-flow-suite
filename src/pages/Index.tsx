@@ -1,16 +1,11 @@
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
-import { StatsCard } from "@/components/Dashboard/StatsCard";
 import { BassinOverview } from "@/components/Dashboard/BassinOverview";
 import { ProductionChart } from "@/components/Dashboard/ProductionChart";
 import { WeatherWidget } from "@/components/Dashboard/WeatherWidget";
-import { 
-  Droplets, 
-  TrendingUp, 
-  Users, 
-  Package,
-  Loader2
-} from "lucide-react";
+import { DynamicKPIGrid } from "@/components/Dashboard/DynamicKPIGrid";
+import { KPICustomizer } from "@/components/Dashboard/KPICustomizer";
+import { Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -100,38 +95,26 @@ const Index = () => {
                   )}
                 </div>
               </div>
+              <KPICustomizer />
             </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <StatsCard
-              title="Production totale"
-              value={totalProduction > 0 ? `${Math.round(totalProduction)} t` : "0 t"}
-              change={activeCampagne ? `Objectif: ${activeCampagne.target_production} t` : "Aucun objectif"}
-              icon={TrendingUp}
-              trend={activeCampagne && totalProduction > 0 ? "up" : undefined}
-              gradient={totalProduction > 0}
-            />
-            <StatsCard
-              title="Bassins actifs"
-              value={totalBassinsCount > 0 ? `${activeBassinsCount}/${totalBassinsCount}` : "0"}
-              change={totalBassinsCount > 0 ? `${Math.round((activeBassinsCount/totalBassinsCount)*100)}% capacité` : "Aucun bassin"}
-              icon={Droplets}
-            />
-            <StatsCard
-              title="Employés actifs"
-              value={totalActiveEmployees.toString()}
-              change={dailyWorkers.length > 0 ? `${dailyWorkers.length} journaliers` : "Aucun journalier"}
-              icon={Users}
-            />
-            <StatsCard
-              title="Stock disponible"
-              value={availableStock > 0 ? `${Math.round(availableStock)} t` : "0 t"}
-              change={productionStats?.records ? `${productionStats.records} entrées` : "Aucune entrée"}
-              icon={Package}
-            />
-          </div>
+          {/* Stats Grid - Dynamic KPIs */}
+          <DynamicKPIGrid
+            productionTotale={totalProduction}
+            productionObjectif={activeCampagne?.target_production}
+            bassinsActifs={activeBassinsCount}
+            bassinsTotal={totalBassinsCount}
+            employesActifs={totalActiveEmployees}
+            employesJournaliers={dailyWorkers.length}
+            stockDisponible={availableStock}
+            stockEntrees={productionStats?.records}
+            campagneProgress={
+              activeCampagne?.target_production 
+                ? (totalProduction / activeCampagne.target_production) * 100 
+                : 0
+            }
+          />
 
           {/* Personnel Stats - Only for Managers */}
           {isManager && (permanentCount > 0 || seasonalCount > 0 || activeTeamsCount > 0) && (
