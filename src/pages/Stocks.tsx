@@ -39,6 +39,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
+import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton";
 
 const statusConfig = {
   optimal: { 

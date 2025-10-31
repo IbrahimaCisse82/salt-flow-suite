@@ -15,6 +15,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { PushNotificationSettings } from "@/components/Settings/PushNotificationSettings";
 import { NotificationHistoryWidget } from "@/components/Settings/NotificationHistoryWidget";
+import { FormSkeleton } from "@/components/LoadingSkeletons/FormSkeleton";
 import { 
   Settings,
   Bell,
@@ -65,7 +66,7 @@ const Parametres = () => {
   });
 
   // Récupérer l'utilisateur et le profil
-  const { data: currentUser } = useQuery({
+  const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['current-user'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -102,7 +103,7 @@ const Parametres = () => {
   const isGerant = userRole === 'gerant';
 
   // Récupérer les données du tenant
-  const { data: tenant } = useQuery({
+  const { data: tenant, isLoading: tenantLoading } = useQuery({
     queryKey: ['tenant'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();

@@ -35,6 +35,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Users, UserPlus, Mail, Trash2, Shield, Loader2 } from "lucide-react";
 import { inviteUserSchema } from "@/utils/validation";
+import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
+import { TableSkeleton } from "@/components/LoadingSkeletons/TableSkeleton";
 
 const roleLabels: Record<string, { label: string; description: string; color: string }> = {
   gerant: {
@@ -95,7 +97,7 @@ const GestionUtilisateurs = () => {
   });
 
   // Récupérer tous les utilisateurs du tenant avec leurs rôles
-  const { data: users = [] } = useQuery({
+  const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['tenant-users'],
     queryFn: async () => {
       if (!currentUser?.profile?.tenant_id) return [];
@@ -274,87 +276,95 @@ const GestionUtilisateurs = () => {
           </div>
 
           {/* Statistiques */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {Object.entries(roleLabels).map(([role, info]) => {
-              const count = users.filter(u => u.role === role).length;
-              return (
-                <Card key={role}>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <div className={`h-2 w-2 rounded-full ${info.color}`} />
-                      {info.label}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{count}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          {usersLoading ? (
+            <StatsSkeleton count={4} />
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              {Object.entries(roleLabels).map(([role, info]) => {
+                const count = users.filter(u => u.role === role).length;
+                return (
+                  <Card key={role}>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <div className={`h-2 w-2 rounded-full ${info.color}`} />
+                        {info.label}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-2xl font-bold">{count}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
 
           {/* Liste des utilisateurs */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Utilisateurs ({users.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nom</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Rôle</TableHead>
-                    <TableHead>Date de création</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">
-                        {user.full_name || 'N/A'}
-                      </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant="outline"
-                          className={`${roleLabels[user.role]?.color} text-white border-0`}
-                        >
-                          {roleLabels[user.role]?.label || user.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(user.created_at).toLocaleDateString('fr-FR')}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {user.id !== currentUser?.user?.id && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteUser(user.id)}
-                            disabled={deleteUserMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {users.length === 0 && (
+          {usersLoading ? (
+            <TableSkeleton rows={5} columns={5} />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Utilisateurs ({users.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        Aucun utilisateur
-                      </TableCell>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Rôle</TableHead>
+                      <TableHead>Date de création</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">
+                          {user.full_name || 'N/A'}
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline"
+                            className={`${roleLabels[user.role]?.color} text-white border-0`}
+                          >
+                            {roleLabels[user.role]?.label || user.role}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(user.created_at).toLocaleDateString('fr-FR')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {user.id !== currentUser?.user?.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={deleteUserMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {users.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-muted-foreground">
+                          Aucun utilisateur
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
         </main>
       </div>
 

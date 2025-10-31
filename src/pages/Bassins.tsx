@@ -31,8 +31,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useBassins } from "@/hooks/useBassins";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton";
+import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
 
 // Lazy load MapPicker pour améliorer les performances
 const MapPicker = lazy(() => import("@/components/Map/MapPicker"));
@@ -148,87 +150,71 @@ const Bassins = () => {
           </div>
 
           {/* Stats rapides */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <Card>
-              <CardContent className="p-3 sm:p-6">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Actifs</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-600">
-                      {isLoading ? <Skeleton className="h-8 w-12" /> : stats.actifs}
-                    </p>
+          {isLoading ? (
+            <StatsSkeleton count={4} />
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <Card>
+                <CardContent className="p-3 sm:p-6">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">Actifs</p>
+                      <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.actifs}</p>
+                    </div>
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                      <Droplets className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+                    </div>
                   </div>
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                    <Droplets className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">En repos</p>
-                    <p className="text-2xl font-bold text-yellow-600">
-                      {isLoading ? <Skeleton className="h-8 w-12" /> : stats.repos}
-                    </p>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">En repos</p>
+                      <p className="text-2xl font-bold text-yellow-600">{stats.repos}</p>
+                    </div>
+                    <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                      <Droplets className="h-6 w-6 text-yellow-600" />
+                    </div>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                    <Droplets className="h-6 w-6 text-yellow-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Maintenance</p>
-                    <p className="text-2xl font-bold text-red-600">
-                      {isLoading ? <Skeleton className="h-8 w-12" /> : stats.maintenance}
-                    </p>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Maintenance</p>
+                      <p className="text-2xl font-bold text-red-600">{stats.maintenance}</p>
+                    </div>
+                    <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center">
+                      <Settings className="h-6 w-6 text-red-600" />
+                    </div>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                    <Settings className="h-6 w-6 text-red-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Surface totale</p>
-                    <p className="text-2xl font-bold">
-                      {isLoading ? <Skeleton className="h-8 w-16" /> : `${stats.surfaceTotale} ha`}
-                    </p>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Surface totale</p>
+                      <p className="text-2xl font-bold">{`${stats.surfaceTotale} ha`}</p>
+                    </div>
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <MapPin className="h-6 w-6 text-primary" />
+                    </div>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <MapPin className="h-6 w-6 text-primary" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Liste des bassins */}
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-1/2 mt-2" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-24 w-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <CardGridSkeleton cards={6} columns={2} />
           ) : bassins.length === 0 ? (
             <Card className="col-span-full">
               <CardContent className="p-12 text-center">
