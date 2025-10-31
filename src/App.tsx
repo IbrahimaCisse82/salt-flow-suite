@@ -57,9 +57,9 @@ const PageLoader = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <ErrorBoundary>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <AuthProvider>
           <PushNotificationProvider>
             <SidebarProvider>
@@ -98,9 +98,9 @@ const App = () => (
             </SidebarProvider>
           </PushNotificationProvider>
         </AuthProvider>
-      </ErrorBoundary>
-    </BrowserRouter>
-  </QueryClientProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
