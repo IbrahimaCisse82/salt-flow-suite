@@ -25,6 +25,7 @@ const Commercial = lazy(() => import("./pages/Commercial"));
 const Rapports = lazy(() => import("./pages/Rapports"));
 const Parametres = lazy(() => import("./pages/Parametres"));
 const Comptabilite = lazy(() => import("./pages/Comptabilite"));
+const Achats = lazy(() => import("./pages/Achats"));
 const GestionUtilisateurs = lazy(() => import("./pages/GestionUtilisateurs"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminTenants = lazy(() => import("./pages/admin/Tenants"));
@@ -82,6 +83,7 @@ const App = () => (
                   <Route path="/rapports" element={<RoleProtectedRoute><Rapports /></RoleProtectedRoute>} />
                   <Route path="/parametres" element={<RoleProtectedRoute><Parametres /></RoleProtectedRoute>} />
                   <Route path="/comptabilite" element={<RoleProtectedRoute><Comptabilite /></RoleProtectedRoute>} />
+                  <Route path="/achats" element={<RoleProtectedRoute><Achats /></RoleProtectedRoute>} />
                   <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
                   <Route path="/admin" element={<RoleProtectedRoute><AdminDashboard /></RoleProtectedRoute>} />
                   <Route path="/admin/tenants" element={<RoleProtectedRoute><AdminTenants /></RoleProtectedRoute>} />

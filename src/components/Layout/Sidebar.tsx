@@ -17,7 +17,8 @@ import {
   PanelLeftClose,
   Receipt,
   CalendarDays,
-  Shield
+  Shield,
+  ShoppingCart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ const salinesNavItems: NavItem[] = [
   { icon: CalendarDays, label: "Congés", href: "/conges" },
   { icon: TrendingUp, label: "Commercial", href: "/commercial" },
   { icon: Wallet, label: "Comptabilité", href: "/comptabilite" },
+  { icon: ShoppingCart, label: "Achats", href: "/achats" },
   { icon: FileText, label: "Rapports", href: "/rapports" },
   { icon: UserCog, label: "Utilisateurs", href: "/utilisateurs" },
   { icon: Settings, label: "Paramètres", href: "/parametres" },

@@ -1,10 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
-import { logger } from "@/utils/logger";
 import {
   Table,
   TableBody,
@@ -15,44 +13,30 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Building2 } from "lucide-react";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Building2, Plus, TrendingUp } from "lucide-react";
+import { useTenants, useTenantStats } from "@/hooks/useTenants";
+import { TenantForm } from "@/components/Admin/TenantForm";
+import { TenantStatsCard } from "@/components/Admin/TenantStatsCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Tenants() {
-  const queryClient = useQueryClient();
   const { isOpen } = useSidebar();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<any>(null);
+  
+  const { tenants, isLoading, updateTenant } = useTenants();
+  const { data: tenantStats, isLoading: isLoadingStats } = useTenantStats();
 
-  const { data: tenants, isLoading } = useQuery({
-    queryKey: ['admin-tenants'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tenants')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
+  const handleEdit = (tenant: any) => {
+    setSelectedTenant(tenant);
+    setIsFormOpen(true);
+  };
 
-  const updateTenantStatus = useMutation({
-    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await supabase
-        .from('tenants')
-        .update({ is_active })
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-tenants'] });
-      toast.success("Statut de l'entreprise mis à jour");
-    },
-    onError: (error) => {
-      toast.error("Erreur lors de la mise à jour");
-      logger.error(error);
-    }
-  });
+  const handleNew = () => {
+    setSelectedTenant(null);
+    setIsFormOpen(true);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -64,15 +48,80 @@ export default function Tenants() {
           isOpen ? "md:ml-64" : "md:ml-16"
         )}>
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Gestion des Entreprises
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                Gérer l'activation et les informations des entreprises clientes
-              </p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Gestion Multi-Entreprises
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  Gérer l'activation, les informations et les statistiques des entreprises clientes
+                </p>
+              </div>
+              <Button onClick={handleNew} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nouvelle entreprise
+              </Button>
             </div>
-            
+
+            {/* Stats globales */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <Building2 className="h-8 w-8 text-primary" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total entreprises</p>
+                      <p className="text-2xl font-bold">{tenants?.length || 0}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <TrendingUp className="h-8 w-8 text-green-600" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Actives</p>
+                      <p className="text-2xl font-bold">{tenants?.filter(t => t.is_active).length || 0}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <Building2 className="h-8 w-8 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Inactives</p>
+                      <p className="text-2xl font-bold">{tenants?.filter(t => !t.is_active).length || 0}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <TrendingUp className="h-8 w-8 text-accent" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Taux d'activité</p>
+                      <p className="text-2xl font-bold">
+                        {tenants && tenants.length > 0 
+                          ? Math.round((tenants.filter(t => t.is_active).length / tenants.length) * 100) 
+                          : 0}%
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Tabs defaultValue="list">
+              <TabsList>
+                <TabsTrigger value="list">Liste</TabsTrigger>
+                <TabsTrigger value="stats">Statistiques</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="list">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -99,20 +148,20 @@ export default function Tenants() {
                     </TableHeader>
                     <TableBody>
                       {tenants?.map((tenant) => (
-                        <TableRow key={tenant.id}>
+                        <TableRow key={tenant.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleEdit(tenant)}>
                           <TableCell className="font-medium">{tenant.name}</TableCell>
-                          <TableCell>{tenant.subdomain}</TableCell>
+                          <TableCell>{tenant.subdomain || '-'}</TableCell>
                           <TableCell>{tenant.contact_email || '-'}</TableCell>
                           <TableCell>{tenant.contact_phone || '-'}</TableCell>
                           <TableCell>{tenant.manager_name || '-'}</TableCell>
                           <TableCell>
                             {new Date(tenant.created_at).toLocaleDateString('fr-FR')}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                             <Switch
                               checked={tenant.is_active}
                               onCheckedChange={(checked) => {
-                                updateTenantStatus.mutate({
+                                updateTenant({
                                   id: tenant.id,
                                   is_active: checked
                                 });
@@ -127,6 +176,34 @@ export default function Tenants() {
               )}
             </CardContent>
             </Card>
+              </TabsContent>
+
+              <TabsContent value="stats">
+                <div className="space-y-4">
+                  {isLoadingStats ? (
+                    <p className="text-center py-8 text-muted-foreground">Chargement des statistiques...</p>
+                  ) : tenantStats && tenantStats.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {tenantStats.map((tenant) => (
+                        <TenantStatsCard key={tenant.id} tenant={tenant} />
+                      ))}
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="py-8 text-center text-muted-foreground">
+                        Aucune statistique disponible
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <TenantForm 
+              open={isFormOpen} 
+              onOpenChange={setIsFormOpen} 
+              tenant={selectedTenant}
+            />
           </div>
         </main>
       </div>
