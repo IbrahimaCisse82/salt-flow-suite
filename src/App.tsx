@@ -58,14 +58,14 @@ const PageLoader = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ErrorBoundary>
-      <AuthProvider>
-        <PushNotificationProvider>
-          <SidebarProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
+    <BrowserRouter>
+      <ErrorBoundary>
+        <AuthProvider>
+          <PushNotificationProvider>
+            <SidebarProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     <Route path="/auth" element={<Auth />} />
@@ -94,12 +94,12 @@ const App = () => (
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
-            </BrowserRouter>
-          </TooltipProvider>
-        </SidebarProvider>
-      </PushNotificationProvider>
-    </AuthProvider>
-  </ErrorBoundary>
+              </TooltipProvider>
+            </SidebarProvider>
+          </PushNotificationProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 

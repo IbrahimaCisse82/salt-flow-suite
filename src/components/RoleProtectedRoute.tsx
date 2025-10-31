@@ -5,8 +5,6 @@ import { Loader2, ShieldAlert } from "lucide-react";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Header } from "@/components/Layout/Header";
-import { Sidebar } from "@/components/Layout/Sidebar";
 import { logger } from "@/utils/logger";
 
 export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -109,12 +107,8 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="flex">
-          <Sidebar />
-          <main className="flex-1 p-6">
-            <Card className="max-w-2xl mx-auto mt-20">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-2xl w-full">
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-4">
                   <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -135,10 +129,8 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
                 </Button>
               </CardContent>
             </Card>
-          </main>
-        </div>
-      </div>
-    );
+          </div>
+        );
   }
 
   return <>{children}</>;
