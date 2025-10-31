@@ -43,52 +43,12 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
-
-const productionData = [
-  { bassin: "Nord A", selGros: 45, selFin: 28, selIode: 12 },
-  { bassin: "Nord B", selGros: 52, selFin: 31, selIode: 15 },
-  { bassin: "Est A", selGros: 38, selFin: 24, selIode: 10 },
-  { bassin: "Est B", selGros: 48, selFin: 29, selIode: 14 },
-];
-
-const recentHarvests = [
-  {
-    date: "2025-03-15",
-    bassin: "Bassin Nord B",
-    quantity: 15.2,
-    type: "Sel gros",
-    quality: "A+",
-    status: "completed",
-    team: "Équipe Alpha"
-  },
-  {
-    date: "2025-03-14",
-    bassin: "Bassin Est B",
-    quantity: 13.1,
-    type: "Sel fin",
-    quality: "A",
-    status: "completed",
-    team: "Équipe Beta"
-  },
-  {
-    date: "2025-03-13",
-    bassin: "Bassin Nord A",
-    quantity: 12.5,
-    type: "Sel gros",
-    quality: "A+",
-    status: "completed",
-    team: "Équipe Alpha"
-  },
-  {
-    date: "2025-03-12",
-    bassin: "Bassin Est A",
-    quantity: 10.5,
-    type: "Sel iodé",
-    quality: "A",
-    status: "processing",
-    team: "Équipe Gamma"
-  },
-];
+import { useProductionRecords } from "@/hooks/useProductionRecords";
+import { useBassins } from "@/hooks/useBassins";
+import { useTeams } from "@/hooks/useTeams";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Production = () => {
   const { toast } = useToast();
@@ -103,6 +63,68 @@ const Production = () => {
     team: "",
     status: "completed"
   });
+
+  // Fetch data from database
+  const { data: productionRecords = [], isLoading: productionLoading } = useProductionRecords();
+  const { bassins, isLoading: bassinsLoading } = useBassins();
+  const { teams } = useTeams();
+
+  // Get recent harvests (last 10 production records)
+  const recentHarvests = productionRecords.slice(0, 10).map(record => ({
+    id: record.id,
+    date: record.production_date,
+    bassin: bassins?.find(b => b.id === record.bassin_id)?.name || 'N/A',
+    quantity: Number(record.quantity),
+    type: record.salt_type,
+    quality: record.quality_grade || 'N/A',
+    status: "completed"
+  }));
+
+  // Calculate production statistics
+  const totalProduction = productionRecords.reduce((sum, r) => sum + Number(r.quantity || 0), 0);
+  const currentMonth = new Date().toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+  const thisMonthRecords = productionRecords.filter(r => {
+    const recordDate = new Date(r.production_date);
+    const now = new Date();
+    return recordDate.getMonth() === now.getMonth() && recordDate.getFullYear() === now.getFullYear();
+  });
+  const qualityAPlus = productionRecords.filter(r => r.quality_grade === 'A+').length;
+  const qualityPercentage = productionRecords.length > 0 ? Math.round((qualityAPlus / productionRecords.length) * 100) : 0;
+
+  // Group production by bassin and salt type for chart
+  const { data: productionByBassin = [] } = useQuery({
+    queryKey: ['production-by-bassin'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('production_records')
+        .select(`
+          *,
+          bassin:bassins(name)
+        `)
+        .order('production_date', { ascending: false });
+      
+      if (error) throw error;
+
+      // Group by bassin
+      const grouped = (data || []).reduce((acc: any, record) => {
+        const bassinName = record.bassin?.name || 'Inconnu';
+        if (!acc[bassinName]) {
+          acc[bassinName] = { bassin: bassinName, selGros: 0, selFin: 0, selIode: 0 };
+        }
+        
+        const quantity = Number(record.quantity || 0);
+        if (record.salt_type === 'sel_gros') acc[bassinName].selGros += quantity;
+        else if (record.salt_type === 'sel_fin') acc[bassinName].selFin += quantity;
+        else if (record.salt_type === 'sel_iode') acc[bassinName].selIode += quantity;
+        
+        return acc;
+      }, {});
+
+      return Object.values(grouped).slice(0, 6); // Limit to 6 bassins for chart readability
+    }
+  });
+
+  const isLoading = productionLoading || bassinsLoading;
 
   const handleNewHarvest = () => {
     setIsDialogOpen(true);
@@ -167,11 +189,12 @@ const Production = () => {
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner un bassin" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Bassin Nord A">Bassin Nord A</SelectItem>
-                      <SelectItem value="Bassin Nord B">Bassin Nord B</SelectItem>
-                      <SelectItem value="Bassin Est A">Bassin Est A</SelectItem>
-                      <SelectItem value="Bassin Est B">Bassin Est B</SelectItem>
+                     <SelectContent>
+                      {bassins?.map((bassin) => (
+                        <SelectItem key={bassin.id} value={bassin.id}>
+                          {bassin.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -236,9 +259,11 @@ const Production = () => {
                       <SelectValue placeholder="Sélectionner l'équipe" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Équipe Alpha">Équipe Alpha</SelectItem>
-                      <SelectItem value="Équipe Beta">Équipe Beta</SelectItem>
-                      <SelectItem value="Équipe Gamma">Équipe Gamma</SelectItem>
+                      {teams?.map((team) => (
+                        <SelectItem key={team.id} value={team.id}>
+                          {team.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -290,11 +315,15 @@ const Production = () => {
               <CardContent className="p-4 md:p-6">
                 <div className="flex items-center justify-between mb-3">
                   <Database className="h-8 w-8 text-primary" />
-                  <TrendingUp className="h-5 w-5 text-green-600" />
+                  {totalProduction > 0 && <TrendingUp className="h-5 w-5 text-green-600" />}
                 </div>
                 <p className="text-sm text-muted-foreground">Production totale</p>
-                <p className="text-3xl font-bold">438 t</p>
-                <p className="text-xs text-green-600 mt-1">+12% vs. objectif</p>
+                {isLoading ? (
+                  <Skeleton className="h-9 w-20 mt-1" />
+                ) : (
+                  <p className="text-3xl font-bold">{Math.round(totalProduction)} t</p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">{productionRecords.length} récoltes</p>
               </CardContent>
             </Card>
 
@@ -303,9 +332,13 @@ const Production = () => {
                 <div className="flex items-center justify-between mb-3">
                   <Droplets className="h-8 w-8 text-accent" />
                 </div>
-                <p className="text-sm text-muted-foreground">Rendement moyen</p>
-                <p className="text-3xl font-bold">4.2 t/ha</p>
-                <p className="text-xs text-muted-foreground mt-1">Par bassin actif</p>
+                <p className="text-sm text-muted-foreground">Bassins actifs</p>
+                {isLoading ? (
+                  <Skeleton className="h-9 w-16 mt-1" />
+                ) : (
+                  <p className="text-3xl font-bold">{bassins?.filter(b => b.is_active).length || 0}</p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">En production</p>
               </CardContent>
             </Card>
 
@@ -315,8 +348,12 @@ const Production = () => {
                   <Calendar className="h-8 w-8 text-primary" />
                 </div>
                 <p className="text-sm text-muted-foreground">Récoltes ce mois</p>
-                <p className="text-3xl font-bold">24</p>
-                <p className="text-xs text-muted-foreground mt-1">Mars 2025</p>
+                {isLoading ? (
+                  <Skeleton className="h-9 w-12 mt-1" />
+                ) : (
+                  <p className="text-3xl font-bold">{thisMonthRecords.length}</p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">{currentMonth}</p>
               </CardContent>
             </Card>
 
@@ -326,7 +363,11 @@ const Production = () => {
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
                 <p className="text-sm text-muted-foreground">Qualité A+</p>
-                <p className="text-3xl font-bold">87%</p>
+                {isLoading ? (
+                  <Skeleton className="h-9 w-16 mt-1" />
+                ) : (
+                  <p className="text-3xl font-bold">{qualityPercentage}%</p>
+                )}
                 <p className="text-xs text-green-600 mt-1">Conforme export</p>
               </CardContent>
             </Card>
@@ -341,29 +382,43 @@ const Production = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={productionData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="bassin"
-                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  />
-                  <YAxis 
-                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="selGros" fill="hsl(var(--primary))" name="Sel gros" />
-                  <Bar dataKey="selFin" fill="hsl(var(--accent))" name="Sel fin" />
-                  <Bar dataKey="selIode" fill="hsl(var(--primary-glow))" name="Sel iodé" />
-                </BarChart>
-              </ResponsiveContainer>
+              {isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+              ) : productionByBassin.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Database className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucune donnée de production disponible</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={productionByBassin}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="bassin"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis 
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="selGros" fill="hsl(var(--primary))" name="Sel gros" />
+                    <Bar dataKey="selFin" fill="hsl(var(--accent))" name="Sel fin" />
+                    <Bar dataKey="selIode" fill="hsl(var(--primary-glow))" name="Sel iodé" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
@@ -376,56 +431,57 @@ const Production = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {recentHarvests.map((harvest, index) => (
-                  <div 
-                    key={index}
-                    className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
-                        harvest.status === "completed" 
-                          ? "bg-green-500/10" 
-                          : "bg-yellow-500/10"
-                      }`}>
-                        {harvest.status === "completed" ? (
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-20 w-full" />
+                  ))}
+                </div>
+              ) : recentHarvests.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Clock className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucune récolte récente</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentHarvests.map((harvest) => (
+                    <div 
+                      key={harvest.id}
+                      className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-full flex items-center justify-center bg-green-500/10">
                           <CheckCircle className="h-6 w-6 text-green-600" />
-                        ) : (
-                          <Clock className="h-6 w-6 text-yellow-600" />
-                        )}
+                        </div>
+                        <div>
+                          <p className="font-semibold">{harvest.bassin}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(harvest.date).toLocaleDateString('fr-FR')}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold">{harvest.bassin}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {harvest.date} • {harvest.team}
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <p className="font-semibold">{harvest.quantity} tonnes</p>
-                        <p className="text-sm text-muted-foreground">{harvest.type}</p>
+                      <div className="flex items-center gap-6">
+                        <div className="text-right">
+                          <p className="font-semibold">{harvest.quantity} tonnes</p>
+                          <p className="text-sm text-muted-foreground">{harvest.type}</p>
+                        </div>
+                        <Badge 
+                          variant="outline"
+                          className="border-primary text-primary"
+                        >
+                          Qualité {harvest.quality}
+                        </Badge>
+                        <Badge 
+                          className="bg-green-500/10 text-green-700 hover:bg-green-500/20"
+                        >
+                          Complété
+                        </Badge>
                       </div>
-                      <Badge 
-                        variant="outline"
-                        className="border-primary text-primary"
-                      >
-                        Qualité {harvest.quality}
-                      </Badge>
-                      <Badge 
-                        className={
-                          harvest.status === "completed"
-                            ? "bg-green-500/10 text-green-700 hover:bg-green-500/20"
-                            : "bg-yellow-500/10 text-yellow-700 hover:bg-yellow-500/20"
-                        }
-                      >
-                        {harvest.status === "completed" ? "Complété" : "En traitement"}
-                      </Badge>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
