@@ -33,6 +33,14 @@ import {
   Clock
 } from "lucide-react";
 import { YieldAnalysis } from "@/components/Production/YieldAnalysis";
+import { QualityTestForm } from "@/components/Production/QualityTestForm";
+import { QualityCertificateForm } from "@/components/Production/QualityCertificateForm";
+import { TraceabilityView } from "@/components/Production/TraceabilityView";
+import { useQualityTests } from "@/hooks/useQualityTests";
+import { useQualityCertificates } from "@/hooks/useQualityCertificates";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FlaskConical, Award, Search as SearchIcon } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   BarChart, 
   Bar, 
@@ -54,6 +62,8 @@ const Production = () => {
   const { toast } = useToast();
   const { isOpen } = useSidebar();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isQualityTestDialogOpen, setIsQualityTestDialogOpen] = useState(false);
+  const [isCertificateDialogOpen, setIsCertificateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     date: "",
     bassin: "",
@@ -68,6 +78,8 @@ const Production = () => {
   const { data: productionRecords = [], isLoading: productionLoading } = useProductionRecords();
   const { bassins, isLoading: bassinsLoading } = useBassins();
   const { teams } = useTeams();
+  const { qualityTests, isLoading: qualityLoading } = useQualityTests();
+  const { certificates, isLoading: certificatesLoading } = useQualityCertificates();
 
   // Get recent harvests (last 10 production records)
   const recentHarvests = productionRecords.slice(0, 10).map(record => ({
@@ -309,6 +321,15 @@ const Production = () => {
             </Button>
           </div>
 
+          {/* Tabs for Production, Quality, and Traceability */}
+          <Tabs defaultValue="production" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="production">Production</TabsTrigger>
+              <TabsTrigger value="quality">Qualité</TabsTrigger>
+              <TabsTrigger value="traceability">Traçabilité</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="production" className="space-y-6">
           {/* KPIs Production */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <Card>
@@ -537,6 +558,120 @@ const Production = () => {
               </CardContent>
             </Card>
           </div>
+            </TabsContent>
+
+            <TabsContent value="quality" className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Gestion de la qualité</h2>
+                <div className="flex gap-2">
+                  <Button onClick={() => setIsQualityTestDialogOpen(true)} variant="outline" className="gap-2">
+                    <FlaskConical className="h-4 w-4" />
+                    Nouveau test
+                  </Button>
+                  <Button onClick={() => setIsCertificateDialogOpen(true)} className="gap-2">
+                    <Award className="h-4 w-4" />
+                    Nouveau certificat
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Tests qualité */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FlaskConical className="h-5 w-5" />
+                      Tests qualité récents
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {qualityLoading ? (
+                      <Skeleton className="h-40" />
+                    ) : qualityTests && qualityTests.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Score</TableHead>
+                            <TableHead>Statut</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {qualityTests.slice(0, 5).map((test: any) => (
+                            <TableRow key={test.id}>
+                              <TableCell>{new Date(test.test_date).toLocaleDateString()}</TableCell>
+                              <TableCell>{test.quality_score || '-'}/100</TableCell>
+                              <TableCell>
+                                <Badge variant={test.quality_status === 'passed' ? 'default' : 'secondary'}>
+                                  {test.quality_status}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-8">Aucun test qualité enregistré</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Certificats */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Award className="h-5 w-5" />
+                      Certificats qualité
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {certificatesLoading ? (
+                      <Skeleton className="h-40" />
+                    ) : certificates && certificates.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>N° Certificat</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Statut</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {certificates.slice(0, 5).map((cert: any) => (
+                            <TableRow key={cert.id}>
+                              <TableCell className="font-medium">{cert.certificate_number}</TableCell>
+                              <TableCell>{cert.certificate_type}</TableCell>
+                              <TableCell>
+                                <Badge variant={cert.status === 'valid' ? 'default' : 'destructive'}>
+                                  {cert.status}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-8">Aucun certificat enregistré</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="traceability" className="space-y-6">
+              <TraceabilityView />
+            </TabsContent>
+          </Tabs>
+
+          {/* Quality Dialogs */}
+          <QualityTestForm 
+            open={isQualityTestDialogOpen} 
+            onOpenChange={setIsQualityTestDialogOpen} 
+          />
+          <QualityCertificateForm 
+            open={isCertificateDialogOpen} 
+            onOpenChange={setIsCertificateDialogOpen} 
+          />
         </main>
       </div>
     </div>

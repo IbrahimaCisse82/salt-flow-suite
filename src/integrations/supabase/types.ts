@@ -464,6 +464,66 @@ export type Database = {
           },
         ]
       }
+      inventory_items: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          item_category: string | null
+          item_code: string | null
+          item_name: string
+          last_purchase_date: string | null
+          last_purchase_price: number | null
+          notes: string | null
+          quantity_on_hand: number | null
+          reorder_level: number | null
+          storage_location: string | null
+          tenant_id: string
+          unit_cost: number | null
+          unit_of_measure: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_category?: string | null
+          item_code?: string | null
+          item_name: string
+          last_purchase_date?: string | null
+          last_purchase_price?: number | null
+          notes?: string | null
+          quantity_on_hand?: number | null
+          reorder_level?: number | null
+          storage_location?: string | null
+          tenant_id: string
+          unit_cost?: number | null
+          unit_of_measure?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_category?: string | null
+          item_code?: string | null
+          item_name?: string
+          last_purchase_date?: string | null
+          last_purchase_price?: number | null
+          notes?: string | null
+          quantity_on_hand?: number | null
+          reorder_level?: number | null
+          storage_location?: string | null
+          tenant_id?: string
+          unit_cost?: number | null
+          unit_of_measure?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       journal_entries: {
         Row: {
           account_id: string | null
@@ -750,6 +810,7 @@ export type Database = {
       production_records: {
         Row: {
           bassin_id: string | null
+          batch_number: string | null
           campagne_id: string | null
           created_at: string | null
           id: string
@@ -758,10 +819,12 @@ export type Database = {
           quantity: number | null
           salt_type: string
           tenant_id: string
+          traceability_code: string | null
           updated_at: string | null
         }
         Insert: {
           bassin_id?: string | null
+          batch_number?: string | null
           campagne_id?: string | null
           created_at?: string | null
           id?: string
@@ -770,10 +833,12 @@ export type Database = {
           quantity?: number | null
           salt_type: string
           tenant_id: string
+          traceability_code?: string | null
           updated_at?: string | null
         }
         Update: {
           bassin_id?: string | null
+          batch_number?: string | null
           campagne_id?: string | null
           created_at?: string | null
           id?: string
@@ -782,6 +847,7 @@ export type Database = {
           quantity?: number | null
           salt_type?: string
           tenant_id?: string
+          traceability_code?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -849,6 +915,147 @@ export type Database = {
           },
         ]
       }
+      purchase_order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_category: string | null
+          item_description: string | null
+          item_name: string
+          line_total: number | null
+          notes: string | null
+          purchase_order_id: string | null
+          quantity: number
+          received_quantity: number | null
+          unit_of_measure: string | null
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_category?: string | null
+          item_description?: string | null
+          item_name: string
+          line_total?: number | null
+          notes?: string | null
+          purchase_order_id?: string | null
+          quantity: number
+          received_quantity?: number | null
+          unit_of_measure?: string | null
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_category?: string | null
+          item_description?: string | null
+          item_name?: string
+          line_total?: number | null
+          notes?: string | null
+          purchase_order_id?: string | null
+          quantity?: number
+          received_quantity?: number | null
+          unit_of_measure?: string | null
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          actual_delivery_date: string | null
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          created_by: string | null
+          discount_amount: number | null
+          expected_delivery_date: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          order_number: string
+          status: string
+          subtotal: number | null
+          supplier_id: string | null
+          tax_amount: number | null
+          tenant_id: string
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_delivery_date?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          discount_amount?: number | null
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number: string
+          status?: string
+          subtotal?: number | null
+          supplier_id?: string | null
+          tax_amount?: number | null
+          tenant_id: string
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_delivery_date?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          discount_amount?: number | null
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number?: string
+          status?: string
+          subtotal?: number | null
+          supplier_id?: string | null
+          tax_amount?: number | null
+          tenant_id?: string
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           created_at: string | null
@@ -876,9 +1083,170 @@ export type Database = {
         }
         Relationships: []
       }
+      quality_certificates: {
+        Row: {
+          batch_number: string | null
+          certificate_number: string
+          certificate_type: string
+          created_at: string | null
+          document_url: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string
+          issued_by: string | null
+          notes: string | null
+          production_record_id: string | null
+          quality_grade: string | null
+          quality_test_id: string | null
+          quantity_certified: number | null
+          status: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          batch_number?: string | null
+          certificate_number: string
+          certificate_type?: string
+          created_at?: string | null
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string
+          issued_by?: string | null
+          notes?: string | null
+          production_record_id?: string | null
+          quality_grade?: string | null
+          quality_test_id?: string | null
+          quantity_certified?: number | null
+          status?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          batch_number?: string | null
+          certificate_number?: string
+          certificate_type?: string
+          created_at?: string | null
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string
+          issued_by?: string | null
+          notes?: string | null
+          production_record_id?: string | null
+          quality_grade?: string | null
+          quality_test_id?: string | null
+          quantity_certified?: number | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_certificates_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_certificates_production_record_id_fkey"
+            columns: ["production_record_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_certificates_quality_test_id_fkey"
+            columns: ["quality_test_id"]
+            isOneToOne: false
+            referencedRelation: "quality_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quality_tests: {
+        Row: {
+          batch_number: string | null
+          certificate_number: string | null
+          color_grade: string | null
+          corrective_actions: string | null
+          created_at: string | null
+          grain_size: string | null
+          humidity_level: number | null
+          id: string
+          impurities_level: number | null
+          notes: string | null
+          production_record_id: string | null
+          quality_score: number | null
+          quality_status: string
+          salt_purity: number | null
+          tenant_id: string
+          test_date: string
+          tested_by: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          batch_number?: string | null
+          certificate_number?: string | null
+          color_grade?: string | null
+          corrective_actions?: string | null
+          created_at?: string | null
+          grain_size?: string | null
+          humidity_level?: number | null
+          id?: string
+          impurities_level?: number | null
+          notes?: string | null
+          production_record_id?: string | null
+          quality_score?: number | null
+          quality_status?: string
+          salt_purity?: number | null
+          tenant_id: string
+          test_date?: string
+          tested_by?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          batch_number?: string | null
+          certificate_number?: string | null
+          color_grade?: string | null
+          corrective_actions?: string | null
+          created_at?: string | null
+          grain_size?: string | null
+          humidity_level?: number | null
+          id?: string
+          impurities_level?: number | null
+          notes?: string | null
+          production_record_id?: string | null
+          quality_score?: number | null
+          quality_status?: string
+          salt_purity?: number | null
+          tenant_id?: string
+          test_date?: string
+          tested_by?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_tests_production_record_id_fkey"
+            columns: ["production_record_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_tests_tested_by_fkey"
+            columns: ["tested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales: {
         Row: {
           amount_paid: number | null
+          batch_number: string | null
           campagne_id: string | null
           can_be_delivered: boolean | null
           client_id: string | null
@@ -892,16 +1260,19 @@ export type Database = {
           invoice_number: string | null
           notes: string | null
           payment_status: string | null
+          quality_certificate_id: string | null
           quantity: number | null
           sale_date: string | null
           salt_type: string
           tenant_id: string
           total_amount: number | null
+          traceability_code: string | null
           unit_price: number | null
           updated_at: string | null
         }
         Insert: {
           amount_paid?: number | null
+          batch_number?: string | null
           campagne_id?: string | null
           can_be_delivered?: boolean | null
           client_id?: string | null
@@ -915,16 +1286,19 @@ export type Database = {
           invoice_number?: string | null
           notes?: string | null
           payment_status?: string | null
+          quality_certificate_id?: string | null
           quantity?: number | null
           sale_date?: string | null
           salt_type: string
           tenant_id: string
           total_amount?: number | null
+          traceability_code?: string | null
           unit_price?: number | null
           updated_at?: string | null
         }
         Update: {
           amount_paid?: number | null
+          batch_number?: string | null
           campagne_id?: string | null
           can_be_delivered?: boolean | null
           client_id?: string | null
@@ -938,11 +1312,13 @@ export type Database = {
           invoice_number?: string | null
           notes?: string | null
           payment_status?: string | null
+          quality_certificate_id?: string | null
           quantity?: number | null
           sale_date?: string | null
           salt_type?: string
           tenant_id?: string
           total_amount?: number | null
+          traceability_code?: string | null
           unit_price?: number | null
           updated_at?: string | null
         }
@@ -959,6 +1335,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_quality_certificate_id_fkey"
+            columns: ["quality_certificate_id"]
+            isOneToOne: false
+            referencedRelation: "quality_certificates"
             referencedColumns: ["id"]
           },
           {
@@ -1062,6 +1445,63 @@ export type Database = {
           old_value?: string | null
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          payment_terms: string | null
+          phone: string | null
+          rating: number | null
+          registration_number: string | null
+          supplier_type: string
+          tax_id: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          rating?: number | null
+          registration_number?: string | null
+          supplier_type?: string
+          tax_id?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          rating?: number | null
+          registration_number?: string | null
+          supplier_type?: string
+          tax_id?: string | null
+          tenant_id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
