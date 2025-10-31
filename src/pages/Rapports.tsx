@@ -27,6 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BudgetTrackingTab } from "@/components/Campaign/BudgetTrackingTab";
+import { PredictiveAnalysisCard } from "@/components/Analytics/PredictiveAnalysisCard";
+import { PeriodComparisonCard } from "@/components/Analytics/PeriodComparisonCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -694,8 +696,9 @@ const Rapports = () => {
           </div>
 
           <Tabs defaultValue="rapports" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+            <TabsList className="grid w-full grid-cols-4 max-w-3xl">
               <TabsTrigger value="rapports">Rapports</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="suivi-budget">Suivi budgétaire</TabsTrigger>
               <TabsTrigger value="flux-tresorerie">Flux de trésorerie</TabsTrigger>
             </TabsList>
@@ -859,6 +862,13 @@ const Rapports = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="analytics" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <PredictiveAnalysisCard />
+                <PeriodComparisonCard />
+              </div>
             </TabsContent>
 
             <TabsContent value="suivi-budget">
