@@ -29,6 +29,8 @@ import {
 import { BudgetTrackingTab } from "@/components/Campaign/BudgetTrackingTab";
 import { PredictiveAnalysisCard } from "@/components/Analytics/PredictiveAnalysisCard";
 import { PeriodComparisonCard } from "@/components/Analytics/PeriodComparisonCard";
+import { ProductionHeatmap } from "@/components/Analytics/ProductionHeatmap";
+import { ScheduledReportsManager } from "@/components/Analytics/ScheduledReportsManager";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -865,10 +867,14 @@ const Rapports = () => {
             </TabsContent>
 
             <TabsContent value="analytics" className="space-y-6">
+              <ScheduledReportsManager />
+              
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <PredictiveAnalysisCard />
                 <PeriodComparisonCard />
               </div>
+
+              <ProductionHeatmap />
             </TabsContent>
 
             <TabsContent value="suivi-budget">
