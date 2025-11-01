@@ -1058,7 +1058,21 @@ export type Database = {
             foreignKeyName: "purchase_orders_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1170,6 +1184,13 @@ export type Database = {
             foreignKeyName: "quality_certificates_issued_by_fkey"
             columns: ["issued_by"]
             isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_certificates_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1259,6 +1280,13 @@ export type Database = {
             columns: ["production_record_id"]
             isOneToOne: false
             referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_tests_tested_by_fkey"
+            columns: ["tested_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1850,7 +1878,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      orphaned_profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          minutes_since_creation: number | null
+          role: Database["public"]["Enums"]["app_role"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_next_run: {
