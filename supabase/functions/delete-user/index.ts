@@ -69,9 +69,19 @@ Deno.serve(async (req) => {
       .from('profiles')
       .select('tenant_id')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
 
-    if (!targetProfile || targetProfile.tenant_id !== profile.tenant_id) {
+    // Autoriser la suppression si:
+    // - le profil existe et appartient au même tenant
+    // - OU le profil existe mais n'a PAS de tenant (orphelin)
+    if (!targetProfile) {
+      return new Response(
+        JSON.stringify({ error: 'Utilisateur introuvable' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (targetProfile.tenant_id && targetProfile.tenant_id !== profile.tenant_id) {
       return new Response(
         JSON.stringify({ error: 'Utilisateur non trouvé dans votre organisation' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
