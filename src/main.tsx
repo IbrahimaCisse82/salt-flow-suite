@@ -8,6 +8,12 @@ import { InteractiveTutorial } from "@/components/Onboarding/InteractiveTutorial
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ThemeProvider } from "next-themes";
 import { BrowserRouter } from "react-router-dom";
+import { errorTracker } from "@/utils/errorTracking";
+import { analytics } from "@/utils/analytics";
+
+// Initialize monitoring (uncomment when ready)
+// errorTracker.init(import.meta.env.VITE_SENTRY_DSN);
+// analytics.init(import.meta.env.VITE_GA4_MEASUREMENT_ID);
 
 // Component wrapper pour les hooks
 const AppWithFeatures = () => {

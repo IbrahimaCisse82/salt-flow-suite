@@ -1,18 +1,12 @@
-// Analytics & User Tracking Utility
-// Ready for Google Analytics, Mixpanel, or Segment integration
+// Analytics & Tracking Utility
+// Integrated with Google Analytics 4
+import ReactGA from 'react-ga4';
 
-interface PageViewData {
-  path: string;
-  title: string;
-  referrer?: string;
-}
-
-interface EventData {
+interface AnalyticsEvent {
   category: string;
   action: string;
   label?: string;
   value?: number;
-  metadata?: Record<string, unknown>;
 }
 
 interface UserProperties {
@@ -20,54 +14,62 @@ interface UserProperties {
   email?: string;
   tenantId?: string;
   role?: string;
-  plan?: string;
+  [key: string]: string | number | boolean | undefined;
 }
 
 class Analytics {
   private enabled: boolean;
-  private debug: boolean;
+  private environment: string;
+  private initialized: boolean = false;
 
   constructor() {
     this.enabled = import.meta.env.PROD;
-    this.debug = import.meta.env.DEV;
+    this.environment = import.meta.env.MODE || 'development';
+  }
+
+  /**
+   * Initialize Google Analytics 4
+   */
+  init(measurementId?: string): void {
+    if (this.initialized) return;
+
+    // Initialize GA4 only in production or if measurement ID provided
+    if (measurementId && this.enabled) {
+      ReactGA.initialize(measurementId, {
+        gaOptions: {
+          anonymizeIp: true,
+        },
+      });
+      this.initialized = true;
+    }
   }
 
   /**
    * Track page view
    */
-  trackPageView(data: PageViewData): void {
-    if (this.debug) {
-      console.log('[Analytics] Page View:', data);
+  trackPageView(path: string, title?: string): void {
+    if (!this.enabled) {
+      console.log('[Analytics] Page View:', { path, title });
+      return;
     }
 
-    if (!this.enabled) return;
-
-    // TODO: Integrate with GA4
-    // gtag('event', 'page_view', { page_path: data.path, page_title: data.title });
-
-    // TODO: Integrate with Mixpanel
-    // mixpanel.track('Page Viewed', data);
+    if (this.initialized) {
+      ReactGA.send({ hitType: 'pageview', page: path, title });
+    }
   }
 
   /**
    * Track custom event
    */
-  trackEvent(data: EventData): void {
-    if (this.debug) {
-      console.log('[Analytics] Event:', data);
+  trackEvent({ category, action, label, value }: AnalyticsEvent): void {
+    if (!this.enabled) {
+      console.log('[Analytics] Event:', { category, action, label, value });
+      return;
     }
 
-    if (!this.enabled) return;
-
-    // TODO: Integrate with GA4
-    // gtag('event', data.action, {
-    //   event_category: data.category,
-    //   event_label: data.label,
-    //   value: data.value,
-    // });
-
-    // TODO: Integrate with Mixpanel
-    // mixpanel.track(data.action, { category: data.category, ...data.metadata });
+    if (this.initialized) {
+      ReactGA.event({ category, action, label, value });
+    }
   }
 
   /**
@@ -89,7 +91,7 @@ class Analytics {
       category: 'Auth',
       action: 'signup',
       label: method,
-      metadata: { role },
+      value: role ? 1 : 0,
     });
   }
 
@@ -105,56 +107,28 @@ class Analytics {
   }
 
   /**
-   * Track error occurrence
-   */
-  trackError(errorName: string, errorMessage: string, fatal: boolean = false): void {
-    this.trackEvent({
-      category: 'Error',
-      action: errorName,
-      label: errorMessage,
-      metadata: { fatal },
-    });
-  }
-
-  /**
-   * Identify user
+   * Identify user for tracking
    */
   identifyUser(properties: UserProperties): void {
-    if (this.debug) {
+    if (!this.enabled) {
       console.log('[Analytics] Identify User:', properties);
+      return;
     }
 
-    if (!this.enabled) return;
-
-    // TODO: Integrate with GA4
-    // gtag('set', 'user_properties', { user_id: properties.userId });
-
-    // TODO: Integrate with Mixpanel
-    // mixpanel.identify(properties.userId);
-    // mixpanel.people.set({ $email: properties.email, role: properties.role });
+    if (this.initialized) {
+      ReactGA.set({ userId: properties.userId, ...properties });
+    }
   }
 
   /**
-   * Track conversion (for paid plans)
+   * Track conversion
    */
-  trackConversion(value: number, currency: string = 'XOF'): void {
+  trackConversion(transactionId: string, value: number): void {
     this.trackEvent({
       category: 'Commerce',
       action: 'conversion',
+      label: transactionId,
       value,
-      metadata: { currency },
-    });
-  }
-
-  /**
-   * Track search query
-   */
-  trackSearch(query: string, resultsCount: number): void {
-    this.trackEvent({
-      category: 'Search',
-      action: 'search_query',
-      label: query,
-      value: resultsCount,
     });
   }
 
@@ -162,30 +136,25 @@ class Analytics {
    * Track performance metric
    */
   trackTiming(category: string, variable: string, value: number): void {
-    if (this.debug) {
+    if (!this.enabled) {
       console.log('[Analytics] Timing:', { category, variable, value });
+      return;
     }
 
-    if (!this.enabled) return;
-
-    // TODO: Integrate with GA4
-    // gtag('event', 'timing_complete', {
-    //   name: variable,
-    //   value: value,
-    //   event_category: category,
-    // });
+    if (this.initialized) {
+      ReactGA.event({
+        category: 'timing',
+        action: variable,
+        label: category,
+        value: Math.round(value),
+      });
+    }
   }
 }
 
 export const analytics = new Analytics();
 
-// React Router integration helper
-export function usePageTracking(): void {
-  // This would be used in a hook to track route changes
-  // Example: useEffect(() => analytics.trackPageView({ path: location.pathname, title: document.title }), [location]);
-}
-
-// Track component mount/unmount for engagement metrics
+// Track component lifecycle
 export function trackComponentLifecycle(componentName: string): () => void {
   const startTime = Date.now();
   

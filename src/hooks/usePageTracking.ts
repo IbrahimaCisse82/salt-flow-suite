@@ -10,11 +10,7 @@ export function usePageTracking() {
 
   useEffect(() => {
     // Track page view
-    analytics.trackPageView({
-      path: location.pathname,
-      title: document.title,
-      referrer: document.referrer,
-    });
+    analytics.trackPageView(location.pathname, document.title);
 
     // Track timing from navigation start
     if (performance && performance.timing) {
