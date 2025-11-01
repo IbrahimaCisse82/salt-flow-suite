@@ -11,7 +11,9 @@ import { BrowserRouter } from "react-router-dom";
 import { errorTracker } from "@/utils/errorTracking";
 import { analytics } from "@/utils/analytics";
 
-// Initialize monitoring (uncomment when ready)
+// Initialize monitoring in production
+// STEP 1: Add VITE_SENTRY_DSN and VITE_GA4_MEASUREMENT_ID to .env.production
+// STEP 2: Uncomment the 2 lines below
 // errorTracker.init(import.meta.env.VITE_SENTRY_DSN);
 // analytics.init(import.meta.env.VITE_GA4_MEASUREMENT_ID);
 
