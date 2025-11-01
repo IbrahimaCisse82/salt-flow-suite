@@ -12,10 +12,18 @@ import { errorTracker } from "@/utils/errorTracking";
 import { analytics } from "@/utils/analytics";
 
 // Initialize monitoring in production
-// STEP 1: Add VITE_SENTRY_DSN and VITE_GA4_MEASUREMENT_ID to .env.production
-// STEP 2: Uncomment the 2 lines below
-// errorTracker.init(import.meta.env.VITE_SENTRY_DSN);
-// analytics.init(import.meta.env.VITE_GA4_MEASUREMENT_ID);
+if (import.meta.env.PROD) {
+  const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+  const gaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+  
+  if (sentryDsn) {
+    errorTracker.init(sentryDsn);
+  }
+  
+  if (gaMeasurementId) {
+    analytics.init(gaMeasurementId);
+  }
+}
 
 // Component wrapper pour les hooks
 const AppWithFeatures = () => {

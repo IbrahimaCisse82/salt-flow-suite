@@ -33,14 +33,21 @@ class Analytics {
   init(measurementId?: string): void {
     if (this.initialized) return;
 
+    // Use environment variable or provided ID
+    const gaId = measurementId || import.meta.env.VITE_GA_MEASUREMENT_ID;
+
     // Initialize GA4 only in production or if measurement ID provided
-    if (measurementId && this.enabled) {
-      ReactGA.initialize(measurementId, {
+    if (gaId && this.enabled) {
+      ReactGA.initialize(gaId, {
         gaOptions: {
           anonymizeIp: true,
+          siteSpeedSampleRate: 100,
         },
       });
       this.initialized = true;
+      console.log('[Analytics] Google Analytics initialized');
+    } else {
+      console.warn('[Analytics] Not initialized - missing measurement ID or not in production');
     }
   }
 
