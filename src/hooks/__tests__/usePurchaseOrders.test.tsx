@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { usePurchaseOrders } from '../usePurchaseOrders';
 import * as AuthContext from '@/contexts/AuthContext';
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -26,25 +27,23 @@ const createWrapper = () => {
   );
 };
 
-describe('useBassins', () => {
+describe('usePurchaseOrders', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should return query result', () => {
+  it('should fetch purchase orders', () => {
     vi.mocked(AuthContext.useAuth).mockReturnValue({
-      profile: { tenant_id: 'tenant-123', role: 'admin' },
+      profile: { tenant_id: 'tenant-123', role: 'comptable' },
       tenant: null,
       user: null,
-      loading: false,
+      isLoading: false,
     } as any);
 
-    const { useBassins } = require('../useBassins');
-    const { result } = renderHook(() => useBassins(), {
+    const { result } = renderHook(() => usePurchaseOrders(), {
       wrapper: createWrapper(),
     });
 
-    expect(result.current).toBeDefined();
-    expect(result.current.isLoading).toBeDefined();
+    expect(result.current.purchaseOrders).toBeDefined();
   });
 });

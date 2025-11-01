@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useTeams } from '../useTeams';
 import * as AuthContext from '@/contexts/AuthContext';
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -26,25 +27,38 @@ const createWrapper = () => {
   );
 };
 
-describe('useBassins', () => {
+describe('useTeams', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should return query result', () => {
+  it('should fetch teams', () => {
     vi.mocked(AuthContext.useAuth).mockReturnValue({
-      profile: { tenant_id: 'tenant-123', role: 'admin' },
+      profile: { tenant_id: 'tenant-123', role: 'gerant' },
       tenant: null,
       user: null,
-      loading: false,
+      isLoading: false,
     } as any);
 
-    const { useBassins } = require('../useBassins');
-    const { result } = renderHook(() => useBassins(), {
+    const { result } = renderHook(() => useTeams(), {
       wrapper: createWrapper(),
     });
 
-    expect(result.current).toBeDefined();
-    expect(result.current.isLoading).toBeDefined();
+    expect(result.current.teams).toBeDefined();
+  });
+
+  it('should provide CRUD functions', () => {
+    vi.mocked(AuthContext.useAuth).mockReturnValue({
+      profile: { tenant_id: 'tenant-123', role: 'gerant' },
+      tenant: null,
+      user: null,
+      isLoading: false,
+    } as any);
+
+    const { result } = renderHook(() => useTeams(), {
+      wrapper: createWrapper(),
+    });
+
+    expect(typeof result.current.createTeam).toBe('function');
   });
 });

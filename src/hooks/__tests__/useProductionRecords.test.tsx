@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useProductionRecords } from '../useProductionRecords';
 import * as AuthContext from '@/contexts/AuthContext';
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -26,25 +27,39 @@ const createWrapper = () => {
   );
 };
 
-describe('useBassins', () => {
+describe('useProductionRecords', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should return query result', () => {
+  it('should fetch production records', () => {
     vi.mocked(AuthContext.useAuth).mockReturnValue({
-      profile: { tenant_id: 'tenant-123', role: 'admin' },
+      profile: { tenant_id: 'tenant-123', role: 'production' },
       tenant: null,
       user: null,
-      loading: false,
+      isLoading: false,
     } as any);
 
-    const { useBassins } = require('../useBassins');
-    const { result } = renderHook(() => useBassins(), {
+    const { result } = renderHook(() => useProductionRecords(), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.data).toBeDefined();
+    expect(result.current.isLoading).toBeDefined();
+  });
+
+  it('should handle loading state', () => {
+    vi.mocked(AuthContext.useAuth).mockReturnValue({
+      profile: { tenant_id: 'tenant-123', role: 'production' },
+      tenant: null,
+      user: null,
+      isLoading: true,
+    } as any);
+
+    const { result } = renderHook(() => useProductionRecords(), {
       wrapper: createWrapper(),
     });
 
     expect(result.current).toBeDefined();
-    expect(result.current.isLoading).toBeDefined();
   });
 });
