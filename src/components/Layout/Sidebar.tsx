@@ -1,28 +1,28 @@
-import { memo } from "react";
-import { 
-  LayoutDashboard, 
-  Droplets, 
-  Calendar, 
-  Package, 
-  Users, 
-  TrendingUp,
-  FileText,
-  Settings,
+import { memo, useMemo } from "react";
+import {
+  LayoutDashboard,
+  Droplets,
+  Calendar,
   Database,
+  Package,
+  Users,
+  CalendarDays,
+  TrendingUp,
   Wallet,
+  ShoppingCart,
+  FileText,
   UserCog,
+  Settings,
   Building2,
+  Shield,
   BookOpen,
+  Receipt,
   PanelLeft,
   PanelLeftClose,
-  Receipt,
-  CalendarDays,
-  Shield,
-  ShoppingCart
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,15 +67,20 @@ const SidebarComponent = () => {
   const { profile } = useAuth();
   const { activeCampagne } = useCampagnes();
 
-  // Utiliser le rôle du contexte Auth au lieu d'une requête séparée
-  const userRole = (profile?.role as UserRole) ?? null;
+  // OPTIMIZATION: Memoize computed values to avoid recalculation
+  const userRole = useMemo(() => 
+    (profile?.role as UserRole) ?? null, 
+    [profile?.role]
+  );
 
-  // Choisir les items de navigation selon le rôle
-  const navItems = userRole === 'admin' ? adminNavItems : salinesNavItems;
+  const navItems = useMemo(() => 
+    userRole === 'admin' ? adminNavItems : salinesNavItems,
+    [userRole]
+  );
   
-  // Filtrer les items de navigation selon les permissions du rôle
-  const visibleNavItems = navItems.filter(item => 
-    hasAccessToPage(userRole || null, item.href)
+  const visibleNavItems = useMemo(() => 
+    navItems.filter(item => hasAccessToPage(userRole, item.href)),
+    [navItems, userRole]
   );
 
   return (

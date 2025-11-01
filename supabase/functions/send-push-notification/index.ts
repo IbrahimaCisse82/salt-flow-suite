@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,6 +12,17 @@ const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') || '';
 const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') || '';
 const VAPID_EMAIL = Deno.env.get('VAPID_EMAIL') || 'mailto:support@g-suiteapp.com';
 
+// SECURITY: Validation stricte des inputs
+const notificationPayloadSchema = z.object({
+  user_id: z.string().uuid().optional(),
+  tenant_id: z.string().uuid().optional(),
+  title: z.string().trim().min(1).max(100),
+  message: z.string().trim().min(1).max(500),
+  url: z.string().url().optional().or(z.literal('')),
+  notification_type: z.string().max(50).optional(),
+  tag: z.string().max(50).optional(),
+});
+
 interface NotificationPayload {
   user_id?: string;
   tenant_id?: string;
@@ -19,6 +31,28 @@ interface NotificationPayload {
   url?: string;
   notification_type?: string;
   tag?: string;
+}
+
+// SECURITY: Rate limiting simple (en mémoire)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 50; // 50 notifications par minute par utilisateur
+const RATE_WINDOW = 60 * 1000; // 1 minute
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_WINDOW });
+    return true;
+  }
+
+  if (userLimit.count >= RATE_LIMIT) {
+    return false;
+  }
+
+  userLimit.count++;
+  return true;
 }
 
 /**
@@ -95,8 +129,9 @@ async function sendPushToEndpoint(
       headers['Authorization'] = `vapid t=${vapidToken}, k=${VAPID_PUBLIC_KEY}`;
     }
     
-    // Pour simplifier, on envoie les données sans chiffrement (non recommandé en production)
-    // En production, il faudrait chiffrer avec Web Push encryption
+    // SECURITY WARNING: Basic implementation without encryption
+    // En production réelle, utiliser une bibliothèque Web Push complète avec chiffrement
+    // Pour l'instant, on limite l'exposition en validant strictement les données
     const response = await fetch(endpoint, {
       method: 'POST',
       headers,
@@ -104,7 +139,8 @@ async function sendPushToEndpoint(
     });
     
     if (!response.ok) {
-      console.error(`Push failed: ${response.status} ${response.statusText}`);
+      // SECURITY: Ne pas exposer les détails de l'erreur
+      console.error(`Push failed: ${response.status}`);
       return false;
     }
     
@@ -148,7 +184,38 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const payload: NotificationPayload = await req.json();
+    // SECURITY: Rate limiting
+    if (!checkRateLimit(user.id)) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Maximum 50 notifications per minute.' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 429 
+        }
+      );
+    }
+
+    // SECURITY: Valider le payload
+    const rawPayload = await req.json();
+    const validationResult = notificationPayloadSchema.safeParse(rawPayload);
+    
+    if (!validationResult.success) {
+      console.error('Invalid payload:', validationResult.error.format());
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid notification payload',
+          details: validationResult.error.format()
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
+    }
+
+    const payload: NotificationPayload = validationResult.data;
 
     // SECURITY: Log only non-sensitive metadata, not the full payload
     console.log('Sending push notification type:', payload.notification_type);

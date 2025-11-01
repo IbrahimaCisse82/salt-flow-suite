@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo, useState } from "react";
 import { Waves, Menu, Bell, User, LogOut, Building2, PanelLeft, PanelLeftClose } from "lucide-react";
 import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -84,12 +83,20 @@ const HeaderComponent = () => {
   const { data: unreadCount = 0 } = useUnreadNotificationsCount();
   const markAsReadMutation = useMarkNotificationAsRead();
 
-  // Utiliser le rôle du contexte Auth au lieu d'une requête séparée
-  const userRole = (profile?.role as UserRole) ?? null;
+  // OPTIMIZATION: Memoize computed values
+  const userRole = useMemo(() => 
+    (profile?.role as UserRole) ?? null,
+    [profile?.role]
+  );
 
-  const navItems = userRole === 'admin' ? adminNavItems : salinesNavItems;
-  const visibleNavItems = navItems.filter(item => 
-    hasAccessToPage(userRole || null, item.href)
+  const navItems = useMemo(() => 
+    userRole === 'admin' ? adminNavItems : salinesNavItems,
+    [userRole]
+  );
+
+  const visibleNavItems = useMemo(() => 
+    navItems.filter(item => hasAccessToPage(userRole, item.href)),
+    [navItems, userRole]
   );
 
   const markAllAsRead = async () => {

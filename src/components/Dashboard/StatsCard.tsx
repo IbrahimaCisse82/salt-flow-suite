@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -11,7 +12,8 @@ interface StatsCardProps {
   gradient?: boolean;
 }
 
-export const StatsCard = ({ 
+// OPTIMIZATION: Memoize pour éviter re-renders inutiles
+export const StatsCard = memo(({ 
   title, 
   value, 
   change, 
@@ -55,4 +57,6 @@ export const StatsCard = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+StatsCard.displayName = 'StatsCard';

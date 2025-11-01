@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { BassinOverview } from "@/components/Dashboard/BassinOverview";
@@ -51,22 +52,47 @@ const Index = () => {
     );
   }
 
-  // Calculer les statistiques du personnel pour les gérants
-  const isManager = profile.role === 'admin' || profile.role === 'gerant';
-  const permanentCount = employees.filter(e => e.employee_type === 'permanent').length;
-  const seasonalCount = employees.filter(e => e.employee_type === 'saisonnier').length;
-  const activeTeamsCount = teams?.filter(t => t.status === 'active').length || 0;
+  // OPTIMIZATION: Memoize expensive calculations
+  const isManager = useMemo(() => 
+    profile.role === 'admin' || profile.role === 'gerant',
+    [profile.role]
+  );
+
+  const permanentCount = useMemo(() => 
+    employees.filter(e => e.employee_type === 'permanent').length,
+    [employees]
+  );
+
+  const seasonalCount = useMemo(() => 
+    employees.filter(e => e.employee_type === 'saisonnier').length,
+    [employees]
+  );
+
+  const activeTeamsCount = useMemo(() => 
+    teams?.filter(t => t.status === 'active').length || 0,
+    [teams]
+  );
   
-  // Statistiques des bassins
-  const activeBassinsCount = bassins?.filter(b => b.is_active).length || 0;
+  const activeBassinsCount = useMemo(() => 
+    bassins?.filter(b => b.is_active).length || 0,
+    [bassins]
+  );
+
   const totalBassinsCount = bassins?.length || 0;
-  
-  // Stats production et stock
   const totalProduction = productionStats?.total || 0;
   const availableStock = stockStats?.available || 0;
   
-  // Total employés actifs (permanents + journaliers)
-  const totalActiveEmployees = permanentCount + seasonalCount + dailyWorkers.length;
+  const totalActiveEmployees = useMemo(() => 
+    permanentCount + seasonalCount + dailyWorkers.length,
+    [permanentCount, seasonalCount, dailyWorkers.length]
+  );
+
+  const campagneProgress = useMemo(() => 
+    activeCampagne?.target_production 
+      ? (totalProduction / activeCampagne.target_production) * 100 
+      : 0,
+    [activeCampagne?.target_production, totalProduction]
+  );
   
   return (
     <div className="min-h-screen bg-background">
@@ -109,11 +135,7 @@ const Index = () => {
             employesJournaliers={dailyWorkers.length}
             stockDisponible={availableStock}
             stockEntrees={productionStats?.records}
-            campagneProgress={
-              activeCampagne?.target_production 
-                ? (totalProduction / activeCampagne.target_production) * 100 
-                : 0
-            }
+            campagneProgress={campagneProgress}
           />
 
           {/* Personnel Stats - Only for Managers */}
