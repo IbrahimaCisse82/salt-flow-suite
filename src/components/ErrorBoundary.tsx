@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 import { logger } from '@/utils/logger';
+import { errorTracker, logComponentError } from '@/utils/errorTracking';
 
 interface Props {
   children: ReactNode;
@@ -24,6 +25,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('ErrorBoundary caught an error:', error, errorInfo);
+    
+    // Track error for monitoring
+    logComponentError(error, { componentStack: errorInfo.componentStack || '' });
 
     // Auto-reload once on chunk/dynamic import errors (common after PWA updates)
     const msg = String(error?.message || '');

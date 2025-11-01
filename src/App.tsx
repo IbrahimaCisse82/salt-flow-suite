@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 import { Loader2 } from "lucide-react";
+import { usePageTracking } from "./hooks/usePageTracking";
 
 // Lazy load toutes les pages pour améliorer le temps de chargement initial
 const Index = lazy(() => import("./pages/Index"));
@@ -54,11 +55,18 @@ const PageLoader = () => (
   </div>
 );
 
+// Component to track page views
+const PageTracker = () => {
+  usePageTracking();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <SidebarProvider>
         <TooltipProvider>
+          <PageTracker />
           <Toaster />
           <Sonner />
           <Suspense fallback={<PageLoader />}>
