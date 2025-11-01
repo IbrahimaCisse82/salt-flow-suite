@@ -104,6 +104,7 @@ export type Database = {
           area: number | null
           code: string | null
           created_at: string | null
+          deleted_at: string | null
           id: string
           is_active: boolean | null
           location: string | null
@@ -115,6 +116,7 @@ export type Database = {
           area?: number | null
           code?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_active?: boolean | null
           location?: string | null
@@ -126,6 +128,7 @@ export type Database = {
           area?: number | null
           code?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_active?: boolean | null
           location?: string | null
@@ -183,6 +186,7 @@ export type Database = {
           actual_production: number | null
           budget_total: number | null
           created_at: string | null
+          deleted_at: string | null
           end_date: string | null
           id: string
           name: string
@@ -197,6 +201,7 @@ export type Database = {
           actual_production?: number | null
           budget_total?: number | null
           created_at?: string | null
+          deleted_at?: string | null
           end_date?: string | null
           id?: string
           name: string
@@ -211,6 +216,7 @@ export type Database = {
           actual_production?: number | null
           budget_total?: number | null
           created_at?: string | null
+          deleted_at?: string | null
           end_date?: string | null
           id?: string
           name?: string
@@ -277,6 +283,7 @@ export type Database = {
           address: string | null
           client_type: string | null
           created_at: string | null
+          deleted_at: string | null
           email: string | null
           id: string
           name: string
@@ -288,6 +295,7 @@ export type Database = {
           address?: string | null
           client_type?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           email?: string | null
           id?: string
           name: string
@@ -299,6 +307,7 @@ export type Database = {
           address?: string | null
           client_type?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           email?: string | null
           id?: string
           name?: string
@@ -320,6 +329,7 @@ export type Database = {
         Row: {
           created_at: string | null
           daily_rate: number | null
+          deleted_at: string | null
           full_name: string
           id: string
           phone: string | null
@@ -329,6 +339,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           daily_rate?: number | null
+          deleted_at?: string | null
           full_name: string
           id?: string
           phone?: string | null
@@ -338,6 +349,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           daily_rate?: number | null
+          deleted_at?: string | null
           full_name?: string
           id?: string
           phone?: string | null
@@ -357,6 +369,7 @@ export type Database = {
       employees: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           email: string | null
           employee_number: string | null
           employee_type: string | null
@@ -372,6 +385,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           email?: string | null
           employee_number?: string | null
           employee_type?: string | null
@@ -387,6 +401,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           email?: string | null
           employee_number?: string | null
           employee_type?: string | null
@@ -813,6 +828,7 @@ export type Database = {
           batch_number: string | null
           campagne_id: string | null
           created_at: string | null
+          deleted_at: string | null
           id: string
           production_date: string | null
           quality_grade: string | null
@@ -827,6 +843,7 @@ export type Database = {
           batch_number?: string | null
           campagne_id?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           production_date?: string | null
           quality_grade?: string | null
@@ -841,6 +858,7 @@ export type Database = {
           batch_number?: string | null
           campagne_id?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           production_date?: string | null
           quality_grade?: string | null
@@ -978,6 +996,7 @@ export type Database = {
           approved_by: string | null
           created_at: string | null
           created_by: string | null
+          deleted_at: string | null
           discount_amount: number | null
           expected_delivery_date: string | null
           id: string
@@ -998,6 +1017,7 @@ export type Database = {
           approved_by?: string | null
           created_at?: string | null
           created_by?: string | null
+          deleted_at?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
           id?: string
@@ -1018,6 +1038,7 @@ export type Database = {
           approved_by?: string | null
           created_at?: string | null
           created_by?: string | null
+          deleted_at?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
           id?: string
@@ -1089,6 +1110,7 @@ export type Database = {
           certificate_number: string
           certificate_type: string
           created_at: string | null
+          deleted_at: string | null
           document_url: string | null
           expiry_date: string | null
           id: string
@@ -1108,6 +1130,7 @@ export type Database = {
           certificate_number: string
           certificate_type?: string
           created_at?: string | null
+          deleted_at?: string | null
           document_url?: string | null
           expiry_date?: string | null
           id?: string
@@ -1127,6 +1150,7 @@ export type Database = {
           certificate_number?: string
           certificate_type?: string
           created_at?: string | null
+          deleted_at?: string | null
           document_url?: string | null
           expiry_date?: string | null
           id?: string
@@ -1172,6 +1196,7 @@ export type Database = {
           color_grade: string | null
           corrective_actions: string | null
           created_at: string | null
+          deleted_at: string | null
           grain_size: string | null
           humidity_level: number | null
           id: string
@@ -1192,6 +1217,7 @@ export type Database = {
           color_grade?: string | null
           corrective_actions?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           grain_size?: string | null
           humidity_level?: number | null
           id?: string
@@ -1212,6 +1238,7 @@ export type Database = {
           color_grade?: string | null
           corrective_actions?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           grain_size?: string | null
           humidity_level?: number | null
           id?: string
@@ -1252,6 +1279,7 @@ export type Database = {
           client_id: string | null
           created_at: string | null
           customer_name: string | null
+          deleted_at: string | null
           delivered: boolean | null
           delivery_date: string | null
           delivery_number: string | null
@@ -1278,6 +1306,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string | null
           customer_name?: string | null
+          deleted_at?: string | null
           delivered?: boolean | null
           delivery_date?: string | null
           delivery_number?: string | null
@@ -1304,6 +1333,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string | null
           customer_name?: string | null
+          deleted_at?: string | null
           delivered?: boolean | null
           delivery_date?: string | null
           delivery_number?: string | null
@@ -1924,6 +1954,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      soft_delete_record: {
+        Args: { record_id: string; table_name: string }
+        Returns: boolean
       }
       update_own_profile: {
         Args: {

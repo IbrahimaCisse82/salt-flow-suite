@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
@@ -7,6 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="G-Suite Sel">
+    
     <title>G-Suite Sel - Gestion des Marais Salants</title>
     <meta name="description" content="Solution SaaS complète pour la gestion des exploitations salines : bassins, production, stocks, équipes et campagnes">
     <meta name="keywords" content="marais salants, gestion saline, production sel, salines, exploitation sel, gestion bassins, campagne saline, SaaS agriculture">
@@ -15,38 +16,40 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0EA5E9">
 
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" 
+          content="default-src 'self'; 
+                   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://mwxybozfksdxrsipywlh.supabase.co; 
+                   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+                   img-src 'self' data: https: blob:; 
+                   font-src 'self' data: https://fonts.gstatic.com; 
+                   connect-src 'self' https://mwxybozfksdxrsipywlh.supabase.co wss://mwxybozfksdxrsipywlh.supabase.co https://api.openweathermap.org;
+                   frame-ancestors 'none';
+                   base-uri 'self';
+                   form-action 'self';">
     
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://g-suiteapp.com" />
+    <meta property="og:title" content="G-Suite Sel - Gestion des Marais Salants">
+    <meta property="og:description" content="Solution SaaS complète pour la gestion des exploitations salines : bassins, production, stocks, équipes et campagnes">
     <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/R9Ufit3s55SZi4HmE2MfnHIu2zc2/social-images/social-1760486610827-salt-logo-PZ4xvpl8.png">
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@gsuite_sel" />
     <meta name="twitter:url" content="https://g-suiteapp.com" />
+    <meta name="twitter:title" content="G-Suite Sel - Gestion des Marais Salants">
+    <meta name="twitter:description" content="Solution SaaS complète pour la gestion des exploitations salines : bassins, production, stocks, équipes et campagnes">
     <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/R9Ufit3s55SZi4HmE2MfnHIu2zc2/social-images/social-1760486610827-salt-logo-PZ4xvpl8.png">
-    
-  
-  
-  
-  <link rel="icon" type="image/x-icon" href="https://storage.googleapis.com/gpt-engineer-file-uploads/R9Ufit3s55SZi4HmE2MfnHIu2zc2/uploads/1760486599909-salt-logo-PZ4xvpl8.png">
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  <meta property="og:title" content="G-Suite Sel - Gestion des Marais Salants">
-  <meta name="twitter:title" content="G-Suite Sel - Gestion des Marais Salants">
-  <meta property="og:description" content="Solution SaaS complète pour la gestion des exploitations salines : bassins, production, stocks, équipes et campagnes">
-  <meta name="twitter:description" content="Solution SaaS complète pour la gestion des exploitations salines : bassins, production, stocks, équipes et campagnes">
-</head>
+   
+    <link rel="icon" type="image/x-icon" href="https://storage.googleapis.com/gpt-engineer-file-uploads/R9Ufit3s55SZi4HmE2MfnHIu2zc2/uploads/1760486599909-salt-logo-PZ4xvpl8.png">
+  </head>
 
   <body>
     <div id="root"></div>
