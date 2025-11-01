@@ -1713,6 +1713,8 @@ export type Database = {
           manager_name: string | null
           name: string
           ninea: string | null
+          onboarding_completed: boolean | null
+          onboarding_step: string | null
           rccm: string | null
           subdomain: string | null
           updated_at: string | null
@@ -1728,6 +1730,8 @@ export type Database = {
           manager_name?: string | null
           name: string
           ninea?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: string | null
           rccm?: string | null
           subdomain?: string | null
           updated_at?: string | null
@@ -1743,6 +1747,8 @@ export type Database = {
           manager_name?: string | null
           name?: string
           ninea?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: string | null
           rccm?: string | null
           subdomain?: string | null
           updated_at?: string | null

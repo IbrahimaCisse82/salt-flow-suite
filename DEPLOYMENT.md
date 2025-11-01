@@ -1,5 +1,41 @@
 # 🚀 Guide de Déploiement - G-Suite Sel
 
+## ✅ NOUVEAU: Vérification Compte Entreprise Vierge
+
+### Comportement des Nouveaux Comptes ✅
+
+Lors de la création d'un nouveau compte entreprise, le système garantit:
+
+✅ **Application vierge fonctionnelle**: Aucune donnée pré-remplie  
+✅ **Trigger automatique**: `initialize_new_tenant()` s'exécute à la création  
+✅ **Rôle propriétaire**: L'utilisateur créateur reçoit le rôle 'gerant'  
+✅ **Message d'accueil**: Composant `WelcomeNewTenant` guide l'utilisateur  
+✅ **Empty states**: Toutes les pages gèrent l'absence de données  
+✅ **Isolation multi-tenant**: Chaque entreprise voit uniquement ses données  
+
+### Flux d'Inscription Vérifié
+
+```
+1. Utilisateur s'inscrit → Création auth.users
+2. Trigger handle_new_user() → Création profil + rôle 'gerant'
+3. Création tenant → Trigger initialize_new_tenant()
+4. Liaison profil ↔ tenant_id
+5. Redirection dashboard → Message d'accueil affiché
+6. Pages chargent avec empty states appropriés
+```
+
+### Onboarding Nouveau Tenant
+
+Le système track l'état d'onboarding dans la table `tenants`:
+- `onboarding_completed`: Boolean indiquant si le tenant a terminé la config
+- `onboarding_step`: Étape actuelle (welcome, setup_bassins, setup_campagne, etc.)
+
+**Composants créés:**
+- `WelcomeNewTenant` - Message d'accueil avec checklist
+- `useTenant` - Hook pour gérer l'onboarding
+
+---
+
 ## 📋 Pré-requis
 
 ### ✅ Checklist Avant Déploiement

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { BassinOverview } from "@/components/Dashboard/BassinOverview";
@@ -6,6 +6,7 @@ import { ProductionChart } from "@/components/Dashboard/ProductionChart";
 import { WeatherWidget } from "@/components/Dashboard/WeatherWidget";
 import { DynamicKPIGrid } from "@/components/Dashboard/DynamicKPIGrid";
 import { KPICustomizer } from "@/components/Dashboard/KPICustomizer";
+import { WelcomeNewTenant } from "@/components/Dashboard/WelcomeNewTenant";
 import { Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,11 +20,14 @@ import { useBassins } from "@/hooks/useBassins";
 import { useProductionStats } from "@/hooks/useProductionRecords";
 import { useStockStats } from "@/hooks/useStockStats";
 import { useCampagnes } from "@/hooks/useCampagnes";
+import { useTenant } from "@/hooks/useTenant";
 import { DashboardSkeleton } from "@/components/LoadingSkeletons/DashboardSkeleton";
 
 const Index = () => {
   const { isOpen } = useSidebar();
   const { profile, loading } = useAuth();
+  const { isNewTenant, updateOnboarding } = useTenant();
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   
   // Attendre que le profil soit chargé avant d'exécuter les hooks
   const { data: employees = [] } = useEmployees();
@@ -33,6 +37,11 @@ const Index = () => {
   const { data: productionStats } = useProductionStats();
   const { data: stockStats } = useStockStats();
   const { activeCampagne } = useCampagnes();
+
+  const handleDismissWelcome = () => {
+    setWelcomeDismissed(true);
+    updateOnboarding({ completed: true });
+  };
 
   // Afficher un loader pendant le chargement du profil
   if (loading || !profile) {
@@ -105,6 +114,11 @@ const Index = () => {
           "flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 transition-all duration-300",
           isOpen ? "md:ml-64" : "md:ml-16"
         )}>
+          {/* Welcome Message for New Tenants */}
+          {isNewTenant && !welcomeDismissed && (
+            <WelcomeNewTenant onDismiss={handleDismissWelcome} />
+          )}
+
           {/* Hero Section */}
           <div className="rounded-2xl bg-gradient-to-br from-primary via-primary to-accent p-4 sm:p-8 text-primary-foreground shadow-elevated">
             <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
