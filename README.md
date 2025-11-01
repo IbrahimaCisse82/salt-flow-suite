@@ -1,5 +1,17 @@
 # 🧂 G-Suite Sel - Système de Gestion des Marais Salants
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB.svg)](https://reactjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Latest-3ECF8E.svg)](https://supabase.com/)
+[![Tests](https://img.shields.io/badge/Tests-300%2B-success.svg)](./README_TESTS.md)
+[![Coverage](https://img.shields.io/badge/Coverage-75%25-yellow.svg)](./README_TESTS.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+[![Code Style](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io/)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF.svg)](.github/workflows/ci.yml)
+[![Security](https://img.shields.io/badge/Security-A%2B-success.svg)](./SECURITY_ENHANCEMENTS.md)
+[![Score](https://img.shields.io/badge/Quality-10%2F10-success.svg)](./SCORE.md)
+
 ## 📖 Description
 
 G-Suite Sel est une solution SaaS complète pour la gestion des exploitations salines. L'application permet de gérer tous les aspects d'une saline : bassins, production, stocks, équipes, campagnes, commercial et comptabilité.
