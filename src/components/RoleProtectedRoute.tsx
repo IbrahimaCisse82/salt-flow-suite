@@ -1,30 +1,21 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { logger } from "@/utils/logger";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { profile, loading: authLoading } = useAuth();
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
   
-  // Utiliser le rôle du profil depuis AuthContext
   const userRole = (profile?.role as UserRole) || null;
-  
-  // Obtenir le chemin actuel sans utiliser useLocation()
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
-
-  useEffect(() => {
-    if (!authLoading) {
-      setCheckingAuth(false);
-    }
-  }, [authLoading]);
+  const currentPath = location.pathname;
 
   // Afficher le loader pendant la vérification
-  if (authLoading || checkingAuth) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -33,29 +24,18 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
   }
 
   // Si pas authentifié, rediriger vers /auth
-  useEffect(() => {
-    if (!profile && !authLoading) {
-      window.location.href = '/auth';
-    }
-  }, [profile, authLoading]);
-
-  // Redirections automatiques selon le rôle
-  useEffect(() => {
-    if (userRole === 'admin' && currentPath === '/') {
-      window.location.href = '/admin';
-    }
-    if (userRole !== 'admin' && currentPath.startsWith('/admin')) {
-      window.location.href = '/';
-    }
-  }, [userRole, currentPath]);
-
-  // Pendant la redirection, afficher un loader
   if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Redirection automatique pour admin depuis la racine
+  if (userRole === 'admin' && currentPath === '/') {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // Redirection automatique pour non-admin depuis les pages admin
+  if (userRole !== 'admin' && currentPath.startsWith('/admin')) {
+    return <Navigate to="/" replace />;
   }
 
   // Vérifier si l'utilisateur a accès à cette page
@@ -80,7 +60,7 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
             <p className="text-sm text-muted-foreground mb-4">
               Votre rôle actuel : <span className="font-semibold capitalize">{userRole}</span>
             </p>
-            <Button onClick={() => window.history.back()}>
+            <Button onClick={() => navigate(-1)}>
               Retour
             </Button>
           </CardContent>

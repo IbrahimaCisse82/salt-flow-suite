@@ -7,6 +7,7 @@ import { PushNotificationProvider } from "@/components/PushNotificationProvider"
 import { InteractiveTutorial } from "@/components/Onboarding/InteractiveTutorial";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ThemeProvider } from "next-themes";
+import { BrowserRouter } from "react-router-dom";
 
 // Component wrapper pour les hooks
 const AppWithFeatures = () => {
@@ -23,11 +24,13 @@ const AppWithFeatures = () => {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <ErrorBoundary>
-        <PushNotificationProvider>
-          <AppWithFeatures />
-        </PushNotificationProvider>
-      </ErrorBoundary>
+      <BrowserRouter>
+        <ErrorBoundary>
+          <PushNotificationProvider>
+            <AppWithFeatures />
+          </PushNotificationProvider>
+        </ErrorBoundary>
+      </BrowserRouter>
     </ThemeProvider>
   </React.StrictMode>
 );

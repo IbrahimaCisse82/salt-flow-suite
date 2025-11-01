@@ -2,10 +2,8 @@ import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { PushNotificationProvider } from "@/components/PushNotificationProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
@@ -57,50 +55,44 @@ const PageLoader = () => (
 );
 
 const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <PushNotificationProvider>
-            <SidebarProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <Suspense fallback={<PageLoader />}>
-                  <Routes>
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/install" element={<Install />} />
-                    <Route path="/cgu" element={<CGU />} />
-                    <Route path="/admin/setup" element={<AdminSetup />} />
-                  <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
-                  <Route path="/bassins" element={<RoleProtectedRoute><Bassins /></RoleProtectedRoute>} />
-                  <Route path="/campagne" element={<RoleProtectedRoute><Campagne /></RoleProtectedRoute>} />
-                  <Route path="/production" element={<RoleProtectedRoute><Production /></RoleProtectedRoute>} />
-                  <Route path="/stocks" element={<RoleProtectedRoute><Stocks /></RoleProtectedRoute>} />
-                  <Route path="/equipes" element={<RoleProtectedRoute><Equipes /></RoleProtectedRoute>} />
-                  <Route path="/conges" element={<RoleProtectedRoute><Conges /></RoleProtectedRoute>} />
-                  <Route path="/commercial" element={<RoleProtectedRoute><Commercial /></RoleProtectedRoute>} />
-                  <Route path="/rapports" element={<RoleProtectedRoute><Rapports /></RoleProtectedRoute>} />
-                  <Route path="/parametres" element={<RoleProtectedRoute><Parametres /></RoleProtectedRoute>} />
-                  <Route path="/comptabilite" element={<RoleProtectedRoute><Comptabilite /></RoleProtectedRoute>} />
-                  <Route path="/achats" element={<RoleProtectedRoute><Achats /></RoleProtectedRoute>} />
-                  <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
-                  <Route path="/admin" element={<RoleProtectedRoute><AdminDashboard /></RoleProtectedRoute>} />
-                  <Route path="/admin/tenants" element={<RoleProtectedRoute><AdminTenants /></RoleProtectedRoute>} />
-                  <Route path="/admin/users" element={<RoleProtectedRoute><AdminUserManagement /></RoleProtectedRoute>} />
-                  <Route path="/admin/roles" element={<RoleProtectedRoute><AdminRoles /></RoleProtectedRoute>} />
-                  <Route path="/admin/chart-of-accounts" element={<RoleProtectedRoute><AdminChartOfAccounts /></RoleProtectedRoute>} />
-                  <Route path="/admin/expense-types" element={<RoleProtectedRoute><AdminExpenseTypes /></RoleProtectedRoute>} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </Suspense>
-              </TooltipProvider>
-            </SidebarProvider>
-          </PushNotificationProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </ErrorBoundary>
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <SidebarProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/install" element={<Install />} />
+              <Route path="/cgu" element={<CGU />} />
+              <Route path="/admin/setup" element={<AdminSetup />} />
+              <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
+              <Route path="/bassins" element={<RoleProtectedRoute><Bassins /></RoleProtectedRoute>} />
+              <Route path="/campagne" element={<RoleProtectedRoute><Campagne /></RoleProtectedRoute>} />
+              <Route path="/production" element={<RoleProtectedRoute><Production /></RoleProtectedRoute>} />
+              <Route path="/stocks" element={<RoleProtectedRoute><Stocks /></RoleProtectedRoute>} />
+              <Route path="/equipes" element={<RoleProtectedRoute><Equipes /></RoleProtectedRoute>} />
+              <Route path="/conges" element={<RoleProtectedRoute><Conges /></RoleProtectedRoute>} />
+              <Route path="/commercial" element={<RoleProtectedRoute><Commercial /></RoleProtectedRoute>} />
+              <Route path="/rapports" element={<RoleProtectedRoute><Rapports /></RoleProtectedRoute>} />
+              <Route path="/parametres" element={<RoleProtectedRoute><Parametres /></RoleProtectedRoute>} />
+              <Route path="/comptabilite" element={<RoleProtectedRoute><Comptabilite /></RoleProtectedRoute>} />
+              <Route path="/achats" element={<RoleProtectedRoute><Achats /></RoleProtectedRoute>} />
+              <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
+              <Route path="/admin" element={<RoleProtectedRoute><AdminDashboard /></RoleProtectedRoute>} />
+              <Route path="/admin/tenants" element={<RoleProtectedRoute><AdminTenants /></RoleProtectedRoute>} />
+              <Route path="/admin/users" element={<RoleProtectedRoute><AdminUserManagement /></RoleProtectedRoute>} />
+              <Route path="/admin/roles" element={<RoleProtectedRoute><AdminRoles /></RoleProtectedRoute>} />
+              <Route path="/admin/chart-of-accounts" element={<RoleProtectedRoute><AdminChartOfAccounts /></RoleProtectedRoute>} />
+              <Route path="/admin/expense-types" element={<RoleProtectedRoute><AdminExpenseTypes /></RoleProtectedRoute>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </TooltipProvider>
+      </SidebarProvider>
+    </AuthProvider>
+  </QueryClientProvider>
 );
 
 export default App;
