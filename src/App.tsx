@@ -33,6 +33,10 @@ const AdminUserManagement = lazy(() => import("./pages/admin/UserManagement"));
 const AdminChartOfAccounts = lazy(() => import("./pages/admin/ChartOfAccounts"));
 const AdminExpenseTypes = lazy(() => import("./pages/admin/ExpenseTypes"));
 const AdminSetup = lazy(() => import("./pages/admin/Setup"));
+const AdminMonitoring = lazy(() => import("./pages/admin/Monitoring"));
+const AdminAuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
+const AdminEmailTemplates = lazy(() => import("./pages/admin/EmailTemplates"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Install = lazy(() => import("./pages/Install"));
 
@@ -94,6 +98,10 @@ const App = () => (
               <Route path="/admin/roles" element={<RoleProtectedRoute><AdminRoles /></RoleProtectedRoute>} />
               <Route path="/admin/chart-of-accounts" element={<RoleProtectedRoute><AdminChartOfAccounts /></RoleProtectedRoute>} />
               <Route path="/admin/expense-types" element={<RoleProtectedRoute><AdminExpenseTypes /></RoleProtectedRoute>} />
+              <Route path="/admin/monitoring" element={<RoleProtectedRoute><AdminMonitoring /></RoleProtectedRoute>} />
+              <Route path="/admin/audit-logs" element={<RoleProtectedRoute><AdminAuditLogs /></RoleProtectedRoute>} />
+              <Route path="/admin/settings" element={<RoleProtectedRoute><AdminSettings /></RoleProtectedRoute>} />
+              <Route path="/admin/email-templates" element={<RoleProtectedRoute><AdminEmailTemplates /></RoleProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

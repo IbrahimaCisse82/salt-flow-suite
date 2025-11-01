@@ -19,6 +19,8 @@ import {
   Receipt,
   PanelLeft,
   PanelLeftClose,
+  Activity,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -41,7 +43,10 @@ const adminNavItems: NavItem[] = [
   { icon: Shield, label: "Rôles & Permissions", href: "/admin/roles" },
   { icon: BookOpen, label: "Plan comptable", href: "/admin/chart-of-accounts" },
   { icon: Receipt, label: "Types de dépenses", href: "/admin/expense-types" },
-  { icon: Settings, label: "Paramètres", href: "/parametres" },
+  { icon: Activity, label: "Monitoring", href: "/admin/monitoring" },
+  { icon: FileText, label: "Logs d'Audit", href: "/admin/audit-logs" },
+  { icon: Settings, label: "Configuration", href: "/admin/settings" },
+  { icon: Mail, label: "Templates Emails", href: "/admin/email-templates" },
 ];
 
 const salinesNavItems: NavItem[] = [

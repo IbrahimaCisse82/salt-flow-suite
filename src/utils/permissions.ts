@@ -9,6 +9,10 @@ export const rolePermissions: Record<UserRole, string[]> = {
     '/admin/roles',
     '/admin/chart-of-accounts',
     '/admin/expense-types',
+    '/admin/monitoring',
+    '/admin/audit-logs',
+    '/admin/settings',
+    '/admin/email-templates',
     '/parametres'
   ],
   gerant: [
