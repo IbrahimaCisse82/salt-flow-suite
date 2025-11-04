@@ -1,5 +1,6 @@
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
+import { Breadcrumbs } from "@/components/Layout/Breadcrumbs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";

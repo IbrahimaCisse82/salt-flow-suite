@@ -147,8 +147,8 @@ const HeaderComponent = () => {
         description: "À bientôt !",
       });
       
-      // Utiliser window.location pour forcer un rechargement complet
-      window.location.href = "/auth";
+      // Navigation fluide vers /auth avec reset de l'historique
+      navigate("/auth", { replace: true });
     } catch (error) {
       logger.error("Logout error:", error);
       toast({
