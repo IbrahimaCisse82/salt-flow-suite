@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Smartphone, Download, Check, ArrowLeft } from "lucide-react";
+import { Smartphone, Download, Check, ArrowLeft, Monitor, Apple } from "lucide-react";
 import saltLogo from "@/assets/salt-logo.png";
 
 const Install = () => {
@@ -71,7 +71,7 @@ const Install = () => {
           </div>
           <CardTitle className="text-2xl">Installer G-Suite Sel</CardTitle>
           <CardDescription>
-            Installez l'application sur votre appareil pour un accès rapide et une expérience optimale
+            Disponible sur mobile, tablette, Windows et macOS
           </CardDescription>
         </CardHeader>
         
@@ -146,25 +146,61 @@ const Install = () => {
           )}
 
           <div className="pt-4 border-t space-y-3">
-            <h4 className="font-semibold text-sm">Avantages de l'installation :</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Accès rapide depuis votre écran d'accueil</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Fonctionne hors ligne pour consulter vos données</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Chargement plus rapide et expérience fluide</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Interface plein écran sans barre de navigation</span>
-              </li>
-            </ul>
+            <h4 className="font-semibold text-sm">Versions disponibles :</h4>
+            
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border">
+                <Monitor className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">Windows</p>
+                  <p className="text-xs text-muted-foreground">
+                    Installateur .exe pour Windows 7 et supérieur
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border">
+                <Apple className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">macOS</p>
+                  <p className="text-xs text-muted-foreground">
+                    Fichier .dmg pour macOS 10.13+ (Intel & Apple Silicon)
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border">
+                <Smartphone className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">Mobile & Web</p>
+                  <p className="text-xs text-muted-foreground">
+                    Installation depuis le navigateur (PWA)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <h4 className="font-semibold text-sm mb-2">Avantages :</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span>Accès rapide depuis votre bureau ou écran d'accueil</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span>Fonctionne hors ligne pour consulter vos données</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span>Chargement plus rapide et expérience native</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span>Interface plein écran optimisée</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </CardContent>
       </Card>
