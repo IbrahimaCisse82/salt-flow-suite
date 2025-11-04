@@ -36,30 +36,33 @@ export const useSales = () => {
     operation: 'insert',
     mutationFn: async (saleData: {
       client_id: string;
-      salt_type: string;
+      campagne_id?: string;
       quantity: number;
       unit_price: number;
-      discount?: number;
-      delivery_date: string;
       payment_status: string;
+      invoice_number?: string;
       notes?: string;
     }) => {
       if (!profile?.tenant_id) {
         throw new Error("Tenant ID manquant");
       }
 
-      const totalAmount = (saleData.quantity * saleData.unit_price) - (saleData.discount || 0);
+      const totalAmount = saleData.quantity * saleData.unit_price;
       
       const { data, error } = await supabase
         .from('sales')
-        .insert({
-          ...saleData,
-          tenant_id: profile.tenant_id,
+        .insert([{
+          client_id: saleData.client_id,
+          campagne_id: saleData.campagne_id,
+          quantity: saleData.quantity,
+          unit_price: saleData.unit_price,
           total_amount: totalAmount,
-          sale_date: new Date().toISOString().split('T')[0],
-          can_be_delivered: false,
-          delivered: false
-        })
+          payment_status: saleData.payment_status,
+          invoice_number: saleData.invoice_number,
+          notes: saleData.notes,
+          tenant_id: profile.tenant_id,
+          sale_date: new Date().toISOString().split('T')[0]
+        }] as any)
         .select()
         .single();
       

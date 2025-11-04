@@ -18,10 +18,10 @@ export const useTeams = () => {
         .from('teams')
         .select(`
           *,
-          leader:employees!leader_id(id, full_name, position),
+          supervisor:employees!supervisor_id(*),
           members:team_members(
             id,
-            employee:employees(id, full_name, position, employee_type)
+            employee:employees(*)
           )
         `)
         .order('name');
@@ -39,9 +39,7 @@ export const useTeams = () => {
   const createTeamMutation = useMutation({
     mutationFn: async (teamData: {
       name: string;
-      leader_id?: string;
-      sector?: string;
-      status?: string;
+      supervisor_id?: string;
     }) => {
       if (!profile?.tenant_id) {
         throw new Error('Tenant ID manquant');

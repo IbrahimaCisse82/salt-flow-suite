@@ -250,12 +250,11 @@ const Commercial = () => {
       
       await createSale({
         client_id: orderFormData.clientId,
-        salt_type: orderFormData.saltType,
+        campagne_id: undefined,
         quantity: parseFloat(orderFormData.quantity),
         unit_price: parseFloat(orderFormData.unitPrice),
-        discount: parseFloat(orderFormData.discount) || 0,
-        delivery_date: orderFormData.deliveryDate,
         payment_status: orderFormData.paymentTerms,
+        invoice_number: undefined,
         notes: orderFormData.notes
       });
       

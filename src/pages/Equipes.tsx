@@ -190,16 +190,12 @@ const Equipes = () => {
         await updateTeam({
           id: selectedTeam.id,
           name: teamFormData.name,
-          leader_id: teamFormData.leader || null,
-          sector: teamFormData.sector,
-          status: teamFormData.status
+          supervisor_id: teamFormData.leader || null
         });
       } else {
         await createTeam({
           name: teamFormData.name,
-          leader_id: teamFormData.leader || undefined,
-          sector: teamFormData.sector,
-          status: teamFormData.status
+          supervisor_id: teamFormData.leader || undefined
         });
       }
       
@@ -622,7 +618,7 @@ const Equipes = () => {
                           </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Chef: {team.leader?.full_name || 'Non assigné'} • {team.sector || 'N/A'}
+                        Chef: {Array.isArray(team.supervisor) && team.supervisor[0]?.full_name || 'Non assigné'}
                       </p>
                     </div>
                     <div className="text-right">
