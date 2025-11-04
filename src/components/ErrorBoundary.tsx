@@ -52,6 +52,24 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.href = '/';
   };
 
+  private handleHardReset = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+      if ('caches' in window) {
+        const names = await caches.keys();
+        await Promise.all(names.map((n) => caches.delete(n)));
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      try { sessionStorage.removeItem('chunk-reload-attempted'); } catch {}
+      window.location.replace('/');
+    }
+  };
+
   public render() {
     if (this.state.hasError) {
       return (
@@ -76,7 +94,14 @@ export class ErrorBoundary extends Component<Props, State> {
                   </p>
                 </div>
               )}
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={this.handleHardReset}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Réinitialiser l'application
+                </Button>
                 <Button 
                   onClick={() => window.location.reload()} 
                   variant="outline"
