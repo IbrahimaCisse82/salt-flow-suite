@@ -323,7 +323,7 @@ const Achats = () => {
                   <Package className="h-8 w-8 text-primary" />
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">Fournisseurs actifs</p>
-                <p className="text-3xl font-bold">{suppliers?.length || 0}</p>
+                <p className="text-3xl font-bold">{suppliers?.filter((s: any) => s.is_active !== false).length || 0}</p>
               </CardContent>
             </Card>
             <Card>
@@ -374,6 +374,7 @@ const Achats = () => {
                           <TableHead>Nom</TableHead>
                           <TableHead>Type</TableHead>
                           <TableHead>Contact</TableHead>
+                          <TableHead>Téléphone</TableHead>
                           <TableHead>Statut</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -381,11 +382,12 @@ const Achats = () => {
                         {suppliers.map((supplier: any) => (
                           <TableRow key={supplier.id}>
                             <TableCell className="font-medium">{supplier.name}</TableCell>
+                            <TableCell>{supplier.supplier_type || '-'}</TableCell>
                             <TableCell>{supplier.contact_person || '-'}</TableCell>
                             <TableCell>{supplier.phone || '-'}</TableCell>
                             <TableCell>
-                              <Badge variant="default">
-                                Actif
+                              <Badge variant={supplier.is_active !== false ? 'default' : 'secondary'}>
+                                {supplier.is_active !== false ? 'Actif' : 'Inactif'}
                               </Badge>
                             </TableCell>
                           </TableRow>

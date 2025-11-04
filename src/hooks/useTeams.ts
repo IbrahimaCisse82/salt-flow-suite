@@ -40,6 +40,8 @@ export const useTeams = () => {
     mutationFn: async (teamData: {
       name: string;
       supervisor_id?: string;
+      sector?: string;
+      status?: string;
     }) => {
       if (!profile?.tenant_id) {
         throw new Error('Tenant ID manquant');

@@ -255,7 +255,11 @@ const Commercial = () => {
         unit_price: parseFloat(orderFormData.unitPrice),
         payment_status: orderFormData.paymentTerms,
         invoice_number: undefined,
-        notes: orderFormData.notes
+        notes: orderFormData.notes,
+        salt_type: orderFormData.saltType,
+        discount: parseFloat(orderFormData.discount) || 0,
+        delivery_date: orderFormData.deliveryDate,
+        order_number: ""
       });
       
       setIsNewOrderDialogOpen(false);

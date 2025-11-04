@@ -80,7 +80,7 @@ export const useCreateAttendance = () => {
           ...attendance,
           tenant_id: profile?.tenant_id,
           status: 'pending'
-        })
+        } as any)
         .select()
         .single();
 

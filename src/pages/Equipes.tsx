@@ -190,12 +190,16 @@ const Equipes = () => {
         await updateTeam({
           id: selectedTeam.id,
           name: teamFormData.name,
-          supervisor_id: teamFormData.leader || null
+          supervisor_id: teamFormData.leader || null,
+          sector: teamFormData.sector,
+          status: teamFormData.status
         });
       } else {
         await createTeam({
           name: teamFormData.name,
-          supervisor_id: teamFormData.leader || undefined
+          supervisor_id: teamFormData.leader || undefined,
+          sector: teamFormData.sector,
+          status: teamFormData.status
         });
       }
       

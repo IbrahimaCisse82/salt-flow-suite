@@ -42,12 +42,19 @@ export const useSales = () => {
       payment_status: string;
       invoice_number?: string;
       notes?: string;
+      salt_type?: string;
+      discount?: number;
+      delivery_date?: string;
+      order_number?: string;
+      customer_name?: string;
     }) => {
       if (!profile?.tenant_id) {
         throw new Error("Tenant ID manquant");
       }
 
-      const totalAmount = saleData.quantity * saleData.unit_price;
+      const subtotal = saleData.quantity * saleData.unit_price;
+      const discount = saleData.discount || 0;
+      const totalAmount = subtotal - discount;
       
       const { data, error } = await supabase
         .from('sales')
@@ -60,6 +67,13 @@ export const useSales = () => {
           payment_status: saleData.payment_status,
           invoice_number: saleData.invoice_number,
           notes: saleData.notes,
+          salt_type: saleData.salt_type,
+          discount: discount,
+          delivery_date: saleData.delivery_date,
+          order_number: saleData.order_number,
+          customer_name: saleData.customer_name,
+          can_be_delivered: false,
+          delivered: false,
           tenant_id: profile.tenant_id,
           sale_date: new Date().toISOString().split('T')[0]
         }] as any)

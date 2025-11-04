@@ -1497,12 +1497,15 @@ export type Database = {
           customer_name: string | null
           deleted_at: string | null
           delivered: boolean | null
+          delivered_at: string | null
           delivery_date: string | null
           delivery_number: string | null
           discount: number | null
           id: string
           invoice_number: string | null
+          invoice_validated: boolean | null
           notes: string | null
+          order_number: string | null
           payment_status: string | null
           quality_certificate_id: string | null
           quantity: number | null
@@ -1524,12 +1527,15 @@ export type Database = {
           customer_name?: string | null
           deleted_at?: string | null
           delivered?: boolean | null
+          delivered_at?: string | null
           delivery_date?: string | null
           delivery_number?: string | null
           discount?: number | null
           id?: string
           invoice_number?: string | null
+          invoice_validated?: boolean | null
           notes?: string | null
+          order_number?: string | null
           payment_status?: string | null
           quality_certificate_id?: string | null
           quantity?: number | null
@@ -1551,12 +1557,15 @@ export type Database = {
           customer_name?: string | null
           deleted_at?: string | null
           delivered?: boolean | null
+          delivered_at?: string | null
           delivery_date?: string | null
           delivery_number?: string | null
           discount?: number | null
           id?: string
           invoice_number?: string | null
+          invoice_validated?: boolean | null
           notes?: string | null
+          order_number?: string | null
           payment_status?: string | null
           quality_certificate_id?: string | null
           quantity?: number | null
