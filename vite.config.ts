@@ -19,11 +19,12 @@ export default defineConfig(({ mode }) => ({
     react(), 
     mode === "development" && componentTagger(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['salt-logo.png', 'robots.txt', 'sw-push.js'],
       strategies: 'injectManifest',
       srcDir: 'public',
       filename: 'sw-push.js',
+      injectRegister: 'auto',
       manifest: {
         name: 'G-Suite Sel - Gestion des Marais Salants',
         short_name: 'G-Suite Sel',
@@ -44,8 +45,8 @@ export default defineConfig(({ mode }) => ({
         ]
       },
       workbox: {
-        skipWaiting: true,
-        clientsClaim: true,
+        skipWaiting: false,
+        clientsClaim: false,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         // Ne pas mettre en cache les pages d'authentification
         navigateFallbackDenylist: [/^\/auth/],

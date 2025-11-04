@@ -5,6 +5,7 @@ import "./index.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PushNotificationProvider } from "@/components/PushNotificationProvider";
 import { InteractiveTutorial } from "@/components/Onboarding/InteractiveTutorial";
+import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ThemeProvider } from "next-themes";
 import { BrowserRouter } from "react-router-dom";
@@ -33,6 +34,7 @@ const AppWithFeatures = () => {
     <>
       <App />
       <InteractiveTutorial />
+      <PWAUpdatePrompt />
     </>
   );
 };
