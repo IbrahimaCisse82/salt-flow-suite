@@ -7,7 +7,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
-import { PageTransition } from "@/components/Layout/PageTransition";
 import { Loader2 } from "lucide-react";
 import { usePageTracking } from "./hooks/usePageTracking";
 
@@ -75,38 +74,36 @@ const App = () => (
           <Toaster />
           <Sonner />
           <Suspense fallback={<PageLoader />}>
-            <PageTransition>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/install" element={<Install />} />
-                <Route path="/cgu" element={<CGU />} />
-                <Route path="/admin/setup" element={<AdminSetup />} />
-                <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
-                <Route path="/bassins" element={<RoleProtectedRoute><Bassins /></RoleProtectedRoute>} />
-                <Route path="/campagne" element={<RoleProtectedRoute><Campagne /></RoleProtectedRoute>} />
-                <Route path="/production" element={<RoleProtectedRoute><Production /></RoleProtectedRoute>} />
-                <Route path="/stocks" element={<RoleProtectedRoute><Stocks /></RoleProtectedRoute>} />
-                <Route path="/equipes" element={<RoleProtectedRoute><Equipes /></RoleProtectedRoute>} />
-                <Route path="/conges" element={<RoleProtectedRoute><Conges /></RoleProtectedRoute>} />
-                <Route path="/commercial" element={<RoleProtectedRoute><Commercial /></RoleProtectedRoute>} />
-                <Route path="/rapports" element={<RoleProtectedRoute><Rapports /></RoleProtectedRoute>} />
-                <Route path="/parametres" element={<RoleProtectedRoute><Parametres /></RoleProtectedRoute>} />
-                <Route path="/comptabilite" element={<RoleProtectedRoute><Comptabilite /></RoleProtectedRoute>} />
-                <Route path="/achats" element={<RoleProtectedRoute><Achats /></RoleProtectedRoute>} />
-                <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
-                <Route path="/admin" element={<RoleProtectedRoute><AdminDashboard /></RoleProtectedRoute>} />
-                <Route path="/admin/tenants" element={<RoleProtectedRoute><AdminTenants /></RoleProtectedRoute>} />
-                <Route path="/admin/users" element={<RoleProtectedRoute><AdminUserManagement /></RoleProtectedRoute>} />
-                <Route path="/admin/roles" element={<RoleProtectedRoute><AdminRoles /></RoleProtectedRoute>} />
-                <Route path="/admin/chart-of-accounts" element={<RoleProtectedRoute><AdminChartOfAccounts /></RoleProtectedRoute>} />
-                <Route path="/admin/expense-types" element={<RoleProtectedRoute><AdminExpenseTypes /></RoleProtectedRoute>} />
-                <Route path="/admin/monitoring" element={<RoleProtectedRoute><AdminMonitoring /></RoleProtectedRoute>} />
-                <Route path="/admin/audit-logs" element={<RoleProtectedRoute><AdminAuditLogs /></RoleProtectedRoute>} />
-                <Route path="/admin/settings" element={<RoleProtectedRoute><AdminSettings /></RoleProtectedRoute>} />
-                <Route path="/admin/email-templates" element={<RoleProtectedRoute><AdminEmailTemplates /></RoleProtectedRoute>} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </PageTransition>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/install" element={<Install />} />
+              <Route path="/cgu" element={<CGU />} />
+              <Route path="/admin/setup" element={<AdminSetup />} />
+              <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
+              <Route path="/bassins" element={<RoleProtectedRoute><Bassins /></RoleProtectedRoute>} />
+              <Route path="/campagne" element={<RoleProtectedRoute><Campagne /></RoleProtectedRoute>} />
+              <Route path="/production" element={<RoleProtectedRoute><Production /></RoleProtectedRoute>} />
+              <Route path="/stocks" element={<RoleProtectedRoute><Stocks /></RoleProtectedRoute>} />
+              <Route path="/equipes" element={<RoleProtectedRoute><Equipes /></RoleProtectedRoute>} />
+              <Route path="/conges" element={<RoleProtectedRoute><Conges /></RoleProtectedRoute>} />
+              <Route path="/commercial" element={<RoleProtectedRoute><Commercial /></RoleProtectedRoute>} />
+              <Route path="/rapports" element={<RoleProtectedRoute><Rapports /></RoleProtectedRoute>} />
+              <Route path="/parametres" element={<RoleProtectedRoute><Parametres /></RoleProtectedRoute>} />
+              <Route path="/comptabilite" element={<RoleProtectedRoute><Comptabilite /></RoleProtectedRoute>} />
+              <Route path="/achats" element={<RoleProtectedRoute><Achats /></RoleProtectedRoute>} />
+              <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
+              <Route path="/admin" element={<RoleProtectedRoute><AdminDashboard /></RoleProtectedRoute>} />
+              <Route path="/admin/tenants" element={<RoleProtectedRoute><AdminTenants /></RoleProtectedRoute>} />
+              <Route path="/admin/users" element={<RoleProtectedRoute><AdminUserManagement /></RoleProtectedRoute>} />
+              <Route path="/admin/roles" element={<RoleProtectedRoute><AdminRoles /></RoleProtectedRoute>} />
+              <Route path="/admin/chart-of-accounts" element={<RoleProtectedRoute><AdminChartOfAccounts /></RoleProtectedRoute>} />
+              <Route path="/admin/expense-types" element={<RoleProtectedRoute><AdminExpenseTypes /></RoleProtectedRoute>} />
+              <Route path="/admin/monitoring" element={<RoleProtectedRoute><AdminMonitoring /></RoleProtectedRoute>} />
+              <Route path="/admin/audit-logs" element={<RoleProtectedRoute><AdminAuditLogs /></RoleProtectedRoute>} />
+              <Route path="/admin/settings" element={<RoleProtectedRoute><AdminSettings /></RoleProtectedRoute>} />
+              <Route path="/admin/email-templates" element={<RoleProtectedRoute><AdminEmailTemplates /></RoleProtectedRoute>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </Suspense>
         </TooltipProvider>
       </SidebarProvider>
