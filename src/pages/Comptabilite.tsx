@@ -97,9 +97,8 @@ const Comptabilite = () => {
     notes: ""
   });
 
-  // Récupérer les employés et journaliers
   // Récupérer les types de dépenses
-  const { data: expenseTypes = [] } = useQuery({
+  const { data: expenseTypes = [], isLoading: expenseTypesLoading } = useQuery({
     queryKey: ['expense-types'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -108,7 +107,11 @@ const Comptabilite = () => {
         .eq('is_active', true)
         .order('name');
       
-      if (error) throw error;
+      if (error) {
+        logger.error('Error fetching expense types:', error);
+        throw error;
+      }
+      logger.info('Expense types loaded:', data?.length || 0);
       return data || [];
     }
   });
@@ -1415,7 +1418,7 @@ const Comptabilite = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="depense-type">Type de dépense</Label>
+                      <Label htmlFor="depense-type">Type de dépense *</Label>
                       <Select
                         value={expenseFormData.expenseTypeId}
                         onValueChange={(value) => {
@@ -1426,23 +1429,41 @@ const Comptabilite = () => {
                             description: selectedType?.name || ""
                           });
                         }}
+                        disabled={expenseTypesLoading}
                       >
                         <SelectTrigger id="depense-type">
-                          <SelectValue placeholder="Sélectionnez un type de dépense" />
+                          <SelectValue placeholder={
+                            expenseTypesLoading 
+                              ? "Chargement..." 
+                              : expenseTypes.length === 0
+                              ? "Aucun type de dépense disponible"
+                              : "Sélectionnez un type de dépense"
+                          } />
                         </SelectTrigger>
                         <SelectContent className="bg-background z-50">
-                          {expenseTypes.map((expenseType) => (
-                            <SelectItem key={expenseType.id} value={expenseType.id}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{expenseType.name}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  {expenseType.account_number} - {expenseType.syscohada_category}
-                                </span>
-                              </div>
-                            </SelectItem>
-                          ))}
+                          {expenseTypes.length === 0 ? (
+                            <div className="p-2 text-sm text-muted-foreground">
+                              Aucun type de dépense configuré
+                            </div>
+                          ) : (
+                            expenseTypes.map((expenseType) => (
+                              <SelectItem key={expenseType.id} value={expenseType.id}>
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{expenseType.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {expenseType.account_number} - {expenseType.syscohada_category}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
+                      {expenseTypes.length === 0 && !expenseTypesLoading && (
+                        <p className="text-xs text-muted-foreground">
+                          Veuillez configurer les types de dépenses dans la section Administration
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="depense-description">Description (optionnel)</Label>
