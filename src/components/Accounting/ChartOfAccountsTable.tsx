@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen } from "lucide-react";
 
 export const ChartOfAccountsTable = () => {
-  const { data: chartOfAccounts } = useQuery({
+  const { data: chartOfAccounts, isLoading } = useQuery({
     queryKey: ['chart-of-accounts'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -35,26 +35,36 @@ export const ChartOfAccountsTable = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Compte</TableHead>
-                <TableHead>Nom du compte</TableHead>
-                <TableHead>Type</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {chartOfAccounts?.map((account) => (
-                <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.account_number}</TableCell>
-                  <TableCell>{account.account_name}</TableCell>
-                  <TableCell className="text-muted-foreground">{account.account_type}</TableCell>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <p className="text-muted-foreground">Chargement du plan comptable...</p>
+          </div>
+        ) : !chartOfAccounts || chartOfAccounts.length === 0 ? (
+          <div className="flex items-center justify-center py-8">
+            <p className="text-muted-foreground">Aucun compte actif trouvé dans le plan comptable</p>
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Compte</TableHead>
+                  <TableHead>Nom du compte</TableHead>
+                  <TableHead>Type</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {chartOfAccounts.map((account) => (
+                  <TableRow key={account.id}>
+                    <TableCell className="font-medium">{account.account_number}</TableCell>
+                    <TableCell>{account.account_name}</TableCell>
+                    <TableCell className="text-muted-foreground">{account.account_type}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
