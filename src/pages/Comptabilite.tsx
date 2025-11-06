@@ -9,6 +9,14 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 import { logger } from "@/utils/logger";
 import { TableSkeleton } from "@/components/LoadingSkeletons/TableSkeleton";
 import { ListSkeleton } from "@/components/LoadingSkeletons/ListSkeleton";
@@ -917,14 +925,14 @@ const Comptabilite = () => {
             </CardContent>
           </Card>
 
-          {/* Onglets principaux */}
           <Tabs defaultValue="achats" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="achats">Achats</TabsTrigger>
               <TabsTrigger value="salaires">Salaires</TabsTrigger>
               <TabsTrigger value="vente">Vente</TabsTrigger>
               <TabsTrigger value="virement">Virement interne</TabsTrigger>
               <TabsTrigger value="divers">Divers</TabsTrigger>
+              <TabsTrigger value="types-depenses">Types dépenses</TabsTrigger>
               <TabsTrigger value="plan-comptable">Plan comptable</TabsTrigger>
               <TabsTrigger value="rapprochement">Rapprochement</TabsTrigger>
             </TabsList>
@@ -1260,6 +1268,63 @@ const Comptabilite = () => {
                       ))
                     )}
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Onglet Types de dépenses */}
+            <TabsContent value="types-depenses" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Types de dépenses configurés</span>
+                    <span className="text-sm font-normal text-muted-foreground">
+                      {expenseTypes.length} type(s) actif(s)
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {expenseTypesLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <p className="text-muted-foreground">Chargement des types de dépenses...</p>
+                    </div>
+                  ) : expenseTypes.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <FileText className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                      <p className="text-muted-foreground text-center mb-4">
+                        Aucun type de dépense configuré
+                      </p>
+                      <p className="text-sm text-muted-foreground text-center max-w-md">
+                        Les types de dépenses permettent de catégoriser vos achats selon le plan comptable SYSCOHADA.
+                        Configurez-les dans la section Administration.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Nom</TableHead>
+                            <TableHead>Compte</TableHead>
+                            <TableHead>Catégorie SYSCOHADA</TableHead>
+                            <TableHead>Observations</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {expenseTypes.map((type) => (
+                            <TableRow key={type.id}>
+                              <TableCell className="font-medium">{type.name}</TableCell>
+                              <TableCell className="font-mono text-sm">{type.account_number}</TableCell>
+                              <TableCell className="text-sm">{type.syscohada_category}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                                {type.observations || '-'}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
