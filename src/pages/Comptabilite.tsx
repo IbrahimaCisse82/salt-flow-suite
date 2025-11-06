@@ -47,80 +47,6 @@ import {
   FileText
 } from "lucide-react";
 
-const expenseCategories = [
-  {
-    type: "Frais de maintenance",
-    category: "Charges externes",
-    account: "615 – Entretien et réparations",
-    notes: "Pour machines, véhicules, bâtiments"
-  },
-  {
-    type: "Voyage",
-    category: "Charges externes",
-    account: "618 – Déplacements, missions, réceptions",
-    notes: "Inclut billets, hébergements"
-  },
-  {
-    type: "Foire et atelier",
-    category: "Charges externes",
-    account: "618 – Publicité, publications, relations publiques",
-    notes: "Participation salons, expositions"
-  },
-  {
-    type: "Frais communication et marketing",
-    category: "Charges externes",
-    account: "618 – Publicité, communication",
-    notes: "Campagnes médias, flyers, pub"
-  },
-  {
-    type: "Achat fournitures de bureau",
-    category: "Charges externes",
-    account: "334 – Fournitures de bureau",
-    notes: "Consommables de bureau"
-  },
-  {
-    type: "Matériel informatique",
-    category: "Immobilisations corporelles",
-    account: "2442 – Matériel informatique",
-    notes: "Ordinateurs, serveurs, imprimantes"
-  },
-  {
-    type: "Achat camion",
-    category: "Immobilisations corporelles",
-    account: "2451 – Matériel automobile",
-    notes: "Véhicule amortissable"
-  },
-  {
-    type: "Électricité",
-    category: "Charges externes",
-    account: "611 – Électricité",
-    notes: "Dépenses récurrentes"
-  },
-  {
-    type: "Eau",
-    category: "Charges externes",
-    account: "612 – Eau",
-    notes: "Dépenses récurrentes"
-  },
-  {
-    type: "Internet",
-    category: "Charges externes",
-    account: "616 – Télécommunications",
-    notes: "Abonnements internet"
-  },
-  {
-    type: "Mobilier de bureau",
-    category: "Immobilisations corporelles",
-    account: "2444 – Mobilier de bureau",
-    notes: "Tables, chaises, armoires"
-  },
-  {
-    type: "Location bureau",
-    category: "Charges externes",
-    account: "616 – Loyers",
-    notes: "Location immeuble / local"
-  }
-];
 
 const Comptabilite = () => {
   const { toast } = useToast();
@@ -144,6 +70,7 @@ const Comptabilite = () => {
     accountId: "",
     campagneId: "",
     campagnePhase: "",
+    expenseTypeId: "",
     description: "",
     amount: "",
     reference: "",
@@ -171,6 +98,21 @@ const Comptabilite = () => {
   });
 
   // Récupérer les employés et journaliers
+  // Récupérer les types de dépenses
+  const { data: expenseTypes = [] } = useQuery({
+    queryKey: ['expense-types'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('expense_types')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
   const { data: employees = [] } = useQuery({
     queryKey: ['employees'],
     queryFn: async () => {
@@ -491,20 +433,15 @@ const Comptabilite = () => {
       const amount = parseFloat(formData.amount);
       if (!amount || amount <= 0) throw new Error('Montant invalide');
 
-      // 1. Trouver le compte comptable correspondant à l'achat
-      const expenseCategory = expenseCategories.find(c => c.type === formData.description);
-      const accountNumberMatch = expenseCategory?.account.match(/(\d+)/);
-      const chargeAccountNumber = accountNumberMatch ? accountNumberMatch[1] : null;
+      // 1. Récupérer le type de dépense et son compte comptable associé
+      const { data: expenseType, error: expenseTypeError } = await supabase
+        .from('expense_types')
+        .select('*, account_id, name')
+        .eq('id', formData.expenseTypeId)
+        .single();
 
-      if (!chargeAccountNumber) throw new Error('Compte comptable de charge introuvable');
-
-      const { data: chargeAccount } = await supabase
-        .from('chart_of_accounts')
-        .select('id')
-        .eq('account_number', chargeAccountNumber)
-        .maybeSingle();
-
-      if (!chargeAccount) throw new Error(`Compte ${chargeAccountNumber} introuvable dans le plan comptable`);
+      if (expenseTypeError || !expenseType) throw new Error('Type de dépense introuvable');
+      if (!expenseType.account_id) throw new Error('Aucun compte comptable associé à ce type de dépense');
 
       // 2. Générer le numéro de document avec code journal ACH
       const journalCode = 'ACH';
@@ -547,10 +484,10 @@ const Comptabilite = () => {
         {
           tenant_id: profile.tenant_id,
           transaction_id: transaction.id,
-          account_id: chargeAccount.id,
+          account_id: expenseType.account_id,
           debit: amount,
           credit: 0,
-          description: `Achat: ${formData.description}`
+          description: `${expenseType.name}: ${formData.description}`
         },
         {
           tenant_id: profile.tenant_id,
@@ -558,7 +495,7 @@ const Comptabilite = () => {
           account_id: formData.accountId,
           debit: 0,
           credit: amount,
-          description: `Paiement: ${formData.description}`
+          description: `Paiement: ${expenseType.name}`
         }
       ];
 
@@ -583,6 +520,7 @@ const Comptabilite = () => {
         accountId: "",
         campagneId: "",
         campagnePhase: "",
+        expenseTypeId: "",
         description: "",
         amount: "",
         reference: "",
@@ -1477,25 +1415,43 @@ const Comptabilite = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="depense-description">Type de dépense</Label>
+                      <Label htmlFor="depense-type">Type de dépense</Label>
                       <Select
-                        value={expenseFormData.description}
-                        onValueChange={(value) => setExpenseFormData({...expenseFormData, description: value})}
+                        value={expenseFormData.expenseTypeId}
+                        onValueChange={(value) => {
+                          const selectedType = expenseTypes.find(t => t.id === value);
+                          setExpenseFormData({
+                            ...expenseFormData, 
+                            expenseTypeId: value,
+                            description: selectedType?.name || ""
+                          });
+                        }}
                       >
-                        <SelectTrigger id="depense-description">
-                          <SelectValue placeholder="Sélectionnez une catégorie de dépense" />
+                        <SelectTrigger id="depense-type">
+                          <SelectValue placeholder="Sélectionnez un type de dépense" />
                         </SelectTrigger>
                         <SelectContent className="bg-background z-50">
-                          {expenseCategories.map((expense) => (
-                            <SelectItem key={expense.type} value={expense.type}>
+                          {expenseTypes.map((expenseType) => (
+                            <SelectItem key={expenseType.id} value={expenseType.id}>
                               <div className="flex flex-col">
-                                <span className="font-medium">{expense.type}</span>
-                                <span className="text-xs text-muted-foreground">{expense.account}</span>
+                                <span className="font-medium">{expenseType.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {expenseType.account_number} - {expenseType.syscohada_category}
+                                </span>
                               </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="depense-description">Description (optionnel)</Label>
+                      <Input 
+                        id="depense-description"
+                        placeholder="Détails supplémentaires..."
+                        value={expenseFormData.description}
+                        onChange={(e) => setExpenseFormData({...expenseFormData, description: e.target.value})}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="depense-amount">Montant (FCFA)</Label>
