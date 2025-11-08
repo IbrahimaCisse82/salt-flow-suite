@@ -52,14 +52,20 @@ import {
   TrendingDown,
   DollarSign,
   CreditCard,
-  FileText
+  FileText,
+  Package
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 const Comptabilite = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isOpen } = useSidebar();
+  const { profile } = useAuth();
+  const { purchaseOrders, isLoading: purchaseOrdersLoading } = usePurchaseOrders();
   const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -941,21 +947,82 @@ const Comptabilite = () => {
             <TabsContent value="achats" className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Achats</h2>
-                <Button 
-                  className="gap-2 bg-gradient-to-r from-primary to-accent"
-                  onClick={() => {
-                    setTransactionType("achat");
-                    setShowTransactionDialog(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Nouvel achat
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => window.location.href = '/achats'}
+                  >
+                    <Package className="h-4 w-4" />
+                    Voir module achats complet
+                  </Button>
+                  <Button 
+                    className="gap-2 bg-gradient-to-r from-primary to-accent"
+                    onClick={() => {
+                      setTransactionType("achat");
+                      setShowTransactionDialog(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Nouvel achat
+                  </Button>
+                </div>
               </div>
 
+              {/* Section Bons de commande */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Transactions récentes</CardTitle>
+                  <CardTitle>Bons de commande récents</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {purchaseOrdersLoading ? (
+                    <p className="text-center py-4 text-muted-foreground">Chargement...</p>
+                  ) : purchaseOrders && purchaseOrders.length > 0 ? (
+                    <div className="space-y-3">
+                      {purchaseOrders.slice(0, 5).map((order: any) => (
+                        <div key={order.id} className="flex items-center justify-between p-4 rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <Package className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-semibold">{order.order_number}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {order.order_date} • {order.supplier?.name || 'Fournisseur'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold">
+                              {order.total_amount?.toLocaleString() || '0'} FCFA
+                            </p>
+                            <Badge variant={
+                              order.status === 'received' ? 'default' : 
+                              order.status === 'cancelled' ? 'destructive' : 
+                              'secondary'
+                            }>
+                              {order.status === 'draft' ? 'Brouillon' :
+                               order.status === 'sent' ? 'Envoyé' :
+                               order.status === 'confirmed' ? 'Confirmé' :
+                               order.status === 'received' ? 'Reçu' :
+                               order.status === 'cancelled' ? 'Annulé' : order.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground py-4">
+                      Aucun bon de commande. <a href="/achats" className="text-primary hover:underline">Créer un bon de commande</a>
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Section Transactions comptables */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Transactions comptables</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -985,7 +1052,7 @@ const Comptabilite = () => {
                     ))}
                     {recentTransactions.filter(t => t.type === "depense" && !t.description.includes('Salaire')).length === 0 && (
                       <p className="text-center text-muted-foreground py-4">
-                        Aucun achat enregistré
+                        Aucune transaction comptable enregistrée
                       </p>
                     )}
                   </div>
