@@ -31,6 +31,12 @@ export const useSales = () => {
     retry: 1
   });
 
+  // Filtres par statut pour les différents onglets
+  const draftSales = sales.filter(s => !s.sale_status || s.sale_status === 'draft');
+  const confirmedSales = sales.filter(s => s.sale_status === 'confirmed');
+  const invoicedSales = sales.filter(s => ['invoiced', 'delivered', 'completed'].includes(s.sale_status || ''));
+  const deliveredSales = sales.filter(s => ['delivered', 'completed'].includes(s.sale_status || ''));
+
   const createSaleMutation = useOfflineMutation({
     tableName: 'sales',
     operation: 'insert',
@@ -74,6 +80,8 @@ export const useSales = () => {
           customer_name: saleData.customer_name,
           can_be_delivered: false,
           delivered: false,
+          sale_status: 'draft', // Nouvelle vente = brouillon
+          stock_updated: false, // Sera mis à jour par trigger si confirmé
           tenant_id: profile.tenant_id,
           sale_date: new Date().toISOString().split('T')[0]
         }] as any)
@@ -127,6 +135,10 @@ export const useSales = () => {
 
   return {
     sales,
+    draftSales,
+    confirmedSales,
+    invoicedSales,
+    deliveredSales,
     isLoading,
     createSale: createSaleMutation.mutateAsync,
     updateSale: updateSaleMutation.mutateAsync,

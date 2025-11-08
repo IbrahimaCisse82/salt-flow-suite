@@ -1022,6 +1022,7 @@ export type Database = {
           quality_grade: string | null
           quantity: number | null
           salt_type: string
+          stock_updated: boolean | null
           tenant_id: string
           traceability_code: string | null
           updated_at: string | null
@@ -1037,6 +1038,7 @@ export type Database = {
           quality_grade?: string | null
           quantity?: number | null
           salt_type: string
+          stock_updated?: boolean | null
           tenant_id: string
           traceability_code?: string | null
           updated_at?: string | null
@@ -1052,6 +1054,7 @@ export type Database = {
           quality_grade?: string | null
           quantity?: number | null
           salt_type?: string
+          stock_updated?: boolean | null
           tenant_id?: string
           traceability_code?: string | null
           updated_at?: string | null
@@ -1510,10 +1513,13 @@ export type Database = {
           quality_certificate_id: string | null
           quantity: number | null
           sale_date: string | null
+          sale_status: string | null
           salt_type: string
+          stock_updated: boolean | null
           tenant_id: string
           total_amount: number | null
           traceability_code: string | null
+          transaction_id: string | null
           unit_price: number | null
           updated_at: string | null
         }
@@ -1540,10 +1546,13 @@ export type Database = {
           quality_certificate_id?: string | null
           quantity?: number | null
           sale_date?: string | null
+          sale_status?: string | null
           salt_type: string
+          stock_updated?: boolean | null
           tenant_id: string
           total_amount?: number | null
           traceability_code?: string | null
+          transaction_id?: string | null
           unit_price?: number | null
           updated_at?: string | null
         }
@@ -1570,10 +1579,13 @@ export type Database = {
           quality_certificate_id?: string | null
           quantity?: number | null
           sale_date?: string | null
+          sale_status?: string | null
           salt_type?: string
+          stock_updated?: boolean | null
           tenant_id?: string
           total_amount?: number | null
           traceability_code?: string | null
+          transaction_id?: string | null
           unit_price?: number | null
           updated_at?: string | null
         }
@@ -1604,6 +1616,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
