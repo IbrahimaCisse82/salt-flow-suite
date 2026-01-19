@@ -22,11 +22,14 @@ import { useState } from "react";
 const Achats = () => {
   const { toast } = useToast();
   const { isOpen } = useSidebar();
-  const { suppliers, isLoading: suppliersLoading } = useSuppliers();
-  const { purchaseOrders, isLoading: ordersLoading } = usePurchaseOrders();
+  //const { suppliers, isLoading: suppliersLoading } = useSuppliers();
+  const { suppliers, isLoading: suppliersLoading, createSupplier } = useSuppliers();
+  //const { purchaseOrders, isLoading: ordersLoading } = usePurchaseOrders();
+  const { purchaseOrders, isLoading: ordersLoading, createPurchaseOrder } = usePurchaseOrders();
   
   const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  
   
   const [supplierFormData, setSupplierFormData] = useState({
     name: "",
@@ -66,12 +69,45 @@ const Achats = () => {
     });
   };
   
-  const handleOrderSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+ const handleOrderSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    await createPurchaseOrder.mutateAsync({
+      supplier_id: orderFormData.supplierId,
+      order_date: orderFormData.orderDate,
+      delivery_date: orderFormData.deliveryDate,
+      items: orderFormData.items,
+      quantity: Number(orderFormData.quantity),
+      unit_price: Number(orderFormData.unitPrice),
+      notes: orderFormData.notes,
+      status: "sent",
+    });
+
     toast({
       title: "Commande créée",
       description: "La commande d'achat a été enregistrée avec succès",
     });
+
+    setIsOrderDialogOpen(false);
+    setOrderFormData({
+      supplierId: "",
+      orderDate: "",
+      deliveryDate: "",
+      items: "",
+      quantity: "",
+      unitPrice: "",
+      notes: "",
+    });
+  } catch (error) {
+    toast({
+      title: "Erreur",
+      description: "Impossible de créer la commande",
+      variant: "destructive",
+    });
+  }
+};
+
     setIsOrderDialogOpen(false);
     setOrderFormData({
       supplierId: "",

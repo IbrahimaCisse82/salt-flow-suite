@@ -1,41 +1,42 @@
+// hooks/useSuppliers.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+
+export interface Supplier {
+  name: string;
+  supplier_type: string;
+  contact_person?: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  notes?: string;
+  is_active?: boolean;
+}
 
 export const useSuppliers = () => {
-  const { profile } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: suppliers, isLoading } = useQuery({
-    queryKey: ['suppliers', profile?.tenant_id],
+  // Lecture
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["suppliers"],
     queryFn: async () => {
-      if (!profile?.tenant_id) return [];
-      const { data, error } = await supabase
-        .from('suppliers')
-        .select('*')
-        .order('name');
-      if (error) throw error;
-      return data || [];
+      const res = await supabase.from("suppliers").select("*").order("name");
+      if (res.error) throw res.error;
+      return res.data ?? [];
     },
-    enabled: !!profile?.tenant_id
   });
 
+  // Création
   const createSupplier = useMutation({
-    mutationFn: async (supplierData: any) => {
-      const { data, error } = await supabase
-        .from('suppliers')
-        .insert({ ...supplierData, tenant_id: profile?.tenant_id })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
+    mutationFn: async (supplier: Partial<Supplier>) => {
+      // upprimer l'id si jamais il existe pour éviter conflit avec la base
+      const { id, ...safeSupplier } = supplier as any;
+
+      const res = await supabase.from("suppliers").insert([safeSupplier]);
+      if (res.error) throw res.error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      toast.success('Fournisseur créé');
-    }
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["suppliers"] }),
   });
 
-  return { suppliers, isLoading, createSupplier: createSupplier.mutate, isCreating: createSupplier.isPending };
+  return { suppliers: data, isLoading, createSupplier };
 };

@@ -1,145 +1,51 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import type { Team, TeamRaw } from "@/types";
 
+// Hook pour récupérer les équipes
 export const useTeams = () => {
-  const queryClient = useQueryClient();
-  const { profile } = useAuth();
-
-  const { data: teams = [], isLoading } = useQuery({
-    queryKey: ['teams', profile?.tenant_id],
-    queryFn: async () => {
-      if (!profile?.tenant_id) {
-        return [];
-      }
-
+  return useQuery<Team[]>({
+    queryKey: ['teams'],
+    queryFn: async (): Promise<Team[]> => {
       const { data, error } = await supabase
         .from('teams')
         .select(`
           *,
-          supervisor:employees!supervisor_id(*),
-          members:team_members(
+          supervisor:leader_id (
             id,
-            employee:employees(*)
+            full_name
+          ),
+          members:employees!team_id (
+            id,
+            full_name,
+            employee_type
           )
         `)
         .order('name');
-      
-      if (error) {
-        console.error('Error loading teams:', error);
-        return [];
-      }
-      return data || [];
-    },
-    enabled: !!profile?.tenant_id,
-    retry: 1
-  });
 
-  const createTeamMutation = useMutation({
-    mutationFn: async (teamData: {
-      name: string;
-      supervisor_id?: string;
-      sector?: string;
-      status?: string;
-    }) => {
-      if (!profile?.tenant_id) {
-        throw new Error('Tenant ID manquant');
-      }
-
-      const { data, error } = await supabase
-        .from('teams')
-        .insert({
-          ...teamData,
-          tenant_id: profile.tenant_id
-        })
-        .select()
-        .single();
-      
       if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
-      toast({
-        title: "Équipe créée",
-        description: "L'équipe a été créée avec succès",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de créer l'équipe",
-        variant: "destructive"
-      });
-    }
-  });
 
-  const updateTeamMutation = useMutation({
-    mutationFn: async ({ id, ...updates }: any) => {
-      const { error } = await supabase
-        .from('teams')
-        .update(updates)
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
-      toast({
-        title: "Équipe mise à jour",
-        description: "L'équipe a été mise à jour avec succès",
-      });
-    }
-  });
+      // ✅ Vérification stricte : si data n'existe pas ou n'est pas un tableau, renvoyer tableau vide
+      if (!data || !Array.isArray(data)) return [];
 
-  const addTeamMemberMutation = useMutation({
-    mutationFn: async (memberData: {
-      team_id: string;
-      employee_id: string;
-      role?: string;
-    }) => {
-      const { error } = await supabase
-        .from('team_members')
-        .insert(memberData);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
-      toast({
-        title: "Membre ajouté",
-        description: "Le membre a été ajouté à l'équipe",
+      // Map TeamRaw → Team en toute sécurité
+      const mappedTeams: Team[] = data.map((team) => {
+        return {
+          id: team.id ?? '',
+          name: team.name ?? '',
+          leader_id: team.leader_id ?? null,
+          supervisor: Array.isArray(team.supervisor) ? team.supervisor : [],
+          sector: team.sector ?? '',
+          status: team.status === 'repos' ? 'repos' : 'active',
+          members: Array.isArray(team.members) ? team.members : [],
+          production_target: team.production_target ?? 0,
+          efficiency_rate: team.efficiency_rate ?? 0
+        };
       });
-    }
-  });
 
-  const removeTeamMemberMutation = useMutation({
-    mutationFn: async (memberId: string) => {
-      const { error } = await supabase
-        .from('team_members')
-        .delete()
-        .eq('id', memberId);
-      
-      if (error) throw error;
+      return mappedTeams;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
-      toast({
-        title: "Membre retiré",
-        description: "Le membre a été retiré de l'équipe",
-      });
-    }
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false
   });
-
-  return {
-    teams,
-    isLoading,
-    createTeam: createTeamMutation.mutateAsync,
-    updateTeam: updateTeamMutation.mutateAsync,
-    addTeamMember: addTeamMemberMutation.mutateAsync,
-    removeTeamMember: removeTeamMemberMutation.mutateAsync,
-    isCreating: createTeamMutation.isPending,
-    isUpdating: updateTeamMutation.isPending
-  };
 };
