@@ -492,19 +492,19 @@ const Campagne = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Ventes locales</span>
                   <span className="font-semibold">
-                    {campagneStats?.localSales?.toLocaleString() || 0} FCFA
+                    {(campagneStats?.localSales ?? 0).toLocaleString()} FCFA
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Export</span>
                   <span className="font-semibold">
-                    {campagneStats?.exportSales?.toLocaleString() || 0} FCFA
+                    {(campagneStats?.exportSales ?? 0).toLocaleString()} FCFA
                   </span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-sm font-medium">Total</span>
                   <span className="font-bold text-lg text-green-600">
-                    {campagneStats?.totalRevenue?.toLocaleString() || 0} FCFA
+                    {(campagneStats?.totalRevenue ?? 0).toLocaleString()} FCFA
                   </span>
                 </div>
               </CardContent>
