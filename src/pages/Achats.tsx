@@ -108,17 +108,6 @@ const Achats = () => {
   }
 };
 
-    setIsOrderDialogOpen(false);
-    setOrderFormData({
-      supplierId: "",
-      orderDate: "",
-      deliveryDate: "",
-      items: "",
-      quantity: "",
-      unitPrice: "",
-      notes: ""
-    });
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
