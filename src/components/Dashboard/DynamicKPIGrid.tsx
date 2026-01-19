@@ -162,6 +162,17 @@ export const DynamicKPIGrid = ({
 
   const kpiComponents = enabledKPIs.map(kpi => getKPIComponent(kpi.id)).filter(Boolean);
 
+  // Si aucun KPI n'est activé, afficher un message
+  if (kpiComponents.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-muted-foreground/30 p-8 text-center">
+        <p className="text-muted-foreground">
+          Aucun indicateur sélectionné. Cliquez sur "Personnaliser" pour ajouter des KPIs.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       {kpiComponents}
