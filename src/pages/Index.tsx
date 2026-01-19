@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { BassinOverview } from "@/components/Dashboard/BassinOverview";
@@ -28,6 +28,7 @@ const Index = () => {
   const { profile, loading } = useAuth();
   const { isNewTenant, updateOnboarding } = useTenant();
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  const [kpiRefreshKey, setKpiRefreshKey] = useState(0);
   
   // Attendre que le profil soit chargé avant d'exécuter les hooks
   const { data: employees = [] } = useEmployees();
@@ -42,6 +43,10 @@ const Index = () => {
     setWelcomeDismissed(true);
     updateOnboarding({ completed: true });
   };
+
+  const handleKPIUpdate = useCallback(() => {
+    setKpiRefreshKey(prev => prev + 1);
+  }, []);
 
   // Afficher un loader pendant le chargement du profil
   if (loading || !profile) {
@@ -135,12 +140,13 @@ const Index = () => {
                   )}
                 </div>
               </div>
-              <KPICustomizer />
+              <KPICustomizer onSave={handleKPIUpdate} />
             </div>
           </div>
 
           {/* Stats Grid - Dynamic KPIs */}
           <DynamicKPIGrid
+            key={kpiRefreshKey}
             productionTotale={totalProduction}
             productionObjectif={activeCampagne?.target_production}
             bassinsActifs={activeBassinsCount}
