@@ -1,9 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { SupplierRow, SupplierInsert, SupplierUpdate } from "@/types/database.types";
+import type { Database } from "@/integrations/supabase/types";
 import { cleanString } from "@/utils/dataTransformers";
 import { useTenantId } from "@/hooks/useTenantId";
 import { toast } from "sonner";
+
+type SupplierRow = Database["public"]["Tables"]["suppliers"]["Row"];
+type SupplierInsert = Database["public"]["Tables"]["suppliers"]["Insert"];
+type SupplierUpdate = Database["public"]["Tables"]["suppliers"]["Update"];
 
 // Interface pour le formulaire (ce que l'utilisateur saisit)
 export interface SupplierFormData {
@@ -52,7 +56,7 @@ export const useSuppliers = () => {
         .from("suppliers")
         .select("*")
         .eq("tenant_id", tenantId)
-        .is("deleted_at", null)
+        .eq("is_active", true)
         .order("name");
         
       if (error) throw error;
@@ -107,15 +111,13 @@ export const useSuppliers = () => {
       };
 
       // Remove undefined values
-      Object.keys(updateData).forEach(key => {
-        if (updateData[key as keyof SupplierUpdate] === undefined) {
-          delete updateData[key as keyof SupplierUpdate];
-        }
-      });
+      const cleanedData = Object.fromEntries(
+        Object.entries(updateData).filter(([, v]) => v !== undefined)
+      ) as SupplierUpdate;
       
       const { data, error } = await supabase
         .from("suppliers")
-        .update(updateData)
+        .update(cleanedData)
         .eq("id", id)
         .select()
         .single();
@@ -132,12 +134,12 @@ export const useSuppliers = () => {
     },
   });
 
-  // Suppression (soft delete)
+  // Suppression (soft delete via is_active = false car deleted_at n'existe pas)
   const deleteSupplier = useMutation({
     mutationFn: async (id: string): Promise<void> => {
       const { error } = await supabase
         .from("suppliers")
-        .update({ deleted_at: new Date().toISOString() } as SupplierUpdate)
+        .update({ is_active: false })
         .eq("id", id);
         
       if (error) throw error;
