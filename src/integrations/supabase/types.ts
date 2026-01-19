@@ -178,6 +178,7 @@ export type Database = {
           is_active: boolean | null
           location: string | null
           name: string
+          status: string | null
           tenant_id: string
           updated_at: string | null
         }
@@ -190,6 +191,7 @@ export type Database = {
           is_active?: boolean | null
           location?: string | null
           name: string
+          status?: string | null
           tenant_id: string
           updated_at?: string | null
         }
@@ -202,6 +204,7 @@ export type Database = {
           is_active?: boolean | null
           location?: string | null
           name?: string
+          status?: string | null
           tenant_id?: string
           updated_at?: string | null
         }
