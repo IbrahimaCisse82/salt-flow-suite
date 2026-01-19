@@ -35,17 +35,33 @@ export const BudgetPhaseTab = ({
 }: BudgetPhaseTabProps) => {
   const phaseTotal = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
-  const { data: expenseTypes } = useQuery({
-    queryKey: ["expense-types"],
+  const { data: expenseTypes, isLoading: loadingExpenseTypes } = useQuery({
+    queryKey: ["expense-types-budget"],
     queryFn: async () => {
+      // Récupérer le tenant_id de l'utilisateur
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("tenant_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.tenant_id) return [];
+
       const { data, error } = await supabase
         .from("expense_types")
         .select("*")
+        .eq("tenant_id", profile.tenant_id)
         .eq("is_active", true)
         .order("name");
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching expense types:", error);
+        return [];
+      }
+      return data || [];
     },
   });
 
@@ -84,11 +100,21 @@ export const BudgetPhaseTab = ({
                     <SelectValue placeholder="Sélectionnez une catégorie de dépense" />
                   </SelectTrigger>
                   <SelectContent className="bg-background z-50">
-                    {expenseTypes?.map((expenseType) => (
-                      <SelectItem key={expenseType.id} value={expenseType.name}>
-                        {expenseType.name}
-                      </SelectItem>
-                    ))}
+                    {loadingExpenseTypes ? (
+                      <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                        Chargement...
+                      </div>
+                    ) : expenseTypes && expenseTypes.length > 0 ? (
+                      expenseTypes.map((expenseType) => (
+                        <SelectItem key={expenseType.id} value={expenseType.name}>
+                          {expenseType.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                        Aucune catégorie disponible
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
