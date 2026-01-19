@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useState } from "react";
 import MapPicker from "@/components/Map/MapPicker";
 import { 
@@ -41,6 +41,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
 import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton";
+import { useInventoryItems, useStockMovements } from "@/hooks/useInventoryItems";
 
 const statusConfig = {
   optimal: { 
@@ -70,11 +71,14 @@ const statusConfig = {
 };
 
 const Stocks = () => {
-  const { toast } = useToast();
   const { isOpen } = useSidebar();
   const [isMovementDialogOpen, setIsMovementDialogOpen] = useState(false);
   const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
   const [isWarehouseDialogOpen, setIsWarehouseDialogOpen] = useState(false);
+  
+  // Hooks for inventory operations
+  const { items: inventoryItems, createItem, isLoading: inventoryLoading } = useInventoryItems();
+  const { recordMovement } = useStockMovements();
   
   const [movementFormData, setMovementFormData] = useState({
     movementType: "",
@@ -167,48 +171,63 @@ const Stocks = () => {
     setIsWarehouseDialogOpen(true);
   };
 
-  const handleMovementSubmit = (e: React.FormEvent) => {
+  const handleMovementSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Mouvement enregistré",
-      description: `${movementFormData.movementType} de ${movementFormData.quantity} tonnes de ${movementFormData.saltType}`,
-    });
-    setIsMovementDialogOpen(false);
-    setMovementFormData({
-      movementType: "",
-      date: "",
-      saltType: "",
-      warehouse: "",
-      quantity: "",
-      notes: ""
-    });
+    try {
+      await recordMovement.mutateAsync({
+        item_name: movementFormData.saltType,
+        movement_type: movementFormData.movementType === 'Entrée' ? 'entry' : 'exit',
+        quantity: parseFloat(movementFormData.quantity) || 0,
+        date: movementFormData.date,
+        warehouse: movementFormData.warehouse,
+        notes: movementFormData.notes
+      });
+      setIsMovementDialogOpen(false);
+      setMovementFormData({
+        movementType: "",
+        date: "",
+        saltType: "",
+        warehouse: "",
+        quantity: "",
+        notes: ""
+      });
+    } catch (error) {
+      console.error("Movement error:", error);
+    }
   };
 
-  const handleStockSubmit = (e: React.FormEvent) => {
+  const handleStockSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Stock ajouté",
-      description: `${stockFormData.quantity} tonnes de ${stockFormData.saltType} ajoutées`,
-    });
-    setIsStockDialogOpen(false);
-    setStockFormData({
-      saltType: "",
-      quantity: "",
-      warehouse: "",
-      harvestDate: "",
-      qualityGrade: "",
-      unitCost: "",
-      lotNumber: "",
-      notes: ""
-    });
+    try {
+      await createItem.mutateAsync({
+        item_name: stockFormData.saltType,
+        item_category: 'production',
+        quantity_on_hand: stockFormData.quantity,
+        storage_location: stockFormData.warehouse,
+        unit_of_measure: 'tonnes',
+        unit_cost: stockFormData.unitCost,
+        last_purchase_date: stockFormData.harvestDate,
+        notes: stockFormData.notes ? `Lot: ${stockFormData.lotNumber} - Grade: ${stockFormData.qualityGrade} - ${stockFormData.notes}` : `Lot: ${stockFormData.lotNumber} - Grade: ${stockFormData.qualityGrade}`
+      });
+      setIsStockDialogOpen(false);
+      setStockFormData({
+        saltType: "",
+        quantity: "",
+        warehouse: "",
+        harvestDate: "",
+        qualityGrade: "",
+        unitCost: "",
+        lotNumber: "",
+        notes: ""
+      });
+    } catch (error) {
+      console.error("Stock creation error:", error);
+    }
   };
 
   const handleWarehouseSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Entrepôt créé",
-      description: `L'entrepôt ${warehouseFormData.name} a été créé avec succès à la position (${warehouseFormData.latitude.toFixed(6)}, ${warehouseFormData.longitude.toFixed(6)})`,
-    });
+    toast.success(`Entrepôt ${warehouseFormData.name} créé à la position (${warehouseFormData.latitude.toFixed(6)}, ${warehouseFormData.longitude.toFixed(6)})`);
     setIsWarehouseDialogOpen(false);
     setWarehouseFormData({
       name: "",
