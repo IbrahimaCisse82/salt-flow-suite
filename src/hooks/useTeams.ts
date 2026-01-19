@@ -53,42 +53,72 @@ export const useTeams = () => {
     queryFn: async (): Promise<Team[]> => {
       if (!tenantId) return [];
 
-      // Récupérer les équipes
+      // Récupérer les équipes (sans jointure pour éviter les problèmes RLS)
       const { data: teamsData, error: teamsError } = await supabase
         .from("teams")
-        .select(`
-          *,
-          leader:employees!teams_leader_id_fkey (
-            id,
-            full_name,
-            employee_type
-          )
-        `)
+        .select("*")
         .eq("tenant_id", tenantId)
         .order("name");
 
-      if (teamsError) throw teamsError;
+      if (teamsError) {
+        console.error("Error fetching teams:", teamsError);
+        throw teamsError;
+      }
       if (!teamsData || teamsData.length === 0) return [];
+
+      // Récupérer les leaders séparément
+      const leaderIds = teamsData
+        .map(t => t.leader_id)
+        .filter((id): id is string => !!id);
+      
+      let leadersMap: Record<string, TeamLeader> = {};
+      if (leaderIds.length > 0) {
+        const { data: leadersData } = await supabase
+          .from("employees")
+          .select("id, full_name, employee_type")
+          .in("id", leaderIds);
+        
+        if (leadersData) {
+          leadersData.forEach(l => {
+            leadersMap[l.id] = {
+              id: l.id,
+              full_name: l.full_name,
+              employee_type: l.employee_type
+            };
+          });
+        }
+      }
 
       // Récupérer les membres pour toutes les équipes
       const teamIds = teamsData.map(t => t.id);
       const { data: membersData, error: membersError } = await supabase
         .from("team_members")
-        .select(`
-          id,
-          team_id,
-          employee_id,
-          role,
-          joined_at,
-          employee:employees (
-            id,
-            full_name,
-            employee_type
-          )
-        `)
+        .select("id, team_id, employee_id, role, joined_at")
         .in("team_id", teamIds);
 
-      if (membersError) throw membersError;
+      if (membersError) {
+        console.error("Error fetching team members:", membersError);
+      }
+
+      // Récupérer les infos employés pour les membres
+      const memberEmployeeIds = (membersData || []).map(m => m.employee_id);
+      let employeesMap: Record<string, { full_name: string; employee_type: string | null }> = {};
+      
+      if (memberEmployeeIds.length > 0) {
+        const { data: employeesData } = await supabase
+          .from("employees")
+          .select("id, full_name, employee_type")
+          .in("id", memberEmployeeIds);
+        
+        if (employeesData) {
+          employeesData.forEach(e => {
+            employeesMap[e.id] = {
+              full_name: e.full_name,
+              employee_type: e.employee_type
+            };
+          });
+        }
+      }
 
       // Grouper les membres par équipe
       const membersByTeam: Record<string, TeamMember[]> = {};
@@ -96,17 +126,15 @@ export const useTeams = () => {
         if (!membersByTeam[m.team_id]) {
           membersByTeam[m.team_id] = [];
         }
-        const emp = m.employee as any;
-        if (emp) {
-          membersByTeam[m.team_id].push({
-            id: m.id,
-            employee_id: m.employee_id,
-            full_name: emp.full_name || "Inconnu",
-            employee_type: emp.employee_type,
-            role: m.role,
-            joined_at: m.joined_at,
-          });
-        }
+        const emp = employeesMap[m.employee_id];
+        membersByTeam[m.team_id].push({
+          id: m.id,
+          employee_id: m.employee_id,
+          full_name: emp?.full_name || "Employé inconnu",
+          employee_type: emp?.employee_type || null,
+          role: m.role,
+          joined_at: m.joined_at,
+        });
       });
 
       // Construire les équipes avec leurs membres
@@ -114,7 +142,7 @@ export const useTeams = () => {
         id: team.id,
         name: team.name,
         leader_id: team.leader_id,
-        leader: team.leader as TeamLeader | null,
+        leader: team.leader_id ? leadersMap[team.leader_id] || null : null,
         sector: team.sector,
         status: team.status || "active",
         members: membersByTeam[team.id] || [],
