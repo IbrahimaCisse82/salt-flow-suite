@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotification } from "./usePushNotification";
 import { logger } from "@/utils/logger";
+import type { Database } from "@/integrations/supabase/types";
+
+type AccountantNotification = Database["public"]["Tables"]["accountant_notifications"]["Row"];
 
 /**
  * Hook pour écouter les nouvelles notifications et envoyer des push notifications
@@ -30,13 +33,13 @@ export const usePushNotificationListener = () => {
         async (payload) => {
           logger.info('New accountant notification received:', payload);
 
-          const notification = payload.new as any;
+          const notification = payload.new as AccountantNotification;
 
           // Envoyer une notification push à tous les comptables du tenant
           await sendPushNotification({
             tenant_id: profile.tenant_id!,
             title: notification.title,
-            message: notification.message,
+            message: notification.message ?? "",
             url: '/comptabilite',
             notification_type: notification.notification_type,
             tag: notification.id

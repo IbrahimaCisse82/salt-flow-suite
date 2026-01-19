@@ -10,23 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { logger } from "@/utils/logger";
 import { useEmployees } from "@/hooks/useEmployees";
-import { useTeams } from "@/hooks/useTeams";
+import { useTeams, type Team } from "@/hooks/useTeams";
 import { useAuth } from "@/contexts/AuthContext";
-import type { Team as TeamType } from "@/types";
-
-
-
-// -------------------
-// Types locaux (le type Team vient de src/types.ts via useTeams)
-// -------------------
-interface Employee {
-  id: string;
-  full_name: string;
-  position?: string;
-  employee_type: "permanent" | "journalier" | "saisonnier";
-  is_active: boolean;
-}
-
 
 // -------------------
 // Composant principal
@@ -38,12 +23,11 @@ const Equipes = () => {
 
   // Dialogs
   const [isManageTeamDialogOpen, setIsManageTeamDialogOpen] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState<TeamType | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
   // Données
   const { data: employees = [] } = useEmployees();
   const { teams, createTeam, updateTeam } = useTeams();
-
 
   const userRole = profile?.role;
   const canViewSalary = userRole === "admin" || userRole === "gerant" || userRole === "comptable";
@@ -56,7 +40,7 @@ const Equipes = () => {
   // -------------------
   // Handlers
   // -------------------
-  const handleManageTeam = (team: TeamType) => {
+  const handleManageTeam = (team: Team) => {
     setSelectedTeam(team);
     setIsManageTeamDialogOpen(true);
   };
