@@ -225,19 +225,32 @@ const Stocks = () => {
     }
   };
 
-  const handleWarehouseSubmit = (e: React.FormEvent) => {
+  const handleWarehouseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(`Entrepôt ${warehouseFormData.name} créé à la position (${warehouseFormData.latitude.toFixed(6)}, ${warehouseFormData.longitude.toFixed(6)})`);
-    setIsWarehouseDialogOpen(false);
-    setWarehouseFormData({
-      name: "",
-      code: "",
-      capacity: "",
-      location: "",
-      latitude: 14.7167,
-      longitude: -17.4677,
-      notes: ""
-    });
+    try {
+      // Store warehouse as an inventory item with category 'warehouse'
+      await createItem.mutateAsync({
+        item_name: warehouseFormData.name,
+        item_code: warehouseFormData.code,
+        item_category: 'warehouse',
+        storage_location: warehouseFormData.location,
+        quantity_on_hand: warehouseFormData.capacity,
+        unit_of_measure: 'tonnes',
+        notes: `Lat: ${warehouseFormData.latitude.toFixed(6)}, Long: ${warehouseFormData.longitude.toFixed(6)} - ${warehouseFormData.notes}`
+      });
+      setIsWarehouseDialogOpen(false);
+      setWarehouseFormData({
+        name: "",
+        code: "",
+        capacity: "",
+        location: "",
+        latitude: 14.7167,
+        longitude: -17.4677,
+        notes: ""
+      });
+    } catch (error) {
+      console.error("Warehouse creation error:", error);
+    }
   };
 
   return (
