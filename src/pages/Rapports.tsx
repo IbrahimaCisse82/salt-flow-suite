@@ -34,6 +34,7 @@ import { ScheduledReportsManager } from "@/components/Analytics/ScheduledReports
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useScheduledReports, ReportType, ReportFrequency } from "@/hooks/useScheduledReports";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
@@ -133,6 +134,18 @@ const Rapports = () => {
   const { isOpen } = useSidebar();
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  
+  // Hook for scheduled reports with real persistence
+  const { createReport } = useScheduledReports();
+  
+  // Form state for scheduling
+  const [scheduleFormData, setScheduleFormData] = useState({
+    reportType: "" as ReportType | "",
+    frequency: "" as ReportFrequency | "",
+    startDate: "",
+    scheduleTime: "09:00",
+    recipientEmail: ""
+  });
 
   // Récupérer les données pour les rapports
   const { data: campagnes = [], isLoading: campagnesLoading } = useQuery({
@@ -582,13 +595,38 @@ const Rapports = () => {
     setIsScheduleDialogOpen(true);
   };
 
-  const handleScheduleSubmit = (e: React.FormEvent) => {
+  const handleScheduleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Rapport planifié",
-      description: "Le rapport sera généré automatiquement selon le calendrier défini",
-    });
-    setIsScheduleDialogOpen(false);
+    
+    if (!scheduleFormData.reportType || !scheduleFormData.frequency || !scheduleFormData.startDate) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      await createReport.mutateAsync({
+        report_type: scheduleFormData.reportType as ReportType,
+        frequency: scheduleFormData.frequency as ReportFrequency,
+        schedule_time: scheduleFormData.scheduleTime,
+        start_date: scheduleFormData.startDate,
+        recipient_emails: scheduleFormData.recipientEmail ? [scheduleFormData.recipientEmail] : []
+      });
+      
+      setIsScheduleDialogOpen(false);
+      setScheduleFormData({
+        reportType: "",
+        frequency: "",
+        startDate: "",
+        scheduleTime: "09:00",
+        recipientEmail: ""
+      });
+    } catch (error) {
+      console.error("Schedule report error:", error);
+    }
   };
 
   return (
@@ -614,7 +652,11 @@ const Rapports = () => {
               <form onSubmit={handleScheduleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="reportType">Type de rapport</Label>
-                  <Select required>
+                  <Select 
+                    value={scheduleFormData.reportType} 
+                    onValueChange={(value) => setScheduleFormData({...scheduleFormData, reportType: value as ReportType})}
+                    required
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner le type" />
                     </SelectTrigger>
@@ -630,7 +672,11 @@ const Rapports = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="frequency">Fréquence</Label>
-                  <Select required>
+                  <Select 
+                    value={scheduleFormData.frequency} 
+                    onValueChange={(value) => setScheduleFormData({...scheduleFormData, frequency: value as ReportFrequency})}
+                    required
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner la fréquence" />
                     </SelectTrigger>
@@ -649,6 +695,8 @@ const Rapports = () => {
                     <Input
                       id="startDate"
                       type="date"
+                      value={scheduleFormData.startDate}
+                      onChange={(e) => setScheduleFormData({...scheduleFormData, startDate: e.target.value})}
                       required
                     />
                   </div>
@@ -657,7 +705,8 @@ const Rapports = () => {
                     <Input
                       id="time"
                       type="time"
-                      defaultValue="09:00"
+                      value={scheduleFormData.scheduleTime}
+                      onChange={(e) => setScheduleFormData({...scheduleFormData, scheduleTime: e.target.value})}
                       required
                     />
                   </div>
@@ -668,6 +717,8 @@ const Rapports = () => {
                   <Input
                     id="email"
                     type="email"
+                    value={scheduleFormData.recipientEmail}
+                    onChange={(e) => setScheduleFormData({...scheduleFormData, recipientEmail: e.target.value})}
                     placeholder="exemple@email.com"
                   />
                 </div>
