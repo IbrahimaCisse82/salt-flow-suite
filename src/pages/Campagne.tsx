@@ -191,10 +191,12 @@ const Campagne = () => {
         .eq('id', user.id)
         .single();
       
-      if (!profile) throw new Error('Profile not found');
+      if (!profile?.tenant_id) throw new Error('Profile not found');
 
-      // Créer d'abord une campagne fictive (pour l'exemple)
-      // Dans une vraie application, vous devriez créer la campagne avec les données du formulaire
+      // Calculer le budget total
+      const totalBudget = calculateTotalBudget();
+
+      // Créer la campagne
       const { data: campagne, error: campagneError } = await supabase
         .from('campagnes')
         .insert({
@@ -204,35 +206,46 @@ const Campagne = () => {
           start_date: '2025-01-01',
           end_date: '2025-11-30',
           status: 'planification',
-          budget_total: calculateTotalBudget()
+          budget_total: totalBudget
         })
         .select()
         .single();
 
-      if (campagneError) throw campagneError;
+      if (campagneError) {
+        console.error('Campagne creation error:', campagneError);
+        throw campagneError;
+      }
 
-      // Sauvegarder tous les budgets par phase
-      const budgetEntries = Object.entries(phaseExpenses).flatMap(([phase, expenses]) =>
-        expenses.map(expense => ({
-          tenant_id: profile.tenant_id,
-          campagne_id: campagne.id,
-          phase,
-          expense_type: expense.description,
-          budgeted_amount: expense.amount
-        }))
-      );
+      // Regrouper les dépenses par phase et calculer le total par phase
+      const phaseTotals: Record<string, number> = {};
+      Object.entries(phaseExpenses).forEach(([phase, expenses]) => {
+        const phaseTotal = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+        if (phaseTotal > 0) {
+          phaseTotals[phase] = phaseTotal;
+        }
+      });
+
+      // Sauvegarder les budgets par phase (structure correcte de la table)
+      const budgetEntries = Object.entries(phaseTotals).map(([phase, amount]) => ({
+        campagne_id: campagne.id,
+        phase: phase,
+        budgeted_amount: amount
+      }));
 
       if (budgetEntries.length > 0) {
         const { error: budgetError } = await supabase
           .from('campagne_phase_budgets')
           .insert(budgetEntries);
 
-        if (budgetError) throw budgetError;
+        if (budgetError) {
+          console.error('Budget insert error:', budgetError);
+          throw budgetError;
+        }
       }
 
       toast({
         title: "Budget enregistré",
-        description: `Le budget prévisionnel de ${calculateTotalBudget().toLocaleString()} FCFA a été enregistré avec succès`,
+        description: `Le budget prévisionnel de ${totalBudget.toLocaleString()} FCFA a été enregistré avec succès`,
       });
       
       setShowBudgetDialog(false);
@@ -244,11 +257,14 @@ const Campagne = () => {
         'recolte-principale': [],
         'traitement-stockage': []
       });
+
+      // Rafraîchir les données
+      window.location.reload();
     } catch (error) {
       logger.error('Error saving budget:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'enregistrer le budget",
+        description: error instanceof Error ? error.message : "Impossible d'enregistrer le budget",
         variant: "destructive"
       });
     }
