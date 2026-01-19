@@ -51,7 +51,7 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
-import { useProductionRecords } from "@/hooks/useProductionRecords";
+import { useProductionRecords, useCreateProductionRecord } from "@/hooks/useProductionRecords";
 import { useBassins } from "@/hooks/useBassins";
 import { useTeams } from "@/hooks/useTeams";
 import { useQuery } from "@tanstack/react-query";
@@ -142,22 +142,34 @@ const Production = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { mutateAsync: createHarvest, isPending: isCreatingHarvest } = useCreateProductionRecord();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Récolte enregistrée",
-      description: `${formData.quantity} tonnes de ${formData.type} enregistrées avec succès`,
-    });
-    setIsDialogOpen(false);
-    setFormData({
-      date: "",
-      bassin: "",
-      quantity: "",
-      type: "",
-      quality: "",
-      team: "",
-      status: "completed"
-    });
+
+    try {
+      await createHarvest({
+        production_date: formData.date,
+        bassin_id: formData.bassin,
+        quantity: formData.quantity,
+        salt_type: formData.type,
+        quality_grade: formData.quality,
+      });
+
+      setIsDialogOpen(false);
+      setFormData({
+        date: "",
+        bassin: "",
+        quantity: "",
+        type: "",
+        quality: "",
+        team: "",
+        status: "completed",
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      toast({ title: "Erreur", description: message, variant: "destructive" });
+    }
   };
 
   return (
