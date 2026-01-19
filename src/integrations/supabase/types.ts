@@ -2292,6 +2292,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_default_teams_for_tenant: {
+        Args: { _tenant_id: string }
+        Returns: undefined
+      }
       get_clients_safe: {
         Args: never
         Returns: {
