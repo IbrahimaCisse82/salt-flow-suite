@@ -80,26 +80,33 @@ const DEFAULT_KPIS: KPIConfig[] = [
 
 export const useKPIPreferences = () => {
   const { profile } = useAuth();
-  const [kpiConfigs, setKpiConfigs] = useState<KPIConfig[]>(DEFAULT_KPIS);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Charger les préférences depuis le localStorage
-  useEffect(() => {
-    if (!profile?.id) return;
-
+  
+  // Fonction pour charger les préférences depuis localStorage
+  const loadPreferences = (): KPIConfig[] => {
+    if (!profile?.id) return DEFAULT_KPIS;
+    
     const storageKey = `kpi_preferences_${profile.id}`;
     const saved = localStorage.getItem(storageKey);
     
     if (saved) {
       try {
-        const parsed = JSON.parse(saved) as KPIConfig[];
-        setKpiConfigs(parsed);
+        return JSON.parse(saved) as KPIConfig[];
       } catch (error) {
         console.error('Error loading KPI preferences:', error);
       }
     }
-    
-    setIsLoading(false);
+    return DEFAULT_KPIS;
+  };
+
+  // Initialiser avec les préférences sauvegardées (chargement synchrone)
+  const [kpiConfigs, setKpiConfigs] = useState<KPIConfig[]>(() => loadPreferences());
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Recharger si le profil change
+  useEffect(() => {
+    if (profile?.id) {
+      setKpiConfigs(loadPreferences());
+    }
   }, [profile?.id]);
 
   // Sauvegarder les préférences
