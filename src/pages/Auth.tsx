@@ -49,23 +49,22 @@ const Auth = () => {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
-  // Vérifier si l'utilisateur est déjà connecté
+  // Vérifier si l'utilisateur est déjà connecté (une seule fois au montage)
   useEffect(() => {
+    let isMounted = true;
+    
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      if (session && isMounted) {
         navigate("/", { replace: true });
       }
     };
+    
     checkUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && event === 'SIGNED_IN') {
-        navigate("/", { replace: true });
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -97,8 +96,11 @@ const Auth = () => {
           title: "Connexion réussie",
           description: "Bienvenue !",
         });
-        // Navigation explicite après connexion réussie
-        navigate("/", { replace: true });
+        // Attendre un court instant pour laisser l'AuthContext se mettre à jour
+        // puis naviguer (évite la boucle de replaceState)
+        setTimeout(() => {
+          navigate("/", { replace: true });
+        }, 100);
       }
     } catch (error: any) {
       logger.error("Login error:", error);
@@ -224,8 +226,10 @@ const Auth = () => {
         title: "Inscription réussie",
         description: "Votre entreprise et votre compte ont été créés",
       });
-      // Navigation explicite après inscription réussie
-      navigate("/", { replace: true });
+      // Attendre un court instant pour laisser l'AuthContext se mettre à jour
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 100);
     } catch (error: any) {
       logger.error("Signup error:", error);
       toast({
