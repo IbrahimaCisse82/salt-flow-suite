@@ -1,7 +1,37 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { TenantRow, TenantInsert, TenantUpdate } from "@/types/database.types";
+import { cleanString, ensureBoolean } from "@/utils/dataTransformers";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+// Interface pour le formulaire
+export interface TenantFormData {
+  name: string;
+  contact_email?: string;
+  contact_phone?: string;
+  address?: string;
+  manager_name?: string;
+  ninea?: string;
+  rccm?: string;
+  subdomain?: string;
+  logo_url?: string;
+  is_active?: boolean;
+}
+
+// Transforme les données du formulaire vers le format DB
+const transformFormToInsert = (form: TenantFormData): TenantInsert => ({
+  name: form.name.trim(),
+  contact_email: cleanString(form.contact_email),
+  contact_phone: cleanString(form.contact_phone),
+  address: cleanString(form.address),
+  manager_name: cleanString(form.manager_name),
+  ninea: cleanString(form.ninea),
+  rccm: cleanString(form.rccm),
+  subdomain: cleanString(form.subdomain),
+  logo_url: cleanString(form.logo_url),
+  is_active: form.is_active ?? true,
+});
 
 export const useTenants = () => {
   const { profile } = useAuth();
@@ -10,7 +40,7 @@ export const useTenants = () => {
   // Fetch all tenants (admin only)
   const { data: tenants, isLoading } = useQuery({
     queryKey: ['tenants'],
-    queryFn: async () => {
+    queryFn: async (): Promise<TenantRow[]> => {
       const { data, error } = await supabase
         .from('tenants')
         .select('*')
@@ -24,7 +54,7 @@ export const useTenants = () => {
   // Fetch current user's tenant
   const { data: currentTenant, isLoading: isLoadingCurrent } = useQuery({
     queryKey: ['current-tenant', profile?.tenant_id],
-    queryFn: async () => {
+    queryFn: async (): Promise<TenantRow | null> => {
       if (!profile?.tenant_id) return null;
       
       const { data, error } = await supabase
@@ -41,10 +71,12 @@ export const useTenants = () => {
 
   // Create tenant
   const createTenant = useMutation({
-    mutationFn: async (tenantData: any) => {
+    mutationFn: async (formData: TenantFormData): Promise<TenantRow> => {
+      const insertData = transformFormToInsert(formData);
+      
       const { data, error } = await supabase
         .from('tenants')
-        .insert(tenantData)
+        .insert(insertData)
         .select()
         .single();
       
@@ -55,18 +87,39 @@ export const useTenants = () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       toast.success('Entreprise créée avec succès');
     },
-    onError: (error: any) => {
-      toast.error('Erreur lors de la création');
+    onError: (error: Error) => {
+      toast.error(`Erreur: ${error.message}`);
       console.error(error);
     }
   });
 
   // Update tenant
   const updateTenant = useMutation({
-    mutationFn: async ({ id, ...updates }: any) => {
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<TenantFormData>): Promise<TenantRow> => {
+      const updateData: TenantUpdate = {
+        name: updates.name?.trim(),
+        contact_email: updates.contact_email !== undefined ? cleanString(updates.contact_email) : undefined,
+        contact_phone: updates.contact_phone !== undefined ? cleanString(updates.contact_phone) : undefined,
+        address: updates.address !== undefined ? cleanString(updates.address) : undefined,
+        manager_name: updates.manager_name !== undefined ? cleanString(updates.manager_name) : undefined,
+        ninea: updates.ninea !== undefined ? cleanString(updates.ninea) : undefined,
+        rccm: updates.rccm !== undefined ? cleanString(updates.rccm) : undefined,
+        subdomain: updates.subdomain !== undefined ? cleanString(updates.subdomain) : undefined,
+        logo_url: updates.logo_url !== undefined ? cleanString(updates.logo_url) : undefined,
+        is_active: updates.is_active !== undefined ? ensureBoolean(updates.is_active) : undefined,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof TenantUpdate] === undefined) {
+          delete updateData[key as keyof TenantUpdate];
+        }
+      });
+      
       const { data, error } = await supabase
         .from('tenants')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -79,15 +132,15 @@ export const useTenants = () => {
       queryClient.invalidateQueries({ queryKey: ['current-tenant'] });
       toast.success('Entreprise mise à jour');
     },
-    onError: (error: any) => {
-      toast.error('Erreur lors de la mise à jour');
+    onError: (error: Error) => {
+      toast.error(`Erreur: ${error.message}`);
       console.error(error);
     }
   });
 
   // Delete tenant
   const deleteTenant = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (id: string): Promise<void> => {
       const { error } = await supabase
         .from('tenants')
         .delete()
@@ -99,8 +152,8 @@ export const useTenants = () => {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       toast.success('Entreprise supprimée');
     },
-    onError: (error: any) => {
-      toast.error('Erreur lors de la suppression');
+    onError: (error: Error) => {
+      toast.error(`Erreur: ${error.message}`);
       console.error(error);
     }
   });
