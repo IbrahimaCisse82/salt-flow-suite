@@ -1,8 +1,18 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOfflineMutation } from "@/hooks/useOfflineMutation";
+import { BassinRow, BassinInsert, BassinUpdate } from "@/types/database.types";
+import { cleanString, ensureNumber } from "@/utils/dataTransformers";
+
+export interface BassinFormData {
+  name: string;
+  code?: string;
+  area?: number | string;
+  location?: string;
+  is_active?: boolean;
+}
 
 export const useBassins = () => {
   const { profile } = useAuth();
@@ -10,12 +20,13 @@ export const useBassins = () => {
 
   const { data: bassins = [], isLoading } = useQuery({
     queryKey: ['bassins', profile?.tenant_id],
-    queryFn: async () => {
+    queryFn: async (): Promise<BassinRow[]> => {
       if (!profile?.tenant_id) return [];
 
       const { data, error } = await supabase
         .from('bassins')
         .select('*')
+        .is('deleted_at', null)
         .order('name');
       
       if (error) {
@@ -31,23 +42,23 @@ export const useBassins = () => {
   const createBassinMutation = useOfflineMutation({
     tableName: 'bassins',
     operation: 'insert',
-    mutationFn: async (bassinData: {
-      name: string;
-      code?: string;
-      area?: number;
-      location?: string;
-      is_active?: boolean;
-    }) => {
+    mutationFn: async (formData: BassinFormData): Promise<BassinRow> => {
       if (!profile?.tenant_id) {
         throw new Error("Tenant ID manquant");
       }
 
+      const insertData: BassinInsert = {
+        tenant_id: profile.tenant_id,
+        name: formData.name.trim(),
+        code: cleanString(formData.code),
+        area: ensureNumber(formData.area),
+        location: cleanString(formData.location),
+        is_active: formData.is_active ?? false
+      };
+
       const { data, error } = await supabase
         .from('bassins')
-        .insert({
-          ...bassinData,
-          tenant_id: profile.tenant_id
-        })
+        .insert(insertData)
         .select()
         .single();
       
@@ -63,10 +74,79 @@ export const useBassins = () => {
           : "Le bassin sera synchronisé quand vous serez en ligne",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erreur",
         description: error.message || "Impossible de créer le bassin",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateBassinMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<BassinFormData>): Promise<BassinRow> => {
+      const updateData: BassinUpdate = {
+        name: updates.name?.trim(),
+        code: updates.code !== undefined ? cleanString(updates.code) : undefined,
+        area: updates.area !== undefined ? ensureNumber(updates.area) : undefined,
+        location: updates.location !== undefined ? cleanString(updates.location) : undefined,
+        is_active: updates.is_active,
+        updated_at: new Date().toISOString()
+      };
+
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof BassinUpdate] === undefined) {
+          delete updateData[key as keyof BassinUpdate];
+        }
+      });
+
+      const { data, error } = await supabase
+        .from('bassins')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bassins'] });
+      toast({
+        title: "Bassin mis à jour",
+        description: "Les modifications ont été enregistrées"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de mettre à jour le bassin",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteBassinMutation = useMutation({
+    mutationFn: async (id: string): Promise<void> => {
+      const { error } = await supabase
+        .from('bassins')
+        .update({ deleted_at: new Date().toISOString(), is_active: false })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bassins'] });
+      toast({
+        title: "Bassin supprimé",
+        description: "Le bassin a été supprimé"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de supprimer le bassin",
         variant: "destructive"
       });
     }
@@ -76,6 +156,10 @@ export const useBassins = () => {
     bassins,
     isLoading,
     createBassin: createBassinMutation.mutateAsync,
-    isCreating: createBassinMutation.isPending
+    isCreating: createBassinMutation.isPending,
+    updateBassin: updateBassinMutation.mutateAsync,
+    isUpdating: updateBassinMutation.isPending,
+    deleteBassin: deleteBassinMutation.mutateAsync,
+    isDeleting: deleteBassinMutation.isPending
   };
 };
