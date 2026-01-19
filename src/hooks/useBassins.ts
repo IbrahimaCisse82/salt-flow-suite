@@ -6,12 +6,15 @@ import { useOfflineMutation } from "@/hooks/useOfflineMutation";
 import { BassinRow, BassinInsert, BassinUpdate } from "@/types/database.types";
 import { cleanString, ensureNumber } from "@/utils/dataTransformers";
 
+export type BassinStatus = 'active' | 'repos' | 'maintenance';
+
 export interface BassinFormData {
   name: string;
   code?: string;
   area?: number | string;
   location?: string;
   is_active?: boolean;
+  status?: BassinStatus;
 }
 
 export const useBassins = () => {
@@ -53,7 +56,8 @@ export const useBassins = () => {
         code: cleanString(formData.code),
         area: ensureNumber(formData.area),
         location: cleanString(formData.location),
-        is_active: formData.is_active ?? false
+        is_active: formData.is_active ?? false,
+        status: formData.status || 'repos'
       };
 
       const { data, error } = await supabase
@@ -91,6 +95,7 @@ export const useBassins = () => {
         area: updates.area !== undefined ? ensureNumber(updates.area) : undefined,
         location: updates.location !== undefined ? cleanString(updates.location) : undefined,
         is_active: updates.is_active,
+        status: updates.status,
         updated_at: new Date().toISOString()
       };
 
