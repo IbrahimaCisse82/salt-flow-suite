@@ -36,7 +36,7 @@ const getBassinStatus = (bassin, maintenanceStates) => {
 const Bassins = () => {
   const { toast } = useToast();
   const { isOpen } = useSidebar();
-  const { bassins, isLoading, createBassin, isCreating } = useBassins();
+  const { bassins, isLoading, createBassin, isCreating, updateBassin, isUpdating } = useBassins();
 
   // State pour le bassin sélectionné pour les dialogs
   const [selectedBassin, setSelectedBassin] = useState(null);
@@ -82,13 +82,23 @@ const Bassins = () => {
     setShowManageDialog(true);
   };
 
-  // Sauvegarde des modifications dans le dialog Gérer (frontend uniquement)
-  const handleSaveManage = () => {
-    toast({
-      title: "Modifications enregistrées",
-      description: `Les modifications du bassin ${selectedBassin?.name} ont été enregistrées.`,
-    });
-    setShowManageDialog(false);
+  // Sauvegarde des modifications dans le dialog Gérer - persistance réelle
+  const handleSaveManage = async () => {
+    if (!selectedBassin) return;
+    
+    try {
+      await updateBassin({
+        id: selectedBassin.id,
+        name: selectedBassin.name,
+        code: selectedBassin.code,
+        area: selectedBassin.area,
+        location: selectedBassin.location,
+        is_active: !maintenanceStates[selectedBassin.id]
+      });
+      setShowManageDialog(false);
+    } catch (error) {
+      console.error("Update bassin error:", error);
+    }
   };
 
   // Ouvre le dialog Ajouter un bassin
