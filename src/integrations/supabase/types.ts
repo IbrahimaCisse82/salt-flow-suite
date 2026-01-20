@@ -397,6 +397,113 @@ export type Database = {
           },
         ]
       }
+      cost_per_ton: {
+        Row: {
+          autres_couts: number | null
+          calculation_date: string
+          campagne_id: string | null
+          cout_amortissement: number | null
+          cout_energie: number | null
+          cout_main_oeuvre: number | null
+          cout_maintenance: number | null
+          cout_matieres_premieres: number | null
+          cout_par_tonne: number | null
+          cout_total: number | null
+          cout_transport: number | null
+          created_at: string | null
+          created_by: string | null
+          details_par_type: Json | null
+          id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          status: string | null
+          tenant_id: string
+          total_production_kg: number
+          total_production_tons: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          autres_couts?: number | null
+          calculation_date?: string
+          campagne_id?: string | null
+          cout_amortissement?: number | null
+          cout_energie?: number | null
+          cout_main_oeuvre?: number | null
+          cout_maintenance?: number | null
+          cout_matieres_premieres?: number | null
+          cout_par_tonne?: number | null
+          cout_total?: number | null
+          cout_transport?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          details_par_type?: Json | null
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          status?: string | null
+          tenant_id: string
+          total_production_kg?: number
+          total_production_tons?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          autres_couts?: number | null
+          calculation_date?: string
+          campagne_id?: string | null
+          cout_amortissement?: number | null
+          cout_energie?: number | null
+          cout_main_oeuvre?: number | null
+          cout_maintenance?: number | null
+          cout_matieres_premieres?: number | null
+          cout_par_tonne?: number | null
+          cout_total?: number | null
+          cout_transport?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          details_par_type?: Json | null
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string | null
+          tenant_id?: string
+          total_production_kg?: number
+          total_production_tons?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_per_ton_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_per_ton_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_per_ton_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_per_ton_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_workers: {
         Row: {
           created_at: string | null
@@ -583,6 +690,118 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_reports: {
+        Row: {
+          campagne_id: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          report_data: Json
+          report_date: string
+          report_type: string
+          resultat_net: number | null
+          status: string | null
+          tenant_id: string
+          total_actif: number | null
+          total_charges: number | null
+          total_passif: number | null
+          total_produits: number | null
+          updated_at: string | null
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          campagne_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          report_data?: Json
+          report_date?: string
+          report_type: string
+          resultat_net?: number | null
+          status?: string | null
+          tenant_id: string
+          total_actif?: number | null
+          total_charges?: number | null
+          total_passif?: number | null
+          total_produits?: number | null
+          updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          campagne_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          report_data?: Json
+          report_date?: string
+          report_type?: string
+          resultat_net?: number | null
+          status?: string | null
+          tenant_id?: string
+          total_actif?: number | null
+          total_charges?: number | null
+          total_passif?: number | null
+          total_produits?: number | null
+          updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_reports_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_reports_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_reports_validated_by_fkey"
+            columns: ["validated_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_reports_validated_by_fkey"
+            columns: ["validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2284,6 +2503,15 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_cost_per_ton: {
+        Args: {
+          p_campagne_id?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       calculate_next_run: {
         Args: {
           p_current_run?: string
@@ -2295,6 +2523,24 @@ export type Database = {
       create_default_teams_for_tenant: {
         Args: { _tenant_id: string }
         Returns: undefined
+      }
+      generate_balance_sheet: {
+        Args: {
+          p_campagne_id?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      generate_income_statement: {
+        Args: {
+          p_campagne_id?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       get_clients_safe: {
         Args: never
