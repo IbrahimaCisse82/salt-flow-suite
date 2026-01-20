@@ -1,6 +1,5 @@
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
-import { Breadcrumbs } from "@/components/Layout/Breadcrumbs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -44,80 +43,75 @@ const Achats = () => {
   const [orderFormData, setOrderFormData] = useState({
     supplierId: "",
     orderDate: "",
-    deliveryDate: "",
-    items: "",
-    quantity: "",
-    unitPrice: "",
+    expectedDeliveryDate: "",
     notes: ""
   });
   
-  const handleSupplierSubmit = (e: React.FormEvent) => {
+  const handleSupplierSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Fournisseur créé",
-      description: `${supplierFormData.name} a été ajouté avec succès`,
-    });
-    setIsSupplierDialogOpen(false);
-    setSupplierFormData({
-      name: "",
-      supplierType: "",
-      contact: "",
-      phone: "",
-      email: "",
-      address: "",
-      notes: ""
-    });
+    try {
+      await createSupplier.mutateAsync({
+        name: supplierFormData.name,
+        supplier_type: supplierFormData.supplierType,
+        contact_person: supplierFormData.contact,
+        phone: supplierFormData.phone,
+        email: supplierFormData.email,
+        address: supplierFormData.address,
+        notes: supplierFormData.notes,
+      });
+      toast({
+        title: "Fournisseur créé",
+        description: `${supplierFormData.name} a été ajouté avec succès`,
+      });
+      setIsSupplierDialogOpen(false);
+      setSupplierFormData({
+        name: "",
+        supplierType: "",
+        contact: "",
+        phone: "",
+        email: "",
+        address: "",
+        notes: ""
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le fournisseur",
+        variant: "destructive",
+      });
+    }
   };
   
- const handleOrderSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  //1
-  try {
-    await createPurchaseOrder.mutateAsync({
-      supplier_id: orderFormData.supplierId,
-      order_date: orderFormData.orderDate,
-      delivery_date: orderFormData.deliveryDate,
-      items: orderFormData.items,
-      quantity: Number(orderFormData.quantity),
-      unit_price: Number(orderFormData.unitPrice),
-      notes: orderFormData.notes,
-      status: "sent",
-    });
+  const handleOrderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createPurchaseOrder.mutateAsync({
+        supplier_id: orderFormData.supplierId,
+        order_date: orderFormData.orderDate,
+        expected_delivery_date: orderFormData.expectedDeliveryDate,
+        notes: orderFormData.notes,
+        status: "draft",
+      });
 
-    toast({
-      title: "Commande créée",
-      description: "La commande d'achat a été enregistrée avec succès",
-    });
+      toast({
+        title: "Commande créée",
+        description: "La commande d'achat a été enregistrée avec succès",
+      });
 
-    setIsOrderDialogOpen(false);
-    setOrderFormData({
-      supplierId: "",
-      orderDate: "",
-      deliveryDate: "",
-      items: "",
-      quantity: "",
-      unitPrice: "",
-      notes: "",
-    });
-  } catch (error) {
-    toast({
-      title: "Erreur",
-      description: "Impossible de créer la commande",
-      variant: "destructive",
-    });
-  }
-};
-
-    setIsOrderDialogOpen(false);
-    setOrderFormData({
-      supplierId: "",
-      orderDate: "",
-      deliveryDate: "",
-      items: "",
-      quantity: "",
-      unitPrice: "",
-      notes: ""
-    });
+      setIsOrderDialogOpen(false);
+      setOrderFormData({
+        supplierId: "",
+        orderDate: "",
+        expectedDeliveryDate: "",
+        notes: "",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer la commande",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -274,51 +268,12 @@ const Achats = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="deliveryDate">Date de livraison prévue *</Label>
+                    <Label htmlFor="expectedDeliveryDate">Date de livraison prévue</Label>
                     <Input
-                      id="deliveryDate"
+                      id="expectedDeliveryDate"
                       type="date"
-                      value={orderFormData.deliveryDate}
-                      onChange={(e) => setOrderFormData({...orderFormData, deliveryDate: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="items">Articles/Services *</Label>
-                  <Input
-                    id="items"
-                    value={orderFormData.items}
-                    onChange={(e) => setOrderFormData({...orderFormData, items: e.target.value})}
-                    placeholder="Description des articles"
-                    required
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantité *</Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      step="0.1"
-                      value={orderFormData.quantity}
-                      onChange={(e) => setOrderFormData({...orderFormData, quantity: e.target.value})}
-                      placeholder="Ex: 10"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="unitPrice">Prix unitaire (FCFA) *</Label>
-                    <Input
-                      id="unitPrice"
-                      type="number"
-                      step="0.01"
-                      value={orderFormData.unitPrice}
-                      onChange={(e) => setOrderFormData({...orderFormData, unitPrice: e.target.value})}
-                      placeholder="Ex: 5000"
-                      required
+                      value={orderFormData.expectedDeliveryDate}
+                      onChange={(e) => setOrderFormData({...orderFormData, expectedDeliveryDate: e.target.value})}
                     />
                   </div>
                 </div>
