@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenantId } from "./useTenantId";
 import { useToast } from "./use-toast";
+import type { Json } from "@/integrations/supabase/types";
 
 // Types pour les rapports financiers
 export interface BalanceSheetData {
@@ -125,7 +126,8 @@ export const useFinancialReports = () => {
           period_start: params.period_start,
           period_end: params.period_end,
           campagne_id: params.campagne_id || null,
-          report_data: balanceData as unknown as Record<string, unknown>,
+          // `financial_reports.report_data` est typé `Json` côté DB
+          report_data: balanceData as unknown as Json,
           total_actif: balanceData.actif.total,
           total_passif: balanceData.passif.total,
           status: "draft" as const,
@@ -182,7 +184,8 @@ export const useFinancialReports = () => {
           period_start: params.period_start,
           period_end: params.period_end,
           campagne_id: params.campagne_id || null,
-          report_data: incomeData as unknown as Record<string, unknown>,
+          // `financial_reports.report_data` est typé `Json` côté DB
+          report_data: incomeData as unknown as Json,
           total_produits: incomeData.produits.total,
           total_charges: incomeData.charges.total,
           resultat_net: incomeData.resultats.net,
