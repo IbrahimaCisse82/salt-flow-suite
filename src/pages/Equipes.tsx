@@ -63,6 +63,7 @@ const Equipes = () => {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamSector, setNewTeamSector] = useState("");
+  const [newTeamTarget, setNewTeamTarget] = useState("0");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
 
@@ -98,10 +99,12 @@ const Equipes = () => {
       name: newTeamName.trim(),
       sector: newTeamSector || null,
       status: "active",
+      production_target: Number(newTeamTarget) || 0,
     });
     
     setNewTeamName("");
     setNewTeamSector("");
+    setNewTeamTarget("0");
     setIsCreateDialogOpen(false);
   };
 
@@ -114,6 +117,7 @@ const Equipes = () => {
       sector: selectedTeam.sector,
       status: selectedTeam.status,
       leader_id: selectedTeam.leader_id,
+      production_target: selectedTeam.production_target,
     });
     
     setIsEditDialogOpen(false);
@@ -388,6 +392,18 @@ const Equipes = () => {
                     placeholder="Ex: Équipe Récolte"
                   />
                 </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="team-target">Objectif (tonnes)</Label>
+                    <Input
+                      id="team-target"
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      value={newTeamTarget}
+                      onChange={(e) => setNewTeamTarget(e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
                 <div className="space-y-2">
                   <Label htmlFor="team-sector">Secteur (optionnel)</Label>
                   <Select value={newTeamSector} onValueChange={setNewTeamSector}>
@@ -435,6 +451,46 @@ const Equipes = () => {
                         setSelectedTeam({ ...selectedTeam, name: e.target.value })
                       }
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-team-target">Objectif (tonnes)</Label>
+                    <Input
+                      id="edit-team-target"
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      value={String(selectedTeam.production_target ?? 0)}
+                      onChange={(e) =>
+                        setSelectedTeam({
+                          ...selectedTeam,
+                          production_target: Number(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Secteur</Label>
+                    <Select
+                      value={selectedTeam.sector || "none"}
+                      onValueChange={(v) =>
+                        setSelectedTeam({
+                          ...selectedTeam,
+                          sector: v === "none" ? null : v,
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un secteur" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Non défini</SelectItem>
+                        <SelectItem value="preparation">Préparation des bassins</SelectItem>
+                        <SelectItem value="mise-en-eau">Mise en eau</SelectItem>
+                        <SelectItem value="evaporation">Évaporation</SelectItem>
+                        <SelectItem value="recolte">Récolte</SelectItem>
+                        <SelectItem value="stockage">Traitement et stockage</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Chef d'équipe</Label>
