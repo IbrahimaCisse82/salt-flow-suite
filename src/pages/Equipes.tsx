@@ -3,7 +3,6 @@ import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -32,15 +31,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { 
-  Users, 
-  Plus, 
-  UserPlus, 
-  UserMinus, 
-  Settings2, 
-  Trash2,
-  RefreshCw,
-  Target,
-  TrendingUp
+  Users,
+  Plus,
+  RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -48,6 +41,8 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useTeams, Team, TeamMember } from "@/hooks/useTeams";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TeamCard } from "@/components/Teams/TeamCard";
+import { TeamStats } from "@/components/Teams/TeamStats";
 
 const Equipes = () => {
   const { isOpen } = useSidebar();
@@ -164,28 +159,6 @@ const Equipes = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "text-green-600 border-green-600 bg-green-50";
-      case "repos":
-        return "text-yellow-600 border-yellow-600 bg-yellow-50";
-      default:
-        return "text-muted-foreground border-muted";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "active":
-        return "En activité";
-      case "repos":
-        return "Repos";
-      default:
-        return "Inactive";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -228,6 +201,9 @@ const Equipes = () => {
             )}
           </div>
 
+          {/* Statistiques */}
+          {teams.length > 0 && <TeamStats teams={teams} />}
+
           {/* Liste des équipes */}
           <Card>
             <CardHeader>
@@ -246,112 +222,15 @@ const Equipes = () => {
               ) : teams.length > 0 ? (
                 <div className="space-y-4">
                   {teams.map((team) => (
-                    <div
+                    <TeamCard
                       key={team.id}
-                      className="p-4 rounded-lg border hover:bg-muted/30 transition-colors"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold text-lg">{team.name}</h3>
-                            <Badge variant="outline" className={getStatusColor(team.status)}>
-                              {getStatusLabel(team.status)}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            Chef: {team.leader?.full_name || "Non assigné"}
-                          </p>
-                          {team.sector && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Secteur: {team.sector}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-primary">
-                            {team.members.length}
-                          </p>
-                          <p className="text-xs text-muted-foreground">membres</p>
-                        </div>
-                      </div>
-
-                      {/* Membres de l'équipe */}
-                      {team.members.length > 0 && (
-                        <div className="mb-3 flex flex-wrap gap-2">
-                          {team.members.map((member) => (
-                            <Badge
-                              key={member.id}
-                              variant="secondary"
-                              className="flex items-center gap-1 pr-1"
-                            >
-                              {member.full_name}
-                              {member.role && (
-                                <span className="text-xs opacity-70">({member.role})</span>
-                              )}
-                              {isManager && (
-                                <button
-                                  onClick={() => handleRemoveMember(member)}
-                                  className="ml-1 hover:text-destructive"
-                                  title="Retirer de l'équipe"
-                                >
-                                  <UserMinus className="h-3 w-3" />
-                                </button>
-                              )}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Stats et actions */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t">
-                        <div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
-                            <Target className="h-3 w-3" />
-                            Objectif
-                          </div>
-                          <p className="font-semibold">{team.production_target} T</p>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
-                            <TrendingUp className="h-3 w-3" />
-                            Efficacité
-                          </div>
-                          <p className="font-semibold text-primary">
-                            {team.efficiency_rate}%
-                          </p>
-                        </div>
-                        {isManager && (
-                          <div className="col-span-2 flex items-end justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openAddMemberDialog(team)}
-                              className="gap-1"
-                            >
-                              <UserPlus className="h-4 w-4" />
-                              Ajouter
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openEditDialog(team)}
-                              className="gap-1"
-                            >
-                              <Settings2 className="h-4 w-4" />
-                              Gérer
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openDeleteDialog(team)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                      team={team}
+                      isManager={isManager}
+                      onAddMember={openAddMemberDialog}
+                      onEdit={openEditDialog}
+                      onDelete={openDeleteDialog}
+                      onRemoveMember={handleRemoveMember}
+                    />
                   ))}
                 </div>
               ) : (
