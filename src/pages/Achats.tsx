@@ -21,15 +21,13 @@ import { useState } from "react";
 const Achats = () => {
   const { toast } = useToast();
   const { isOpen } = useSidebar();
-  //const { suppliers, isLoading: suppliersLoading } = useSuppliers();
+
   const { suppliers, isLoading: suppliersLoading, createSupplier } = useSuppliers();
-  //const { purchaseOrders, isLoading: ordersLoading } = usePurchaseOrders(); 2
   const { purchaseOrders, isLoading: ordersLoading, createPurchaseOrder } = usePurchaseOrders();
-  
+
   const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
-  
-  
+
   const [supplierFormData, setSupplierFormData] = useState({
     name: "",
     supplierType: "",
@@ -39,78 +37,76 @@ const Achats = () => {
     address: "",
     notes: ""
   });
-  
+
   const [orderFormData, setOrderFormData] = useState({
     supplierId: "",
     orderDate: "",
     expectedDeliveryDate: "",
     notes: ""
   });
-  
+  // Ajoute un mapping au début du fichier
+  const SUPPLIER_TYPE_LABELS: Record<string, string> = {
+    goods: "Fourniture",
+    services: "Service",
+    equipment: "Équipement",
+  };
+  /** Création fournisseur */
   const handleSupplierSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!supplierFormData.name) {
+      toast({ title: "Erreur", description: "Le nom du fournisseur est obligatoire", variant: "destructive" });
+      return;
+    }
+
     try {
       await createSupplier.mutateAsync({
         name: supplierFormData.name,
-        supplier_type: supplierFormData.supplierType,
-        contact_person: supplierFormData.contact,
-        phone: supplierFormData.phone,
-        email: supplierFormData.email,
-        address: supplierFormData.address,
-        notes: supplierFormData.notes,
+        supplier_type: supplierFormData.supplierType || "goods",
+        contact_person: supplierFormData.contact || null,
+        phone: supplierFormData.phone || null,
+        email: supplierFormData.email || null,
+        address: supplierFormData.address || null,
+        notes: supplierFormData.notes || null,
       });
-      toast({
-        title: "Fournisseur créé",
-        description: `${supplierFormData.name} a été ajouté avec succès`,
-      });
+
+      toast({ title: "Fournisseur créé", description: `${supplierFormData.name} a été ajouté avec succès` });
       setIsSupplierDialogOpen(false);
-      setSupplierFormData({
-        name: "",
-        supplierType: "",
-        contact: "",
-        phone: "",
-        email: "",
-        address: "",
-        notes: ""
-      });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer le fournisseur",
-        variant: "destructive",
-      });
+      setSupplierFormData({ name: "", supplierType: "", contact: "", phone: "", email: "", address: "", notes: "" });
+    } catch (error: any) {
+      console.error(error);
+      toast({ title: "Erreur", description: error.message || "Impossible de créer le fournisseur", variant: "destructive" });
     }
   };
-  
+
+  /** Création commande */
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!orderFormData.supplierId) {
+      toast({ title: "Erreur", description: "Sélectionnez un fournisseur", variant: "destructive" });
+      return;
+    }
+    if (!orderFormData.orderDate) {
+      toast({ title: "Erreur", description: "La date de commande est obligatoire", variant: "destructive" });
+      return;
+    }
+
     try {
       await createPurchaseOrder.mutateAsync({
         supplier_id: orderFormData.supplierId,
         order_date: orderFormData.orderDate,
-        expected_delivery_date: orderFormData.expectedDeliveryDate,
-        notes: orderFormData.notes,
+        expected_delivery_date: orderFormData.expectedDeliveryDate || null,
+        notes: orderFormData.notes || null,
         status: "draft",
       });
 
-      toast({
-        title: "Commande créée",
-        description: "La commande d'achat a été enregistrée avec succès",
-      });
-
+      toast({ title: "Commande créée", description: "La commande d'achat a été enregistrée avec succès" });
       setIsOrderDialogOpen(false);
-      setOrderFormData({
-        supplierId: "",
-        orderDate: "",
-        expectedDeliveryDate: "",
-        notes: "",
-      });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer la commande",
-        variant: "destructive",
-      });
+      setOrderFormData({ supplierId: "", orderDate: "", expectedDeliveryDate: "", notes: "" });
+    } catch (error: any) {
+      console.error(error);
+      toast({ title: "Erreur", description: error.message || "Impossible de créer la commande", variant: "destructive" });
     }
   };
 
@@ -120,107 +116,65 @@ const Achats = () => {
       <div className="flex">
         <Sidebar />
         <main className={cn("flex-1 p-6 transition-all duration-300", isOpen ? "ml-64" : "ml-16")}>
+
           {/* Dialog Nouveau Fournisseur */}
           <Dialog open={isSupplierDialogOpen} onOpenChange={setIsSupplierDialogOpen}>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Nouveau fournisseur</DialogTitle>
-                <DialogDescription>
-                  Ajouter un nouveau fournisseur au système
-                </DialogDescription>
+                <DialogDescription>Ajouter un nouveau fournisseur au système</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSupplierSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nom du fournisseur *</Label>
-                  <Input
-                    id="name"
-                    value={supplierFormData.name}
-                    onChange={(e) => setSupplierFormData({...supplierFormData, name: e.target.value})}
-                    placeholder="Ex: Société ABC"
-                    required
-                  />
+                  <Input id="name" value={supplierFormData.name} onChange={(e) => setSupplierFormData({...supplierFormData, name: e.target.value})} placeholder="Ex: Société ABC" required />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="supplierType">Type de fournisseur *</Label>
-                  <Select 
-                    value={supplierFormData.supplierType} 
-                    onValueChange={(value) => setSupplierFormData({...supplierFormData, supplierType: value})}
-                    required
-                  >
+                  <Select value={supplierFormData.supplierType} onValueChange={(value) => setSupplierFormData({...supplierFormData, supplierType: value})} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner le type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="equipement">Équipement</SelectItem>
-                      <SelectItem value="fourniture">Fourniture</SelectItem>
-                      <SelectItem value="service">Service</SelectItem>
-                      <SelectItem value="transport">Transport</SelectItem>
+                      <SelectContent>
+                        <SelectItem value="goods">Fourniture</SelectItem>
+                        <SelectItem value="services">Service</SelectItem>
+                        <SelectItem value="equipment">Équipement</SelectItem>
+                      </SelectContent>
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="contact">Contact</Label>
-                    <Input
-                      id="contact"
-                      value={supplierFormData.contact}
-                      onChange={(e) => setSupplierFormData({...supplierFormData, contact: e.target.value})}
-                      placeholder="Nom du contact"
-                    />
+                    <Input id="contact" value={supplierFormData.contact} onChange={(e) => setSupplierFormData({...supplierFormData, contact: e.target.value})} placeholder="Nom du contact" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Téléphone *</Label>
-                    <Input
-                      id="phone"
-                      value={supplierFormData.phone}
-                      onChange={(e) => setSupplierFormData({...supplierFormData, phone: e.target.value})}
-                      placeholder="+221 XX XXX XX XX"
-                      required
-                    />
+                    <Input id="phone" value={supplierFormData.phone} onChange={(e) => setSupplierFormData({...supplierFormData, phone: e.target.value})} placeholder="+221 XX XXX XX XX" required />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={supplierFormData.email}
-                    onChange={(e) => setSupplierFormData({...supplierFormData, email: e.target.value})}
-                    placeholder="email@exemple.com"
-                  />
+                  <Input id="email" type="email" value={supplierFormData.email} onChange={(e) => setSupplierFormData({...supplierFormData, email: e.target.value})} placeholder="email@exemple.com" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="address">Adresse</Label>
-                  <Input
-                    id="address"
-                    value={supplierFormData.address}
-                    onChange={(e) => setSupplierFormData({...supplierFormData, address: e.target.value})}
-                    placeholder="Adresse complète"
-                  />
+                  <Input id="address" value={supplierFormData.address} onChange={(e) => setSupplierFormData({...supplierFormData, address: e.target.value})} placeholder="Adresse complète" />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={supplierFormData.notes}
-                    onChange={(e) => setSupplierFormData({...supplierFormData, notes: e.target.value})}
-                    placeholder="Informations complémentaires..."
-                    rows={3}
-                  />
+                  <Textarea id="notes" value={supplierFormData.notes} onChange={(e) => setSupplierFormData({...supplierFormData, notes: e.target.value})} placeholder="Informations complémentaires..." rows={3} />
                 </div>
-                
+
                 <div className="flex gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsSupplierDialogOpen(false)} className="flex-1">
-                    Annuler
-                  </Button>
-                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">
-                    Créer le fournisseur
-                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setIsSupplierDialogOpen(false)} className="flex-1">Annuler</Button>
+                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">Créer le fournisseur</Button>
                 </div>
               </form>
             </DialogContent>
@@ -231,76 +185,52 @@ const Achats = () => {
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Nouvelle commande d'achat</DialogTitle>
-                <DialogDescription>
-                  Créer un bon de commande fournisseur
-                </DialogDescription>
+                <DialogDescription>Créer un bon de commande fournisseur</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleOrderSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="supplierId">Fournisseur *</Label>
-                  <Select 
-                    value={orderFormData.supplierId} 
-                    onValueChange={(value) => setOrderFormData({...orderFormData, supplierId: value})}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un fournisseur" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {suppliers?.map((supplier: any) => (
-                        <SelectItem key={supplier.id} value={supplier.id}>
-                          {supplier.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {suppliers.length > 0 ? (
+                    <Select value={orderFormData.supplierId} onValueChange={(value) => setOrderFormData({...orderFormData, supplierId: value})} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un fournisseur" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {suppliers.map((s: any) => (
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-red-600">Aucun fournisseur disponible. Créez d'abord un fournisseur.</p>
+                  )}
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="orderDate">Date de commande *</Label>
-                    <Input
-                      id="orderDate"
-                      type="date"
-                      value={orderFormData.orderDate}
-                      onChange={(e) => setOrderFormData({...orderFormData, orderDate: e.target.value})}
-                      required
-                    />
+                    <Input id="orderDate" type="date" value={orderFormData.orderDate} onChange={(e) => setOrderFormData({...orderFormData, orderDate: e.target.value})} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="expectedDeliveryDate">Date de livraison prévue</Label>
-                    <Input
-                      id="expectedDeliveryDate"
-                      type="date"
-                      value={orderFormData.expectedDeliveryDate}
-                      onChange={(e) => setOrderFormData({...orderFormData, expectedDeliveryDate: e.target.value})}
-                    />
+                    <Input id="expectedDeliveryDate" type="date" value={orderFormData.expectedDeliveryDate} onChange={(e) => setOrderFormData({...orderFormData, expectedDeliveryDate: e.target.value})} />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="orderNotes">Notes</Label>
-                  <Textarea
-                    id="orderNotes"
-                    value={orderFormData.notes}
-                    onChange={(e) => setOrderFormData({...orderFormData, notes: e.target.value})}
-                    placeholder="Conditions particulières, remarques..."
-                    rows={3}
-                  />
+                  <Textarea id="orderNotes" value={orderFormData.notes} onChange={(e) => setOrderFormData({...orderFormData, notes: e.target.value})} placeholder="Conditions particulières, remarques..." rows={3} />
                 </div>
-                
+
                 <div className="flex gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsOrderDialogOpen(false)} className="flex-1">
-                    Annuler
-                  </Button>
-                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">
-                    Créer la commande
-                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setIsOrderDialogOpen(false)} className="flex-1">Annuler</Button>
+                  <Button type="submit" disabled={suppliers.length === 0} className="flex-1 bg-gradient-to-r from-primary to-accent">Créer la commande</Button>
                 </div>
               </form>
             </DialogContent>
           </Dialog>
 
+          {/* Statistiques et Tabs (inchangés) */}
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-bold">Module Achats</h1>
@@ -315,7 +245,7 @@ const Achats = () => {
                   <Package className="h-8 w-8 text-primary" />
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">Fournisseurs actifs</p>
-                <p className="text-3xl font-bold">{suppliers?.filter((s: any) => s.is_active !== false).length || 0}</p>
+                <p className="text-3xl font-bold">{suppliers?.filter(s => s.is_active !== false).length || 0}</p>
               </CardContent>
             </Card>
             <Card>
@@ -346,6 +276,7 @@ const Achats = () => {
             </TabsList>
 
             <TabsContent value="suppliers" className="space-y-4">
+              {/* Tableau fournisseurs */}
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
@@ -371,16 +302,14 @@ const Achats = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {suppliers.map((supplier: any) => (
-                          <TableRow key={supplier.id}>
-                            <TableCell className="font-medium">{supplier.name}</TableCell>
-                            <TableCell>{supplier.supplier_type || '-'}</TableCell>
-                            <TableCell>{supplier.contact_person || '-'}</TableCell>
-                            <TableCell>{supplier.phone || '-'}</TableCell>
+                        {suppliers.map((s: any) => (
+                          <TableRow key={s.id}>
+                            <TableCell className="font-medium">{s.name}</TableCell>
+                            <TableCell>{SUPPLIER_TYPE_LABELS[s.supplier_type] || "-"}</TableCell>
+                            <TableCell>{s.contact_person || "-"}</TableCell>
+                            <TableCell>{s.phone || "-"}</TableCell>
                             <TableCell>
-                              <Badge variant={supplier.is_active !== false ? 'default' : 'secondary'}>
-                                {supplier.is_active !== false ? 'Actif' : 'Inactif'}
-                              </Badge>
+                              <Badge variant={s.is_active !== false ? 'default' : 'secondary'}>{s.is_active !== false ? 'Actif' : 'Inactif'}</Badge>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -394,6 +323,7 @@ const Achats = () => {
             </TabsContent>
 
             <TabsContent value="orders" className="space-y-4">
+              {/* Tableau commandes */}
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
@@ -419,15 +349,13 @@ const Achats = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {purchaseOrders.map((order: any) => (
-                          <TableRow key={order.id}>
-                            <TableCell className="font-medium">{order.order_number}</TableCell>
-                            <TableCell>{order.supplier?.name}</TableCell>
-                            <TableCell>{new Date(order.order_date).toLocaleDateString()}</TableCell>
-                            <TableCell>{order.total_amount} FCFA</TableCell>
-                            <TableCell>
-                              <Badge>{order.status}</Badge>
-                            </TableCell>
+                        {purchaseOrders.map((o: any) => (
+                          <TableRow key={o.id}>
+                            <TableCell className="font-medium">{o.order_number}</TableCell>
+                            <TableCell>{o.supplier?.name || "-"}</TableCell>
+                            <TableCell>{new Date(o.order_date).toLocaleDateString()}</TableCell>
+                            <TableCell>{(o.total_amount ?? 0).toLocaleString()} FCFA</TableCell>
+                            <TableCell><Badge>{o.status}</Badge></TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -450,6 +378,7 @@ const Achats = () => {
               </Card>
             </TabsContent>
           </Tabs>
+
         </main>
       </div>
     </div>
