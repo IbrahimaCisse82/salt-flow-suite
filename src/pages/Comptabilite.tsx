@@ -78,6 +78,14 @@ const Comptabilite = () => {
     canBeDelivered: false
   });
   
+  // État pour le formulaire de création de compte
+  const [newAccountData, setNewAccountData] = useState({
+    accountName: "",
+    accountType: "",
+    accountNumber: "",
+    initialBalance: "0"
+  });
+  
   // État pour le formulaire d'achat (anciennement dépense)
   const [expenseFormData, setExpenseFormData] = useState({
     date: "",
@@ -425,13 +433,77 @@ const Comptabilite = () => {
     }
   });
 
+  // Mutation pour créer un compte
+  const createAccountMutation = useMutation({
+    mutationFn: async (formData: typeof newAccountData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profileData?.tenant_id) throw new Error('Tenant not found');
+      
+      const balance = parseFloat(formData.initialBalance) || 0;
+      
+      // Générer un numéro de compte par défaut si non fourni
+      const accountNumber = formData.accountNumber || 
+        `${formData.accountType === 'banque' ? 'BQ' : 'CA'}-${Date.now().toString().slice(-8)}`;
+      
+      const { data, error } = await supabase
+        .from('accounts')
+        .insert({
+          tenant_id: profileData.tenant_id,
+          account_name: formData.accountName,
+          account_type: formData.accountType,
+          account_number: accountNumber,
+          balance: balance
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      toast({
+        title: "Compte ajouté",
+        description: "Le nouveau compte a été créé avec succès",
+      });
+      setShowAccountDialog(false);
+      setNewAccountData({
+        accountName: "",
+        accountType: "",
+        accountNumber: "",
+        initialBalance: "0"
+      });
+    },
+    onError: (error) => {
+      logger.error('Error creating account:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le compte",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleAddAccount = () => {
-    toast({
-      title: "Compte ajouté",
-      description: "Le nouveau compte a été créé avec succès",
-    });
-    setShowAccountDialog(false);
+    if (!newAccountData.accountName || !newAccountData.accountType) {
+      toast({
+        title: "Champs requis",
+        description: "Veuillez renseigner le nom et le type de compte",
+        variant: "destructive"
+      });
+      return;
+    }
+    createAccountMutation.mutate(newAccountData);
   };
+
 
   // Mutation pour créer un achat (anciennement dépense) avec écritures comptables
   const createExpenseMutation = useMutation({
@@ -1408,7 +1480,17 @@ const Comptabilite = () => {
           </Tabs>
 
           {/* Dialog Nouveau Compte */}
-          <Dialog open={showAccountDialog} onOpenChange={setShowAccountDialog}>
+          <Dialog open={showAccountDialog} onOpenChange={(open) => {
+            setShowAccountDialog(open);
+            if (!open) {
+              setNewAccountData({
+                accountName: "",
+                accountType: "",
+                accountNumber: "",
+                initialBalance: "0"
+              });
+            }
+          }}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Créer un nouveau compte</DialogTitle>
@@ -1419,11 +1501,19 @@ const Comptabilite = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="account-name">Nom du compte</Label>
-                  <Input id="account-name" placeholder="Ex: Banque Atlantique" />
+                  <Input 
+                    id="account-name" 
+                    placeholder="Ex: Banque Atlantique"
+                    value={newAccountData.accountName}
+                    onChange={(e) => setNewAccountData({...newAccountData, accountName: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="account-type">Type de compte</Label>
-                  <Select>
+                  <Select
+                    value={newAccountData.accountType}
+                    onValueChange={(value) => setNewAccountData({...newAccountData, accountType: value})}
+                  >
                     <SelectTrigger id="account-type">
                       <SelectValue placeholder="Sélectionnez le type" />
                     </SelectTrigger>
@@ -1435,11 +1525,22 @@ const Comptabilite = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="account-number">Numéro de compte (optionnel)</Label>
-                  <Input id="account-number" placeholder="Ex: 123456789" />
+                  <Input 
+                    id="account-number" 
+                    placeholder="Ex: 123456789"
+                    value={newAccountData.accountNumber}
+                    onChange={(e) => setNewAccountData({...newAccountData, accountNumber: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="initial-balance">Solde initial (FCFA)</Label>
-                  <Input id="initial-balance" type="number" placeholder="0" />
+                  <Input 
+                    id="initial-balance" 
+                    type="number" 
+                    placeholder="0"
+                    value={newAccountData.initialBalance}
+                    onChange={(e) => setNewAccountData({...newAccountData, initialBalance: e.target.value})}
+                  />
                 </div>
                 <div className="flex gap-2 pt-4 border-t">
                   <Button 
@@ -1452,8 +1553,9 @@ const Comptabilite = () => {
                   <Button 
                     className="flex-1 bg-gradient-to-r from-primary to-accent"
                     onClick={handleAddAccount}
+                    disabled={createAccountMutation.isPending}
                   >
-                    Créer le compte
+                    {createAccountMutation.isPending ? "Création..." : "Créer le compte"}
                   </Button>
                 </div>
               </div>
