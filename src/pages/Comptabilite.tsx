@@ -433,7 +433,7 @@ const Comptabilite = () => {
     }
   });
 
-  // Mutation pour créer un compte
+  // Mutation pour créer un compte avec transaction initiale si solde > 0
   const createAccountMutation = useMutation({
     mutationFn: async (formData: typeof newAccountData) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -453,7 +453,8 @@ const Comptabilite = () => {
       const accountNumber = formData.accountNumber || 
         `${formData.accountType === 'banque' ? 'BQ' : 'CA'}-${Date.now().toString().slice(-8)}`;
       
-      const { data, error } = await supabase
+      // 1. Créer le compte
+      const { data: newAccount, error } = await supabase
         .from('accounts')
         .insert({
           tenant_id: profileData.tenant_id,
@@ -466,13 +467,58 @@ const Comptabilite = () => {
         .single();
       
       if (error) throw error;
-      return data;
+
+      // 2. Si solde initial > 0, créer une transaction de solde initial
+      if (balance > 0) {
+        const today = new Date().toISOString().split('T')[0];
+        const journalCode = 'OUV'; // Ouverture
+        const dateFormatted = today.replace(/-/g, '');
+        
+        // Compter les transactions existantes pour générer le numéro
+        const { data: existingTx } = await supabase
+          .from('transactions')
+          .select('id', { count: 'exact', head: false })
+          .eq('tenant_id', profileData.tenant_id)
+          .eq('journal_code', journalCode)
+          .eq('transaction_date', today);
+        
+        const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
+        const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
+
+        // Créer la transaction de solde initial
+        const { error: txError } = await supabase
+          .from('transactions')
+          .insert({
+            tenant_id: profileData.tenant_id,
+            account_id: newAccount.id,
+            transaction_type: 'recette',
+            journal_code: journalCode,
+            transaction_date: today,
+            amount: balance,
+            description: `Solde initial - ${formData.accountName}`,
+            reference: documentNumber,
+            notes: `Solde d'ouverture du compte ${formData.accountType === 'banque' ? 'bancaire' : 'caisse'}`
+          } as any);
+
+        if (txError) {
+          logger.error('Error creating initial balance transaction:', txError);
+          // Ne pas faire échouer la création du compte
+        }
+      }
+      
+      return newAccount;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      
+      const balance = parseFloat(newAccountData.initialBalance) || 0;
       toast({
         title: "Compte ajouté",
-        description: "Le nouveau compte a été créé avec succès",
+        description: balance > 0 
+          ? `Le compte a été créé avec un solde initial de ${balance.toLocaleString()} FCFA`
+          : "Le nouveau compte a été créé avec succès",
       });
       setShowAccountDialog(false);
       setNewAccountData({
