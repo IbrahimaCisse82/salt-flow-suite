@@ -2397,6 +2397,7 @@ export type Database = {
       }
       transactions: {
         Row: {
+          account_id: string | null
           amount: number | null
           campagne_id: string | null
           campagne_phase: string | null
@@ -2414,6 +2415,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          account_id?: string | null
           amount?: number | null
           campagne_id?: string | null
           campagne_phase?: string | null
@@ -2431,6 +2433,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          account_id?: string | null
           amount?: number | null
           campagne_id?: string | null
           campagne_phase?: string | null
@@ -2448,6 +2451,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transactions_campagne_id_fkey"
             columns: ["campagne_id"]
