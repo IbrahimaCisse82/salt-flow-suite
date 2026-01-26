@@ -301,15 +301,16 @@ const Comptabilite = () => {
       if (saleError) throw saleError;
 
       // 1. Créer l'enregistrement de paiement
+      // Insérer dans la table payments avec les bonnes colonnes
       const { error: paymentError } = await supabase
         .from('payments')
         .insert({
           tenant_id: profile.tenant_id,
-          sale_id,
-          account_id,
+          facture_id: sale_id,  // La colonne s'appelle facture_id, pas sale_id
           payment_date,
-          amount: amount.toString(),
+          amount: Number(amount),
           payment_method: 'manual',
+          notes: `Compte: ${account_id}` // On stocke l'account_id dans les notes pour référence
         });
       
       if (paymentError) throw paymentError;
@@ -354,7 +355,7 @@ const Comptabilite = () => {
           account_id: account_id,
           transaction_type: transactionType,
           journal_code: journalCode,
-          date: payment_date,
+          transaction_date: payment_date,  // Correction: c'est transaction_date, pas date
           amount: amount,
           description: `Vente ${clientType === 'local' ? 'locale' : 'export'}`,
           reference: documentNumber
@@ -374,10 +375,9 @@ const Comptabilite = () => {
 
       if (!productAccount) throw new Error(`Compte ${productAccountNumber} introuvable`);
 
-      // 6. Créer les écritures comptables (double entrée)
+      // 6. Créer les écritures comptables (double entrée) - sans tenant_id car pas dans le schéma
       const journalEntries = [
         {
-          tenant_id: profile.tenant_id,
           transaction_id: transaction.id,
           account_id: account_id,
           debit: amount,
@@ -385,7 +385,6 @@ const Comptabilite = () => {
           description: `Encaissement vente ${clientType === 'local' ? 'locale' : 'export'}`
         },
         {
-          tenant_id: profile.tenant_id,
           transaction_id: transaction.id,
           account_id: productAccount.id,
           debit: 0,
