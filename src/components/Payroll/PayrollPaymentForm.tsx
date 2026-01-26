@@ -34,14 +34,14 @@ export function PayrollPaymentForm() {
   const { data: validatedAttendances } = useTeamAttendance({ status: 'validated' });
   const createPayment = useCreatePayrollPayment();
 
-  // Récupérer les comptes de trésorerie
+  // Récupérer les comptes de trésorerie (supporte majuscules et minuscules)
   const { data: accounts } = useQuery({
     queryKey: ['treasury-accounts'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('accounts')
         .select('*')
-        .in('account_type', ['Banque', 'Caisse'])
+        .or('account_type.ilike.%banque%,account_type.ilike.%caisse%')
         .order('account_name');
       
       if (error) throw error;

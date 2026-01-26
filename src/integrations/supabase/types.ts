@@ -1067,40 +1067,40 @@ export type Database = {
         Row: {
           amount: number | null
           created_at: string | null
+          facture_id: string | null
           id: string
           notes: string | null
           payment_date: string | null
           payment_method: string | null
-          sale_id: string | null
           tenant_id: string
           updated_at: string | null
         }
         Insert: {
           amount?: number | null
           created_at?: string | null
+          facture_id?: string | null
           id?: string
           notes?: string | null
           payment_date?: string | null
           payment_method?: string | null
-          sale_id?: string | null
           tenant_id: string
           updated_at?: string | null
         }
         Update: {
           amount?: number | null
           created_at?: string | null
+          facture_id?: string | null
           id?: string
           notes?: string | null
           payment_date?: string | null
           payment_method?: string | null
-          sale_id?: string | null
           tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "payments_sale_id_fkey"
-            columns: ["sale_id"]
+            columns: ["facture_id"]
             isOneToOne: false
             referencedRelation: "sales"
             referencedColumns: ["id"]
