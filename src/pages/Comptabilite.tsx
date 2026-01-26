@@ -274,6 +274,35 @@ const Comptabilite = () => {
 
   const totalBalance = accounts.reduce((sum: number, acc: any) => sum + Number(acc.balance || 0), 0);
 
+  // Récupérer les transactions du mois en cours pour les KPIs
+  const { data: monthlyTransactions = [] } = useQuery({
+    queryKey: ['monthly-transactions'],
+    queryFn: async () => {
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+      
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('transaction_type, amount')
+        .gte('transaction_date', firstDay)
+        .lte('transaction_date', lastDay);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Calculer les revenus du mois (encaissements : ventes, recettes)
+  const monthlyRevenue = monthlyTransactions
+    .filter((t: any) => ['vente_locale', 'vente_export', 'recette'].includes(t.transaction_type))
+    .reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0);
+
+  // Calculer les dépenses du mois (décaissements : dépenses, salaires, achats)
+  const monthlyExpenses = monthlyTransactions
+    .filter((t: any) => ['depense', 'salaire', 'achat'].includes(t.transaction_type))
+    .reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0);
+
   // Mutation pour enregistrer un paiement
   const recordPaymentMutation = useMutation({
     mutationFn: async (paymentData: any) => {
@@ -998,7 +1027,7 @@ const Comptabilite = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-green-600">350,000 FCFA</p>
+                <p className="text-2xl font-bold text-green-600">{monthlyRevenue.toLocaleString()} FCFA</p>
               </CardContent>
             </Card>
 
@@ -1010,7 +1039,7 @@ const Comptabilite = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-red-600">75,000 FCFA</p>
+                <p className="text-2xl font-bold text-red-600">{monthlyExpenses.toLocaleString()} FCFA</p>
               </CardContent>
             </Card>
           </div>
