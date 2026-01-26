@@ -405,6 +405,7 @@ const Comptabilite = () => {
       queryClient.invalidateQueries({ queryKey: ['pending-invoices'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
       
       toast({
         title: "Paiement enregistré",
@@ -733,7 +734,7 @@ const Comptabilite = () => {
           account_id: formData.accountId,
           transaction_type: 'depense',
           journal_code: journalCode,
-          date: formData.date,
+          transaction_date: formData.date,
           amount: amount,
           description: `Salaire ${employeeTypeLabel} - ${employeeName}`,
           reference: documentNumber,
@@ -747,7 +748,6 @@ const Comptabilite = () => {
       // 5. Créer les écritures comptables (double entrée)
       const journalEntries = [
         {
-          tenant_id: profile.tenant_id,
           transaction_id: transaction.id,
           account_id: salaryAccount.id,
           debit: amount,
@@ -755,7 +755,6 @@ const Comptabilite = () => {
           description: `Salaire ${employeeTypeLabel} - ${employeeName} - ${formData.period}`
         },
         {
-          tenant_id: profile.tenant_id,
           transaction_id: transaction.id,
           account_id: formData.accountId,
           debit: 0,
@@ -775,6 +774,7 @@ const Comptabilite = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
       toast({
         title: "Salaire enregistré",
         description: "Le paiement de salaire et ses écritures comptables ont été enregistrés",
@@ -840,7 +840,7 @@ const Comptabilite = () => {
           account_id: formData.fromAccountId,
           transaction_type: 'virement_interne',
           journal_code: journalCode,
-          date: formData.date,
+          transaction_date: formData.date,
           amount: amount,
           description: 'Virement interne',
           reference: documentNumber,
@@ -854,7 +854,6 @@ const Comptabilite = () => {
       // 3. Créer les écritures comptables (double entrée)
       const journalEntries = [
         {
-          tenant_id: profile.tenant_id,
           transaction_id: transaction.id,
           account_id: formData.toAccountId,
           debit: amount,
@@ -862,7 +861,6 @@ const Comptabilite = () => {
           description: 'Virement reçu'
         },
         {
-          tenant_id: profile.tenant_id,
           transaction_id: transaction.id,
           account_id: formData.fromAccountId,
           debit: 0,
@@ -882,6 +880,7 @@ const Comptabilite = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
       toast({
         title: "Virement enregistré",
         description: "Le virement et ses écritures comptables ont été enregistrés",
