@@ -348,12 +348,17 @@ const Comptabilite = () => {
       const newAmountPaid = Number(saleData.amount_paid || 0) + Number(amount);
       const newBalance = Number(saleData.total_amount) - newAmountPaid;
 
+      // Déterminer le nouveau statut de vente:
+      // Si can_be_delivered est true, passer à 'delivered' pour déclencher le trigger de stock
+      const newSaleStatus = can_be_delivered ? 'delivered' : 'invoiced';
+
       const { error: updateError } = await supabase
         .from('sales')
         .update({
           amount_paid: newAmountPaid,
           payment_status: newBalance <= 0 ? 'paid' : 'partial',
-          can_be_delivered: can_be_delivered
+          can_be_delivered: can_be_delivered,
+          sale_status: newSaleStatus  // Mettre à jour le statut pour déclencher le trigger stock
         })
         .eq('id', sale_id);
       
@@ -395,38 +400,46 @@ const Comptabilite = () => {
       if (txError) throw txError;
 
       // 5. Trouver le compte de produits approprié (701 pour local, 702 pour export)
+      // Utiliser ilike avec % pour trouver un compte commençant par 701 ou 702
       const productAccountNumber = clientType === 'local' ? '701' : '702';
       const { data: productAccount } = await supabase
         .from('chart_of_accounts')
         .select('id')
-        .eq('account_number', productAccountNumber)
+        .ilike('account_number', `${productAccountNumber}%`)
+        .limit(1)
         .maybeSingle();
 
-      if (!productAccount) throw new Error(`Compte ${productAccountNumber} introuvable`);
+      // Si pas de compte trouvé, on continue sans écritures comptables détaillées
+      // (l'essentiel est que le paiement soit enregistré)
+      let productAccountId = productAccount?.id;
 
-      // 6. Créer les écritures comptables (double entrée) - sans tenant_id car pas dans le schéma
-      const journalEntries = [
-        {
-          transaction_id: transaction.id,
-          account_id: account_id,
-          debit: amount,
-          credit: 0,
-          description: `Encaissement vente ${clientType === 'local' ? 'locale' : 'export'}`
-        },
-        {
-          transaction_id: transaction.id,
-          account_id: productAccount.id,
-          debit: 0,
-          credit: amount,
-          description: `Vente ${clientType === 'local' ? 'locale' : 'export'}`
+      // 6. Créer les écritures comptables (double entrée) - seulement si compte produit trouvé
+      if (productAccountId) {
+        const journalEntries = [
+          {
+            transaction_id: transaction.id,
+            account_id: account_id,
+            debit: amount,
+            credit: 0,
+            description: `Encaissement vente ${clientType === 'local' ? 'locale' : 'export'}`
+          },
+          {
+            transaction_id: transaction.id,
+            account_id: productAccountId,
+            debit: 0,
+            credit: amount,
+            description: `Vente ${clientType === 'local' ? 'locale' : 'export'}`
+          }
+        ];
+
+        const { error: entriesError } = await supabase
+          .from('journal_entries')
+          .insert(journalEntries as any);
+
+        if (entriesError) {
+          console.warn('Erreur écritures comptables:', entriesError);
         }
-      ];
-
-      const { error: entriesError } = await supabase
-        .from('journal_entries')
-        .insert(journalEntries as any);
-
-      if (entriesError) throw entriesError;
+      }
 
       return { newBalance, newAmountPaid };
     },
