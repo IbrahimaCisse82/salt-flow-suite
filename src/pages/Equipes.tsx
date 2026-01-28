@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +34,9 @@ import {
 import { 
   Users,
   Plus,
-  RefreshCw
+  RefreshCw,
+  Clock,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -43,10 +46,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TeamCard } from "@/components/Teams/TeamCard";
 import { TeamStats } from "@/components/Teams/TeamStats";
+import { TeamAttendanceForm } from "@/components/Teams/TeamAttendanceForm";
+import { TeamAttendanceList } from "@/components/Teams/TeamAttendanceList";
+import { TeamPerformance } from "@/components/Teams/TeamPerformance";
 
 const Equipes = () => {
   const { isOpen } = useSidebar();
   const { profile } = useAuth();
+
+  // Tabs
+  const [activeTab, setActiveTab] = useState("equipes");
 
   // Dialogs
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -178,7 +187,7 @@ const Equipes = () => {
                 Organisez vos équipes de terrain pour la production de sel
               </p>
             </div>
-            {isManager && (
+            {isManager && activeTab === "equipes" && (
               <div className="flex gap-2">
                 {teams.length === 0 && (
                   <Button
@@ -201,56 +210,88 @@ const Equipes = () => {
             )}
           </div>
 
-          {/* Statistiques */}
-          {teams.length > 0 && <TeamStats teams={teams} />}
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+              <TabsTrigger value="equipes" className="gap-2">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Équipes</span>
+              </TabsTrigger>
+              <TabsTrigger value="pointage" className="gap-2">
+                <Clock className="h-4 w-4" />
+                <span className="hidden sm:inline">Pointage</span>
+              </TabsTrigger>
+              <TabsTrigger value="performance" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Performance</span>
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Liste des équipes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Équipes de terrain ({teams.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-32 w-full" />
-                  ))}
-                </div>
-              ) : teams.length > 0 ? (
-                <div className="space-y-4">
-                  {teams.map((team) => (
-                    <TeamCard
-                      key={team.id}
-                      team={team}
-                      isManager={isManager}
-                      onAddMember={openAddMemberDialog}
-                      onEdit={openEditDialog}
-                      onDelete={openDeleteDialog}
-                      onRemoveMember={handleRemoveMember}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                  <p className="text-muted-foreground mb-4">Aucune équipe créée</p>
-                  {isManager && (
-                    <Button
-                      onClick={initializeDefaultTeams}
-                      variant="outline"
-                      className="gap-2"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                      Créer les équipes par défaut
-                    </Button>
+            {/* Tab: Équipes */}
+            <TabsContent value="equipes" className="space-y-6">
+              {/* Statistiques */}
+              {teams.length > 0 && <TeamStats teams={teams} />}
+
+              {/* Liste des équipes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Équipes de terrain ({teams.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-32 w-full" />
+                      ))}
+                    </div>
+                  ) : teams.length > 0 ? (
+                    <div className="space-y-4">
+                      {teams.map((team) => (
+                        <TeamCard
+                          key={team.id}
+                          team={team}
+                          isManager={isManager}
+                          onAddMember={openAddMemberDialog}
+                          onEdit={openEditDialog}
+                          onDelete={openDeleteDialog}
+                          onRemoveMember={handleRemoveMember}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                      <p className="text-muted-foreground mb-4">Aucune équipe créée</p>
+                      {isManager && (
+                        <Button
+                          onClick={initializeDefaultTeams}
+                          variant="outline"
+                          className="gap-2"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Créer les équipes par défaut
+                        </Button>
+                      )}
+                    </div>
                   )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tab: Pointage */}
+            <TabsContent value="pointage" className="space-y-6">
+              {isManager && <TeamAttendanceForm teams={teams} />}
+              <TeamAttendanceList teams={teams} />
+            </TabsContent>
+
+            {/* Tab: Performance */}
+            <TabsContent value="performance" className="space-y-6">
+              <TeamPerformance teams={teams} />
+            </TabsContent>
+          </Tabs>
 
           {/* Dialog: Créer une équipe */}
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
