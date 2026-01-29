@@ -36,7 +36,8 @@ import {
   Plus,
   RefreshCw,
   Clock,
-  BarChart3
+  BarChart3,
+  UserPlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -49,6 +50,7 @@ import { TeamStats } from "@/components/Teams/TeamStats";
 import { TeamAttendanceForm } from "@/components/Teams/TeamAttendanceForm";
 import { TeamAttendanceList } from "@/components/Teams/TeamAttendanceList";
 import { TeamPerformance } from "@/components/Teams/TeamPerformance";
+import { EmployeeManagement } from "@/components/Teams/EmployeeManagement";
 
 const Equipes = () => {
   const { isOpen } = useSidebar();
@@ -212,7 +214,11 @@ const Equipes = () => {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+              <TabsTrigger value="employes" className="gap-2">
+                <UserPlus className="h-4 w-4" />
+                <span className="hidden sm:inline">Employés</span>
+              </TabsTrigger>
               <TabsTrigger value="equipes" className="gap-2">
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline">Équipes</span>
@@ -226,6 +232,11 @@ const Equipes = () => {
                 <span className="hidden sm:inline">Performance</span>
               </TabsTrigger>
             </TabsList>
+
+            {/* Tab: Employés */}
+            <TabsContent value="employes" className="space-y-6">
+              <EmployeeManagement isManager={isManager} />
+            </TabsContent>
 
             {/* Tab: Équipes */}
             <TabsContent value="equipes" className="space-y-6">
