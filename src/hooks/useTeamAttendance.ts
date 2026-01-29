@@ -60,6 +60,27 @@ export const useTeamAttendance = (filters?: { status?: string; teamId?: string; 
   });
 };
 
+// Hook pour les pointages validés en attente de paiement (pour la comptabilité)
+export const usePendingPayrollAttendance = () => {
+  return useQuery({
+    queryKey: ['pending-payroll-attendance'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('team_attendance')
+        .select(`
+          *,
+          employees (full_name, employee_number),
+          teams (name)
+        `)
+        .eq('status', 'validated')
+        .order('attendance_date', { ascending: false });
+
+      if (error) throw error;
+      return data as TeamAttendance[];
+    }
+  });
+};
+
 export const useCreateAttendance = () => {
   const queryClient = useQueryClient();
   
