@@ -8,6 +8,9 @@ type SupplierRow = Database["public"]["Tables"]["suppliers"]["Row"];
 type SupplierInsert = Database["public"]["Tables"]["suppliers"]["Insert"];
 type SupplierUpdate = Database["public"]["Tables"]["suppliers"]["Update"];
 
+// Export du type Supplier pour utilisation externe
+export type Supplier = SupplierRow;
+
 // Interface pour la création de fournisseur
 export interface CreateSupplierInput {
   name: string;
