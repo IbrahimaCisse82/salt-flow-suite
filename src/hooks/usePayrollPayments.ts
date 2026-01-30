@@ -63,20 +63,38 @@ export const useCreatePayrollPayment = () => {
 
       if (!profile?.tenant_id) throw new Error("Tenant non trouvé");
 
-      // 1. Créer le paiement
+      // 1. Récupérer le pointage pour connaître le montant total dû
+      const { data: attendance } = await supabase
+        .from('team_attendance')
+        .select('calculated_amount')
+        .eq('id', payment.attendance_id)
+        .single();
+
+      // 2. Calculer le total déjà payé pour ce pointage
+      const { data: previousPayments } = await supabase
+        .from('payroll_payments')
+        .select('paid_amount')
+        .eq('attendance_id', payment.attendance_id);
+
+      const totalPreviouslyPaid = previousPayments?.reduce((sum, p) => sum + (p.paid_amount || 0), 0) || 0;
+      const totalDue = attendance?.calculated_amount || 0;
+      const newBalanceDue = totalDue - totalPreviouslyPaid - payment.paid_amount;
+
+      // 3. Créer le paiement avec le reliquat
       const { data: paymentData, error: paymentError } = await supabase
         .from('payroll_payments')
         .insert({
           ...payment,
           tenant_id: profile.tenant_id,
-          processed_by: userData.user?.id
+          processed_by: userData.user?.id,
+          balance_due: Math.max(0, newBalanceDue)
         })
         .select()
         .single();
 
       if (paymentError) throw paymentError;
 
-      // 2. Récupérer les infos du compte et de l'employé pour la description
+      // 4. Récupérer les infos du compte et de l'employé pour la description
       const { data: account } = await supabase
         .from('accounts')
         .select('account_name, account_number, balance')
@@ -89,7 +107,7 @@ export const useCreatePayrollPayment = () => {
         .eq('id', payment.paid_to)
         .single();
 
-      // 3. Créer la transaction comptable (dépense salaire)
+      // 5. Créer la transaction comptable (dépense salaire)
       const { error: txError } = await supabase
         .from('transactions')
         .insert({
@@ -97,7 +115,7 @@ export const useCreatePayrollPayment = () => {
           transaction_date: payment.payment_date,
           transaction_type: 'salaire',
           amount: payment.paid_amount,
-          description: `Paiement salaire - ${employee?.full_name || 'Employé'}`,
+          description: `Paiement salaire${newBalanceDue > 0 ? ' (partiel)' : ''} - ${employee?.full_name || 'Employé'}`,
           reference: `PAY-${paymentData.id.substring(0, 8)}`,
           notes: payment.notes || null
         });
@@ -106,19 +124,19 @@ export const useCreatePayrollPayment = () => {
         console.error("Erreur création transaction:", txError);
       }
 
-      // 4. Mettre à jour le solde du compte de paiement
-      const newBalance = (account?.balance || 0) - payment.paid_amount;
+      // 6. Mettre à jour le solde du compte de paiement
+      const newAccountBalance = (account?.balance || 0) - payment.paid_amount;
       const { error: accountError } = await supabase
         .from('accounts')
-        .update({ balance: newBalance })
+        .update({ balance: newAccountBalance })
         .eq('id', payment.payment_account_id);
 
       if (accountError) {
         console.error("Erreur mise à jour solde compte:", accountError);
       }
 
-      // 5. Mettre à jour le statut du pointage à "paid"
-      if (payment.attendance_id) {
+      // 7. Mettre à jour le statut du pointage UNIQUEMENT si entièrement payé
+      if (payment.attendance_id && newBalanceDue <= 0) {
         const { error: attendanceError } = await supabase
           .from('team_attendance')
           .update({ status: 'paid' })
