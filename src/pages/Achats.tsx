@@ -5,19 +5,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
-import { Plus, Package, ShoppingCart, TrendingUp, Receipt, BookOpen } from "lucide-react";
+import { Plus, Package, ShoppingCart, TrendingUp } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
-import { useExpenseTypes } from "@/hooks/useExpenseTypes";
-import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 
 // Composants
 import { PurchaseOrderForm } from "@/components/Purchases/PurchaseOrderForm";
 import { PurchaseOrdersTable } from "@/components/Purchases/PurchaseOrdersTable";
 import { SuppliersTable } from "@/components/Purchases/SuppliersTable";
-import { ExpenseTypesTable } from "@/components/Purchases/ExpenseTypesTable";
-import { ChartOfAccountsTable } from "@/components/Purchases/ChartOfAccountsTable";
 
 const Achats = () => {
   const { isOpen } = useSidebar();
@@ -25,14 +21,11 @@ const Achats = () => {
 
   const { suppliers } = useSuppliers();
   const { purchaseOrders } = usePurchaseOrders();
-  const { expenseTypes } = useExpenseTypes();
-  const { accounts } = useChartOfAccounts();
 
   // Statistiques
   const activeSuppliers = suppliers?.filter(s => s.is_active !== false).length || 0;
   const pendingOrders = purchaseOrders?.filter(o => ['sent', 'confirmed'].includes(o.status)).length || 0;
   const totalOrdersAmount = purchaseOrders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
-  const activeExpenseTypes = expenseTypes?.filter(e => e.is_active).length || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -58,7 +51,7 @@ const Achats = () => {
           </div>
 
           {/* Statistiques */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -86,15 +79,6 @@ const Achats = () => {
                 <p className="text-2xl font-bold">{totalOrdersAmount.toLocaleString()} <span className="text-sm font-normal">FCFA</span></p>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <Receipt className="h-8 w-8 text-orange-500" />
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">Types de dépenses</p>
-                <p className="text-3xl font-bold">{activeExpenseTypes}</p>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Onglets */}
@@ -102,8 +86,6 @@ const Achats = () => {
             <TabsList>
               <TabsTrigger value="orders">Commandes</TabsTrigger>
               <TabsTrigger value="suppliers">Fournisseurs</TabsTrigger>
-              <TabsTrigger value="expense-types">Types de dépenses</TabsTrigger>
-              <TabsTrigger value="chart-of-accounts">Plan comptable</TabsTrigger>
             </TabsList>
 
             <TabsContent value="orders">
@@ -112,14 +94,6 @@ const Achats = () => {
 
             <TabsContent value="suppliers">
               <SuppliersTable />
-            </TabsContent>
-
-            <TabsContent value="expense-types">
-              <ExpenseTypesTable />
-            </TabsContent>
-
-            <TabsContent value="chart-of-accounts">
-              <ChartOfAccountsTable />
             </TabsContent>
           </Tabs>
 

@@ -29,10 +29,18 @@ export const ChartOfAccountsTable = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-primary" />
-          Plan comptable SYSCOHADA
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            Plan comptable SYSCOHADA
+          </CardTitle>
+          <span className="text-sm text-muted-foreground border rounded-full px-3 py-1">
+            Mode consultation
+          </span>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Configuration gérée dans le <a href="/admin/chart-of-accounts" className="text-primary hover:underline">backoffice administrateur</a>
+        </p>
       </CardHeader>
       <CardContent>
         {isLoading ? (

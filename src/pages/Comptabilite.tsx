@@ -1497,16 +1497,19 @@ const Comptabilite = () => {
               </Card>
             </TabsContent>
 
-            {/* Onglet Types de dépenses */}
+            {/* Onglet Types de dépenses - Mode lecture seule */}
             <TabsContent value="types-depenses" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>Types de dépenses configurés</span>
-                    <span className="text-sm font-normal text-muted-foreground">
-                      {expenseTypes.length} type(s) actif(s)
-                    </span>
+                    <Badge variant="outline" className="text-muted-foreground">
+                      Mode consultation
+                    </Badge>
                   </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Configuration gérée dans le <a href="/admin/expense-types" className="text-primary hover:underline">backoffice administrateur</a>
+                  </p>
                 </CardHeader>
                 <CardContent>
                   {expenseTypesLoading ? (
