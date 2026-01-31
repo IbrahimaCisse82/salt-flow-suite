@@ -45,6 +45,8 @@ import { ChartOfAccountsTable } from "@/components/Accounting/ChartOfAccountsTab
 import { AccountantNotificationWidget } from "@/components/Payroll/AccountantNotificationWidget";
 import { PayrollPaymentForm } from "@/components/Payroll/PayrollPaymentForm";
 import { BankReconciliation } from "@/components/Accounting/BankReconciliation";
+import { GeneralLedger } from "@/components/Accounting/GeneralLedger";
+import { AccountingFlowDiagram } from "@/components/Accounting/AccountingFlowDiagram";
 import {
   Wallet,
   Plus,
@@ -53,7 +55,8 @@ import {
   DollarSign,
   CreditCard,
   FileText,
-  Package
+  Package,
+  BookOpen
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
@@ -1089,17 +1092,27 @@ const Comptabilite = () => {
             </CardContent>
           </Card>
 
-          <Tabs defaultValue="achats" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-8">
+          <Tabs defaultValue="grand-livre" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-9">
+              <TabsTrigger value="grand-livre" className="flex items-center gap-1">
+                <BookOpen className="h-3 w-3" />
+                Grand Livre
+              </TabsTrigger>
               <TabsTrigger value="achats">Achats</TabsTrigger>
               <TabsTrigger value="salaires">Salaires</TabsTrigger>
               <TabsTrigger value="vente">Vente</TabsTrigger>
-              <TabsTrigger value="virement">Virement interne</TabsTrigger>
+              <TabsTrigger value="virement">Virement</TabsTrigger>
               <TabsTrigger value="divers">Divers</TabsTrigger>
               <TabsTrigger value="types-depenses">Types dépenses</TabsTrigger>
               <TabsTrigger value="plan-comptable">Plan comptable</TabsTrigger>
               <TabsTrigger value="rapprochement">Rapprochement</TabsTrigger>
             </TabsList>
+
+            {/* Onglet Grand Livre et Balance */}
+            <TabsContent value="grand-livre" className="space-y-4">
+              <AccountingFlowDiagram />
+              <GeneralLedger />
+            </TabsContent>
 
             {/* Onglet Achats (anciennement Dépenses) */}
             <TabsContent value="achats" className="space-y-4">
