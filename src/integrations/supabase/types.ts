@@ -2500,6 +2500,38 @@ export type Database = {
       }
     }
     Views: {
+      accounting_ledger: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          credit: number | null
+          debit: number | null
+          description: string | null
+          id: string | null
+          reference: string | null
+          running_balance: number | null
+          tenant_id: string | null
+          transaction_date: string | null
+          transaction_id: string | null
+          transaction_type: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orphaned_profiles: {
         Row: {
           created_at: string | null
@@ -2534,6 +2566,20 @@ export type Database = {
         Args: { _tenant_id: string }
         Returns: undefined
       }
+      create_journal_entry: {
+        Args: {
+          p_amount: number
+          p_credit_account?: string
+          p_debit_account?: string
+          p_description: string
+          p_notes?: string
+          p_reference?: string
+          p_tenant_id: string
+          p_transaction_date: string
+          p_transaction_type: string
+        }
+        Returns: string
+      }
       generate_balance_sheet: {
         Args: {
           p_campagne_id?: string
@@ -2551,6 +2597,26 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: Json
+      }
+      generate_trial_balance: {
+        Args: { p_end_date: string; p_start_date: string; p_tenant_id: string }
+        Returns: {
+          account_name: string
+          account_number: string
+          account_type: string
+          closing_balance: number
+          opening_balance: number
+          period_credit: number
+          period_debit: number
+        }[]
+      }
+      get_account_balance: {
+        Args: {
+          p_account_number: string
+          p_as_of_date?: string
+          p_tenant_id: string
+        }
+        Returns: number
       }
       get_clients_safe: {
         Args: never
