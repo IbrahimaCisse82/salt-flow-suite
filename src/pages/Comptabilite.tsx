@@ -1093,7 +1093,7 @@ const Comptabilite = () => {
           </Card>
 
           <Tabs defaultValue="grand-livre" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-9">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="grand-livre" className="flex items-center gap-1">
                 <BookOpen className="h-3 w-3" />
                 Grand Livre
@@ -1103,8 +1103,6 @@ const Comptabilite = () => {
               <TabsTrigger value="vente">Vente</TabsTrigger>
               <TabsTrigger value="virement">Virement</TabsTrigger>
               <TabsTrigger value="divers">Divers</TabsTrigger>
-              <TabsTrigger value="types-depenses">Types dépenses</TabsTrigger>
-              <TabsTrigger value="plan-comptable">Plan comptable</TabsTrigger>
               <TabsTrigger value="rapprochement">Rapprochement</TabsTrigger>
             </TabsList>
 
@@ -1510,70 +1508,6 @@ const Comptabilite = () => {
               </Card>
             </TabsContent>
 
-            {/* Onglet Types de dépenses - Mode lecture seule */}
-            <TabsContent value="types-depenses" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Types de dépenses configurés</span>
-                    <Badge variant="outline" className="text-muted-foreground">
-                      Mode consultation
-                    </Badge>
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Configuration gérée dans le <a href="/admin/expense-types" className="text-primary hover:underline">backoffice administrateur</a>
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  {expenseTypesLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <p className="text-muted-foreground">Chargement des types de dépenses...</p>
-                    </div>
-                  ) : expenseTypes.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <FileText className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                      <p className="text-muted-foreground text-center mb-4">
-                        Aucun type de dépense configuré
-                      </p>
-                      <p className="text-sm text-muted-foreground text-center max-w-md">
-                        Les types de dépenses permettent de catégoriser vos achats selon le plan comptable SYSCOHADA.
-                        Configurez-les dans la section Administration.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Nom</TableHead>
-                            <TableHead>Compte</TableHead>
-                            <TableHead>Catégorie SYSCOHADA</TableHead>
-                            <TableHead>Observations</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {expenseTypes.map((type) => (
-                            <TableRow key={type.id}>
-                              <TableCell className="font-medium">{type.name}</TableCell>
-                              <TableCell className="font-mono text-sm">{type.account_number}</TableCell>
-                              <TableCell className="text-sm">{type.syscohada_category}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
-                                {type.observations || '-'}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Onglet Plan Comptable */}
-            <TabsContent value="plan-comptable">
-              <ChartOfAccountsTable />
-            </TabsContent>
 
             {/* Onglet Rapprochement bancaire */}
             <TabsContent value="rapprochement" className="space-y-4">
