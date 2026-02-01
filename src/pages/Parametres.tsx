@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
@@ -15,6 +16,8 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { PushNotificationSettings } from "@/components/Settings/PushNotificationSettings";
 import { NotificationHistoryWidget } from "@/components/Settings/NotificationHistoryWidget";
+import { ChartOfAccountsTable } from "@/components/Accounting/ChartOfAccountsTable";
+import { ExpenseTypesReadOnly } from "@/components/Accounting/ExpenseTypesReadOnly";
 import { FormSkeleton } from "@/components/LoadingSkeletons/FormSkeleton";
 import { 
   Settings,
@@ -24,7 +27,9 @@ import {
   Shield,
   Database,
   Loader2,
-  Download
+  Download,
+  Receipt,
+  BookOpen
 } from "lucide-react";
 
 const Parametres = () => {
@@ -445,8 +450,26 @@ const Parametres = () => {
             </p>
           </div>
 
-          {/* Informations entreprise */}
-          {isGerant && (
+          {/* Onglets principaux */}
+          <Tabs defaultValue="general" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="general" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Général
+              </TabsTrigger>
+              <TabsTrigger value="expense-types" className="flex items-center gap-2">
+                <Receipt className="h-4 w-4" />
+                Types de dépenses
+              </TabsTrigger>
+              <TabsTrigger value="chart-of-accounts" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Plan comptable
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Onglet Général */}
+            <TabsContent value="general" className="space-y-4 sm:space-y-6">
+            {isGerant && (
             <Card>
               <CardHeader className="p-4 md:p-6">
                 <CardTitle className="flex items-center gap-2 text-base md:text-lg">
@@ -848,6 +871,18 @@ const Parametres = () => {
               </CardContent>
             </Card>
           )}
+            </TabsContent>
+
+            {/* Onglet Types de dépenses */}
+            <TabsContent value="expense-types" className="space-y-4">
+              <ExpenseTypesReadOnly />
+            </TabsContent>
+
+            {/* Onglet Plan comptable */}
+            <TabsContent value="chart-of-accounts" className="space-y-4">
+              <ChartOfAccountsTable />
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
     </div>
