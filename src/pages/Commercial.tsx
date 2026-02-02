@@ -1,7 +1,6 @@
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,8 +36,23 @@ import {
   Truck,
   FileText,
   CheckCircle,
-  Package
+  Package,
+  Edit,
+  Trash2,
+  Phone,
+  Mail,
+  MapPin
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ListSkeleton } from "@/components/LoadingSkeletons/ListSkeleton";
 
 const formatNumber = (value?: number | null) => {
@@ -53,11 +67,25 @@ const Commercial = () => {
   const { isOpen } = useSidebar();
   const { profile } = useAuth();
 
+  // Dialogs state
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
   const [isClientDetailsDialogOpen, setIsClientDetailsDialogOpen] = useState(false);
+  const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
+  const [isEditClientDialogOpen, setIsEditClientDialogOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<any>(null);
 
-  const { data: clients = [], isLoading: clientsLoading } = useClients();
+  // Hooks
+  const { 
+    clients, 
+    isLoading: clientsLoading, 
+    createClient, 
+    updateClient, 
+    deleteClient, 
+    isCreating: isCreatingClient,
+    isUpdating: isUpdatingClient,
+    isDeleting: isDeletingClient
+  } = useClients();
   const { sales, isLoading: salesLoading, updateSale, createSale, isCreating, isUpdating } = useSales();
 
   // Formulaire nouvelle commande
@@ -69,21 +97,102 @@ const Commercial = () => {
     notes: ""
   });
 
+  // Formulaire client
+  const [clientForm, setClientForm] = useState({
+    name: "",
+    client_type: "local",
+    email: "",
+    phone: "",
+    address: ""
+  });
+
   // Filtrer les ventes par statut
   const draftSales = sales.filter(s => !s.sale_status || s.sale_status === 'draft');
   const invoicedSales = sales.filter(s => ['invoiced', 'confirmed'].includes(s.sale_status || ''));
-  const deliverableSales = sales.filter(s => s.can_be_delivered && s.sale_status !== 'completed');
+  const deliverableSales = sales.filter(s => s.can_be_delivered && !['completed', 'delivered'].includes(s.sale_status || ''));
   const deliveredSales = sales.filter(s => s.sale_status === 'delivered' || s.sale_status === 'completed');
 
+  // Calculer statistiques client
+  const getClientStats = (clientId: string) => {
+    const clientSales = sales.filter(s => s.client_id === clientId);
+    return {
+      totalOrders: clientSales.length,
+      totalRevenue: clientSales.reduce((sum, s) => sum + (s.total_amount || 0), 0)
+    };
+  };
+
   const handleViewClientDetails = (client: any) => {
+    const stats = getClientStats(client.id);
     setSelectedClient({
       ...client,
-      totalOrders: client.totalOrders ?? 0,
-      totalRevenue: client.totalRevenue ?? 0,
-      paymentTerms: client.paymentTerms ?? "N/A",
-      status: client.status ?? "actif"
+      ...stats
     });
     setIsClientDetailsDialogOpen(true);
+  };
+
+  const handleEditClient = (client: any) => {
+    setSelectedClient(client);
+    setClientForm({
+      name: client.name || "",
+      client_type: client.client_type || "local",
+      email: client.email || "",
+      phone: client.phone || "",
+      address: client.address || ""
+    });
+    setIsEditClientDialogOpen(true);
+  };
+
+  // Créer un nouveau client
+  const handleCreateClient = async () => {
+    if (!clientForm.name) {
+      toast({ title: "Erreur", description: "Le nom du client est obligatoire", variant: "destructive" });
+      return;
+    }
+
+    try {
+      await createClient({
+        name: clientForm.name,
+        client_type: clientForm.client_type,
+        email: clientForm.email || undefined,
+        phone: clientForm.phone || undefined,
+        address: clientForm.address || undefined
+      });
+      setIsNewClientDialogOpen(false);
+      setClientForm({ name: "", client_type: "local", email: "", phone: "", address: "" });
+    } catch (error) {
+      console.error('Erreur création client:', error);
+    }
+  };
+
+  // Mettre à jour un client
+  const handleUpdateClient = async () => {
+    if (!selectedClient?.id || !clientForm.name) return;
+
+    try {
+      await updateClient({
+        id: selectedClient.id,
+        ...clientForm,
+        email: clientForm.email || null,
+        phone: clientForm.phone || null,
+        address: clientForm.address || null
+      } as any);
+      setIsEditClientDialogOpen(false);
+      setSelectedClient(null);
+    } catch (error) {
+      console.error('Erreur mise à jour client:', error);
+    }
+  };
+
+  // Supprimer un client
+  const handleDeleteClient = async () => {
+    if (!clientToDelete) return;
+
+    try {
+      await deleteClient(clientToDelete);
+      setClientToDelete(null);
+    } catch (error) {
+      console.error('Erreur suppression client:', error);
+    }
   };
 
   // Créer une nouvelle commande
@@ -117,8 +226,9 @@ const Commercial = () => {
   const handleValidateOrder = async (saleId: string) => {
     try {
       await updateSale({ id: saleId, sale_status: 'invoiced' });
-      toast({ title: "Commande validée", description: "La commande est prête pour facturation" });
+      toast({ title: "Commande validée", description: "La commande est prête pour facturation et le stock a été mis à jour" });
       queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
     } catch (error) {
       console.error('Erreur validation commande:', error);
     }
@@ -128,13 +238,100 @@ const Commercial = () => {
   const handleMarkDelivered = async (saleId: string) => {
     try {
       await updateSale({ id: saleId, sale_status: 'completed' });
-      toast({ title: "Livraison confirmée", description: "La commande a été livrée et le stock mis à jour" });
+      toast({ title: "Livraison confirmée", description: "La commande a été livrée" });
       queryClient.invalidateQueries({ queryKey: ['sales'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
     } catch (error) {
       console.error('Erreur confirmation livraison:', error);
     }
   };
+
+  // Dialog formulaire client (réutilisable pour création et édition)
+  const ClientFormDialog = ({ 
+    isOpen, 
+    onOpenChange, 
+    title, 
+    onSubmit, 
+    isLoading,
+    submitLabel 
+  }: { 
+    isOpen: boolean; 
+    onOpenChange: (open: boolean) => void;
+    title: string;
+    onSubmit: () => void;
+    isLoading: boolean;
+    submitLabel: string;
+  }) => (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {title.includes("Nouveau") ? "Ajouter un nouveau client" : "Modifier les informations du client"}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Nom *</Label>
+            <Input 
+              value={clientForm.name} 
+              onChange={(e) => setClientForm(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Nom du client"
+            />
+          </div>
+          <div>
+            <Label>Type de client</Label>
+            <Select 
+              value={clientForm.client_type} 
+              onValueChange={(v) => setClientForm(prev => ({ ...prev, client_type: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="local">Local</SelectItem>
+                <SelectItem value="export">Export</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Email</Label>
+              <Input 
+                type="email"
+                value={clientForm.email} 
+                onChange={(e) => setClientForm(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="email@example.com"
+              />
+            </div>
+            <div>
+              <Label>Téléphone</Label>
+              <Input 
+                value={clientForm.phone} 
+                onChange={(e) => setClientForm(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder="+221 XX XXX XX XX"
+              />
+            </div>
+          </div>
+          <div>
+            <Label>Adresse</Label>
+            <Textarea 
+              value={clientForm.address} 
+              onChange={(e) => setClientForm(prev => ({ ...prev, address: e.target.value }))}
+              placeholder="Adresse complète"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+              Annuler
+            </Button>
+            <Button className="flex-1" onClick={onSubmit} disabled={isLoading}>
+              {isLoading ? "Enregistrement..." : submitLabel}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -163,10 +360,32 @@ const Commercial = () => {
                       {selectedClient.client_type === "local" ? "Local" : "Export"}
                     </Badge>
                   </div>
-                  <div className="space-y-2">
+                  {(selectedClient.email || selectedClient.phone || selectedClient.address) && (
+                    <div className="space-y-2 text-sm">
+                      {selectedClient.email && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Mail className="h-4 w-4" />
+                          <span>{selectedClient.email}</span>
+                        </div>
+                      )}
+                      {selectedClient.phone && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Phone className="h-4 w-4" />
+                          <span>{selectedClient.phone}</span>
+                        </div>
+                      )}
+                      {selectedClient.address && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <span>{selectedClient.address}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="space-y-2 border-t pt-4">
                     <div className="flex justify-between">
                       <span>Total commandes</span>
-                      <span>{formatNumber(selectedClient.totalOrders)}</span>
+                      <span className="font-semibold">{formatNumber(selectedClient.totalOrders)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Chiffre d'affaires</span>
@@ -182,6 +401,50 @@ const Commercial = () => {
               )}
             </DialogContent>
           </Dialog>
+
+          {/* Dialog Nouveau Client */}
+          <ClientFormDialog
+            isOpen={isNewClientDialogOpen}
+            onOpenChange={(open) => {
+              setIsNewClientDialogOpen(open);
+              if (!open) setClientForm({ name: "", client_type: "local", email: "", phone: "", address: "" });
+            }}
+            title="Nouveau client"
+            onSubmit={handleCreateClient}
+            isLoading={isCreatingClient}
+            submitLabel="Créer"
+          />
+
+          {/* Dialog Modifier Client */}
+          <ClientFormDialog
+            isOpen={isEditClientDialogOpen}
+            onOpenChange={(open) => {
+              setIsEditClientDialogOpen(open);
+              if (!open) setSelectedClient(null);
+            }}
+            title="Modifier le client"
+            onSubmit={handleUpdateClient}
+            isLoading={isUpdatingClient}
+            submitLabel="Enregistrer"
+          />
+
+          {/* Dialog Confirmation Suppression */}
+          <AlertDialog open={!!clientToDelete} onOpenChange={(open) => !open && setClientToDelete(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action est irréversible. Le client sera définitivement supprimé.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteClient} disabled={isDeletingClient}>
+                  {isDeletingClient ? "Suppression..." : "Supprimer"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* Dialog Nouvelle Commande */}
           <Dialog open={isNewOrderDialogOpen} onOpenChange={setIsNewOrderDialogOpen}>
@@ -265,8 +528,12 @@ const Commercial = () => {
             {/* ONGLET CLIENTS */}
             <TabsContent value="clients">
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Liste des clients</CardTitle>
+                  <Button onClick={() => setIsNewClientDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nouveau client
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   {clientsLoading ? (
@@ -276,17 +543,30 @@ const Commercial = () => {
                   ) : (
                     <div className="space-y-4">
                       {clients.map((client: any) => (
-                        <div key={client.id} className="p-4 border rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <div>
+                        <div key={client.id} className="p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1">
                               <p className="font-semibold">{client.name}</p>
-                              <Badge variant="outline" className="mt-1">
+                              <Badge variant="outline">
                                 {client.client_type === 'local' ? 'Local' : 'Export'}
                               </Badge>
+                              {client.phone && (
+                                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                  <Phone className="h-3 w-3" /> {client.phone}
+                                </p>
+                              )}
                             </div>
-                            <Button variant="outline" size="sm" onClick={() => handleViewClientDetails(client)}>
-                              Voir détails
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" onClick={() => handleViewClientDetails(client)}>
+                                Détails
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleEditClient(client)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => setClientToDelete(client.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -327,7 +607,7 @@ const Commercial = () => {
                             </div>
                             <div className="flex flex-col gap-2 items-end">
                               <Badge variant="secondary">Brouillon</Badge>
-                              <Button size="sm" onClick={() => handleValidateOrder(sale.id)}>
+                              <Button size="sm" onClick={() => handleValidateOrder(sale.id)} disabled={isUpdating}>
                                 <CheckCircle className="h-4 w-4 mr-1" />
                                 Valider
                               </Button>

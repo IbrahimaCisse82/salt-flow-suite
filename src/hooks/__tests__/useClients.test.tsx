@@ -44,7 +44,7 @@ describe('useClients', () => {
       wrapper: createWrapper(),
     });
 
-    expect(result.current.data).toBeDefined();
+    expect(result.current.clients).toBeDefined();
     expect(result.current.isLoading).toBeDefined();
   });
 
