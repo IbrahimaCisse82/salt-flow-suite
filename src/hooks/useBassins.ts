@@ -7,6 +7,7 @@ import { BassinRow, BassinInsert, BassinUpdate } from "@/types/database.types";
 import { cleanString, ensureNumber } from "@/utils/dataTransformers";
 
 export type BassinStatus = 'active' | 'repos' | 'maintenance';
+export type BassinType = 'Bassin 1' | 'Bassin 2' | 'Bassin 3' | 'Bassin 4' | 'Table Salante';
 
 export interface BassinFormData {
   name: string;
@@ -15,6 +16,7 @@ export interface BassinFormData {
   location?: string;
   is_active?: boolean;
   status?: BassinStatus;
+  bassin_type?: BassinType;
 }
 
 export const useBassins = () => {
@@ -50,14 +52,15 @@ export const useBassins = () => {
         throw new Error("Tenant ID manquant");
       }
 
-      const insertData: BassinInsert = {
+      const insertData: BassinInsert & { bassin_type?: string } = {
         tenant_id: profile.tenant_id,
         name: formData.name.trim(),
         code: cleanString(formData.code),
         area: ensureNumber(formData.area),
         location: cleanString(formData.location),
-        is_active: formData.is_active ?? false,
-        status: formData.status || 'repos'
+        is_active: formData.status === 'active',
+        status: formData.status || 'repos',
+        bassin_type: formData.bassin_type
       };
 
       const { data, error } = await supabase
@@ -89,13 +92,14 @@ export const useBassins = () => {
 
   const updateBassinMutation = useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<BassinFormData>): Promise<BassinRow> => {
-      const updateData: BassinUpdate = {
+      const updateData: BassinUpdate & { bassin_type?: string } = {
         name: updates.name?.trim(),
         code: updates.code !== undefined ? cleanString(updates.code) : undefined,
         area: updates.area !== undefined ? ensureNumber(updates.area) : undefined,
         location: updates.location !== undefined ? cleanString(updates.location) : undefined,
-        is_active: updates.is_active,
+        is_active: updates.status !== undefined ? updates.status === 'active' : updates.is_active,
         status: updates.status,
+        bassin_type: (updates as any).bassin_type,
         updated_at: new Date().toISOString()
       };
 
