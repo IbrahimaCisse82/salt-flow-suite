@@ -171,6 +171,7 @@ export type Database = {
       bassins: {
         Row: {
           area: number | null
+          bassin_type: string | null
           code: string | null
           created_at: string | null
           deleted_at: string | null
@@ -184,6 +185,7 @@ export type Database = {
         }
         Insert: {
           area?: number | null
+          bassin_type?: string | null
           code?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -197,6 +199,7 @@ export type Database = {
         }
         Update: {
           area?: number | null
+          bassin_type?: string | null
           code?: string | null
           created_at?: string | null
           deleted_at?: string | null

@@ -6,35 +6,32 @@ import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { Droplets, Plus, MapPin, Eye, Settings } from "lucide-react";
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { useBassins } from "@/hooks/useBassins";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useBassins, BassinStatus, BassinType } from "@/hooks/useBassins";
 import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton";
 import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
 
-const MapPicker = lazy(() => import("@/components/Map/MapPicker"));
-
-const statusConfig = {
-  active: { label: "En production", className: "bg-green-500/10 text-green-700 border-green-500/30" },
-  repos: { label: "Repos", className: "bg-yellow-500/10 text-yellow-700 border-yellow-500/30" },
-  maintenance: { label: "Maintenance", className: "bg-red-500/10 text-red-700 border-red-500/30" },
+const statusConfig: Record<BassinStatus, { label: string; className: string }> = {
+  active: { label: "En production", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:text-emerald-400" },
+  repos: { label: "Repos", className: "bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-400" },
+  maintenance: { label: "Maintenance", className: "bg-destructive/10 text-destructive border-destructive/30" },
 };
 
-const getBassinStatus = (bassin: any, maintenanceStates: { [id: string]: boolean }) => {
-  if (maintenanceStates[bassin.id]) return "maintenance";
-  return bassin.is_active ? "active" : "repos";
+const bassinTypes: BassinType[] = ['Bassin 1', 'Bassin 2', 'Bassin 3', 'Bassin 4', 'Table Salante'];
+
+const getBassinStatus = (bassin: any): BassinStatus => {
+  return (bassin.status as BassinStatus) || 'repos';
 };
 
 const Bassins = () => {
   const { toast } = useToast();
   const { isOpen } = useSidebar();
-  const { bassins, isLoading, createBassin, isCreating } = useBassins();
+  const { bassins, isLoading, createBassin, updateBassin } = useBassins();
 
   const [selectedBassin, setSelectedBassin] = useState<any>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -44,31 +41,28 @@ const Bassins = () => {
   const [newBassinData, setNewBassinData] = useState({
     name: "",
     code: "",
-    area: undefined,
+    area: undefined as number | undefined,
     location: "",
-    is_active: false,
+    status: "repos" as BassinStatus,
+    bassin_type: undefined as BassinType | undefined,
   });
 
-  const [newBassinLocation, setNewBassinLocation] = useState({ lat: 14.7167, lng: -17.4677 });
-  const [manageBassinLocation, setManageBassinLocation] = useState({ lat: 14.7167, lng: -17.4677 });
-
-  const [maintenanceStates, setMaintenanceStates] = useState<{ [id: string]: boolean }>({});
-
   const stats = {
-    actifs: bassins.filter(b => b.is_active && !maintenanceStates[b.id]).length,
-    repos: bassins.filter(b => !b.is_active && !maintenanceStates[b.id]).length,
-    maintenance: bassins.filter(b => maintenanceStates[b.id]).length,
+    actifs: bassins.filter(b => b.status === 'active').length,
+    repos: bassins.filter(b => b.status === 'repos' || !b.status).length,
+    maintenance: bassins.filter(b => b.status === 'maintenance').length,
     surfaceTotale: bassins.reduce((sum, b) => sum + (b.area || 0), 0).toFixed(1),
   };
 
   const handleAddBassin = () => setShowAddDialog(true);
+  
   const handleViewDetails = (bassin: any) => {
     setSelectedBassin(bassin);
     setShowDetailsDialog(true);
   };
+  
   const handleManage = (bassin: any) => {
-    setSelectedBassin(bassin);
-    setManageBassinLocation({ lat: bassin.latitude || 14.7167, lng: bassin.longitude || -17.4677 });
+    setSelectedBassin({ ...bassin });
     setShowManageDialog(true);
   };
 
@@ -77,19 +71,34 @@ const Bassins = () => {
       await createBassin(newBassinData);
       toast({ title: "Bassin créé", description: "Bassin créé avec succès !" });
       setShowAddDialog(false);
-      setNewBassinData({ name: "", code: "", area: undefined, location: "", is_active: false });
+      setNewBassinData({ name: "", code: "", area: undefined, location: "", status: "repos", bassin_type: undefined });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       toast({ title: "Erreur", description: message, variant: "destructive" });
     }
   };
 
-  const handleSaveManage = () => {
-    toast({
-      title: "Modifications enregistrées",
-      description: `Les modifications du bassin ${selectedBassin?.name} ont été enregistrées.`,
-    });
-    setShowManageDialog(false);
+  const handleSaveManage = async () => {
+    if (!selectedBassin) return;
+    try {
+      await updateBassin({
+        id: selectedBassin.id,
+        name: selectedBassin.name,
+        code: selectedBassin.code,
+        area: selectedBassin.area,
+        location: selectedBassin.location,
+        status: selectedBassin.status,
+        bassin_type: selectedBassin.bassin_type,
+      });
+      toast({
+        title: "Modifications enregistrées",
+        description: `Les modifications du bassin ${selectedBassin?.name} ont été enregistrées.`,
+      });
+      setShowManageDialog(false);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      toast({ title: "Erreur", description: message, variant: "destructive" });
+    }
   };
 
   return (
@@ -120,27 +129,27 @@ const Bassins = () => {
                 <CardContent className="p-3 sm:p-6 flex items-center justify-between">
                   <div>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">Actifs</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.actifs}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.actifs}</p>
                   </div>
-                  <Droplets className="h-6 w-6 text-green-600" />
+                  <Droplets className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-3 sm:p-6 flex items-center justify-between">
                   <div>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">Repos</p>
-                    <p className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.repos}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.repos}</p>
                   </div>
-                  <Droplets className="h-6 w-6 text-yellow-600" />
+                  <Droplets className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-3 sm:p-6 flex items-center justify-between">
                   <div>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">Maintenance</p>
-                    <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.maintenance}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-destructive">{stats.maintenance}</p>
                   </div>
-                  <Settings className="h-6 w-6 text-red-600" />
+                  <Settings className="h-6 w-6 text-destructive" />
                 </CardContent>
               </Card>
               <Card>
@@ -166,45 +175,46 @@ const Bassins = () => {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {bassins.map((bassin) => (
-                  <Card key={bassin.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader className="p-4 md:p-6 flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg md:text-xl">{bassin.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <MapPin className="h-3 w-3" /> {bassin.location || "Non spécifié"}
-                          {bassin.code && <>• <span className="text-primary">{bassin.code}</span></>}
-                        </p>
-                      </div>
-                      <Badge className={statusConfig[getBassinStatus(bassin, maintenanceStates)].className}>
-                        {statusConfig[getBassinStatus(bassin, maintenanceStates)].label}
-                      </Badge>
-                    </CardHeader>
-                    <CardContent className="space-y-4 p-4 md:p-6">
-                      <div className="grid grid-cols-2 gap-4">
+                {bassins.map((bassin) => {
+                  const status = getBassinStatus(bassin);
+                  return (
+                    <Card key={bassin.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader className="p-4 md:p-6 flex justify-between items-start">
                         <div>
-                          <p className="text-sm text-muted-foreground">Surface</p>
-                          <p className="text-lg font-semibold">{bassin.area ? `${bassin.area} ha` : "Non spécifié"}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Statut</p>
-                          <p className="text-lg font-semibold">
-                            {getBassinStatus(bassin, maintenanceStates) === "active" ? "Actif" :
-                              getBassinStatus(bassin, maintenanceStates) === "repos" ? "Repos" : "Maintenance"}
+                          <CardTitle className="text-lg md:text-xl">{bassin.name}</CardTitle>
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <MapPin className="h-3 w-3" /> {bassin.location || "Non spécifié"}
+                            {bassin.code && <>• <span className="text-primary">{bassin.code}</span></>}
+                            {(bassin as any).bassin_type && <>• <span className="text-muted-foreground">{(bassin as any).bassin_type}</span></>}
                           </p>
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" className="flex-1" onClick={() => handleViewDetails(bassin)}>
-                          <Eye className="h-4 w-4" />Détails
-                        </Button>
-                        <Button variant="outline" className="flex-1" onClick={() => handleManage(bassin)}>
-                          <Settings className="h-4 w-4" />Gérer
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <Badge className={statusConfig[status].className}>
+                          {statusConfig[status].label}
+                        </Badge>
+                      </CardHeader>
+                      <CardContent className="space-y-4 p-4 md:p-6">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Surface</p>
+                            <p className="text-lg font-semibold">{bassin.area ? `${bassin.area} ha` : "Non spécifié"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Statut</p>
+                            <p className="text-lg font-semibold">{statusConfig[status].label}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" className="flex-1" onClick={() => handleViewDetails(bassin)}>
+                            <Eye className="h-4 w-4 mr-1" />Détails
+                          </Button>
+                          <Button variant="outline" className="flex-1" onClick={() => handleManage(bassin)}>
+                            <Settings className="h-4 w-4 mr-1" />Gérer
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
 
@@ -216,26 +226,57 @@ const Bassins = () => {
                 <DialogDescription>Ajouter un bassin au système</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <Label>Nom *</Label>
-                <Input value={newBassinData.name} onChange={e => setNewBassinData({ ...newBassinData, name: e.target.value })} />
+                <div className="space-y-2">
+                  <Label>Nom *</Label>
+                  <Input value={newBassinData.name} onChange={e => setNewBassinData({ ...newBassinData, name: e.target.value })} />
+                </div>
 
-                <Label>Code</Label>
-                <Input value={newBassinData.code} onChange={e => setNewBassinData({ ...newBassinData, code: e.target.value })} />
+                <div className="space-y-2">
+                  <Label>Type de bassin</Label>
+                  <Select value={newBassinData.bassin_type} onValueChange={(value) => setNewBassinData({ ...newBassinData, bassin_type: value as BassinType })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bassinTypes.map((type) => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <Label>Surface (ha)</Label>
-                <Input type="number" value={newBassinData.area} onChange={e => setNewBassinData({ ...newBassinData, area: parseFloat(e.target.value) })} />
+                <div className="space-y-2">
+                  <Label>Statut</Label>
+                  <Select value={newBassinData.status} onValueChange={(value) => setNewBassinData({ ...newBassinData, status: value as BassinStatus })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">En production</SelectItem>
+                      <SelectItem value="repos">Repos</SelectItem>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                <Label>Localisation</Label>
-                <Input value={newBassinData.location} onChange={e => setNewBassinData({ ...newBassinData, location: e.target.value })} />
+                <div className="space-y-2">
+                  <Label>Code</Label>
+                  <Input value={newBassinData.code} onChange={e => setNewBassinData({ ...newBassinData, code: e.target.value })} placeholder="Ex: B1-001" />
+                </div>
 
-                <div className="flex items-center gap-2">
-                  <Switch checked={newBassinData.is_active} onCheckedChange={checked => setNewBassinData({ ...newBassinData, is_active: checked })} />
-                  <Label className="mb-0">Actif</Label>
+                <div className="space-y-2">
+                  <Label>Surface (ha)</Label>
+                  <Input type="number" step="0.01" value={newBassinData.area ?? ''} onChange={e => setNewBassinData({ ...newBassinData, area: e.target.value ? parseFloat(e.target.value) : undefined })} />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Localisation</Label>
+                  <Input value={newBassinData.location} onChange={e => setNewBassinData({ ...newBassinData, location: e.target.value })} placeholder="Ex: Zone Nord" />
                 </div>
 
                 <div className="flex gap-2 pt-4">
                   <Button variant="outline" className="flex-1" onClick={() => setShowAddDialog(false)}>Annuler</Button>
-                  <Button className="flex-1 bg-gradient-to-r from-primary to-accent" onClick={handleSaveNewBassin}>Créer</Button>
+                  <Button className="flex-1 bg-gradient-to-r from-primary to-accent" onClick={handleSaveNewBassin} disabled={!newBassinData.name}>Créer</Button>
                 </div>
               </div>
             </DialogContent>
@@ -250,10 +291,11 @@ const Bassins = () => {
               {selectedBassin && (
                 <div className="space-y-4">
                   <p><strong>Nom :</strong> {selectedBassin.name}</p>
+                  <p><strong>Type :</strong> {selectedBassin.bassin_type || "Non défini"}</p>
                   <p><strong>Code :</strong> {selectedBassin.code || "Non défini"}</p>
-                  <p><strong>Surface :</strong> {selectedBassin.area || "Non spécifié"} ha</p>
+                  <p><strong>Surface :</strong> {selectedBassin.area ? `${selectedBassin.area} ha` : "Non spécifié"}</p>
                   <p><strong>Localisation :</strong> {selectedBassin.location || "Non spécifiée"}</p>
-                  <p><strong>Statut :</strong> {getBassinStatus(selectedBassin, maintenanceStates)}</p>
+                  <p><strong>Statut :</strong> {statusConfig[getBassinStatus(selectedBassin)].label}</p>
                 </div>
               )}
             </DialogContent>
@@ -267,21 +309,52 @@ const Bassins = () => {
               </DialogHeader>
               {selectedBassin && (
                 <div className="space-y-4">
-                  <Label>Nom</Label>
-                  <Input value={selectedBassin.name} onChange={e => setSelectedBassin({ ...selectedBassin, name: e.target.value })} />
+                  <div className="space-y-2">
+                    <Label>Nom</Label>
+                    <Input value={selectedBassin.name} onChange={e => setSelectedBassin({ ...selectedBassin, name: e.target.value })} />
+                  </div>
 
-                  <Label>Code</Label>
-                  <Input value={selectedBassin.code} onChange={e => setSelectedBassin({ ...selectedBassin, code: e.target.value })} />
+                  <div className="space-y-2">
+                    <Label>Type de bassin</Label>
+                    <Select value={selectedBassin.bassin_type || ''} onValueChange={(value) => setSelectedBassin({ ...selectedBassin, bassin_type: value as BassinType })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner le type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {bassinTypes.map((type) => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                  <Label>Surface (ha)</Label>
-                  <Input type="number" value={selectedBassin.area} onChange={e => setSelectedBassin({ ...selectedBassin, area: parseFloat(e.target.value) })} />
+                  <div className="space-y-2">
+                    <Label>Statut</Label>
+                    <Select value={selectedBassin.status || 'repos'} onValueChange={(value) => setSelectedBassin({ ...selectedBassin, status: value as BassinStatus })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner le statut" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">En production</SelectItem>
+                        <SelectItem value="repos">Repos</SelectItem>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                  <Label>Localisation</Label>
-                  <Input value={selectedBassin.location} onChange={e => setSelectedBassin({ ...selectedBassin, location: e.target.value })} />
+                  <div className="space-y-2">
+                    <Label>Code</Label>
+                    <Input value={selectedBassin.code || ''} onChange={e => setSelectedBassin({ ...selectedBassin, code: e.target.value })} />
+                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <Switch id="maintenance" checked={!!maintenanceStates[selectedBassin.id]} onCheckedChange={(checked) => setMaintenanceStates({ ...maintenanceStates, [selectedBassin.id]: checked })} />
-                    <Label htmlFor="maintenance" className="mb-0">Maintenance</Label>
+                  <div className="space-y-2">
+                    <Label>Surface (ha)</Label>
+                    <Input type="number" step="0.01" value={selectedBassin.area ?? ''} onChange={e => setSelectedBassin({ ...selectedBassin, area: e.target.value ? parseFloat(e.target.value) : undefined })} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Localisation</Label>
+                    <Input value={selectedBassin.location || ''} onChange={e => setSelectedBassin({ ...selectedBassin, location: e.target.value })} />
                   </div>
 
                   <div className="flex gap-2 pt-4">
