@@ -1349,10 +1349,172 @@ export type Database = {
           },
         ]
       }
+      purchase_notifications: {
+        Row: {
+          actioned_at: string | null
+          actioned_by: string | null
+          amount: number | null
+          created_at: string | null
+          id: string
+          is_actioned: boolean | null
+          is_read: boolean | null
+          message: string | null
+          notification_type: string
+          purchase_order_id: string
+          read_at: string | null
+          target_role: string
+          target_user_id: string | null
+          tenant_id: string
+          title: string
+        }
+        Insert: {
+          actioned_at?: string | null
+          actioned_by?: string | null
+          amount?: number | null
+          created_at?: string | null
+          id?: string
+          is_actioned?: boolean | null
+          is_read?: boolean | null
+          message?: string | null
+          notification_type: string
+          purchase_order_id: string
+          read_at?: string | null
+          target_role: string
+          target_user_id?: string | null
+          tenant_id: string
+          title: string
+        }
+        Update: {
+          actioned_at?: string | null
+          actioned_by?: string | null
+          amount?: number | null
+          created_at?: string | null
+          id?: string
+          is_actioned?: boolean | null
+          is_read?: boolean | null
+          message?: string | null
+          notification_type?: string
+          purchase_order_id?: string
+          read_at?: string | null
+          target_role?: string
+          target_user_id?: string | null
+          tenant_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_notifications_actioned_by_fkey"
+            columns: ["actioned_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_notifications_actioned_by_fkey"
+            columns: ["actioned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_notifications_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_notifications_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_notifications_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_order_history: {
+        Row: {
+          action_at: string | null
+          action_by: string
+          action_type: string
+          id: string
+          metadata: Json | null
+          new_amount: number | null
+          new_status: string | null
+          notes: string | null
+          previous_amount: number | null
+          previous_status: string | null
+          purchase_order_id: string
+        }
+        Insert: {
+          action_at?: string | null
+          action_by: string
+          action_type: string
+          id?: string
+          metadata?: Json | null
+          new_amount?: number | null
+          new_status?: string | null
+          notes?: string | null
+          previous_amount?: number | null
+          previous_status?: string | null
+          purchase_order_id: string
+        }
+        Update: {
+          action_at?: string | null
+          action_by?: string
+          action_type?: string
+          id?: string
+          metadata?: Json | null
+          new_amount?: number | null
+          new_status?: string | null
+          notes?: string | null
+          previous_amount?: number | null
+          previous_status?: string | null
+          purchase_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_history_action_by_fkey"
+            columns: ["action_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_history_action_by_fkey"
+            columns: ["action_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_history_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchase_order_items: {
         Row: {
           created_at: string | null
           id: string
+          is_received: boolean | null
           item_category: string | null
           item_description: string | null
           item_name: string
@@ -1360,6 +1522,9 @@ export type Database = {
           notes: string | null
           purchase_order_id: string | null
           quantity: number
+          received_at: string | null
+          received_by: string | null
+          received_notes: string | null
           received_quantity: number | null
           unit_of_measure: string | null
           unit_price: number
@@ -1368,6 +1533,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          is_received?: boolean | null
           item_category?: string | null
           item_description?: string | null
           item_name: string
@@ -1375,6 +1541,9 @@ export type Database = {
           notes?: string | null
           purchase_order_id?: string | null
           quantity: number
+          received_at?: string | null
+          received_by?: string | null
+          received_notes?: string | null
           received_quantity?: number | null
           unit_of_measure?: string | null
           unit_price: number
@@ -1383,6 +1552,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          is_received?: boolean | null
           item_category?: string | null
           item_description?: string | null
           item_name?: string
@@ -1390,6 +1560,9 @@ export type Database = {
           notes?: string | null
           purchase_order_id?: string | null
           quantity?: number
+          received_at?: string | null
+          received_by?: string | null
+          received_notes?: string | null
           received_quantity?: number | null
           unit_of_measure?: string | null
           unit_price?: number
@@ -1401,6 +1574,20 @@ export type Database = {
             columns: ["purchase_order_id"]
             isOneToOne: false
             referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_received_by_fkey"
+            columns: ["received_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_received_by_fkey"
+            columns: ["received_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1416,15 +1603,24 @@ export type Database = {
           discount_amount: number | null
           expected_delivery_date: string | null
           id: string
+          modification_reason: string | null
           notes: string | null
           order_date: string
           order_number: string
+          previous_total: number | null
+          received_at: string | null
+          received_by: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          requires_reapproval: boolean | null
           status: string
           subtotal: number | null
           supplier_id: string | null
           tax_amount: number | null
           tenant_id: string
           total_amount: number | null
+          total_paid: number | null
           updated_at: string | null
         }
         Insert: {
@@ -1437,15 +1633,24 @@ export type Database = {
           discount_amount?: number | null
           expected_delivery_date?: string | null
           id?: string
+          modification_reason?: string | null
           notes?: string | null
           order_date?: string
           order_number: string
+          previous_total?: number | null
+          received_at?: string | null
+          received_by?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requires_reapproval?: boolean | null
           status?: string
           subtotal?: number | null
           supplier_id?: string | null
           tax_amount?: number | null
           tenant_id: string
           total_amount?: number | null
+          total_paid?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -1458,15 +1663,24 @@ export type Database = {
           discount_amount?: number | null
           expected_delivery_date?: string | null
           id?: string
+          modification_reason?: string | null
           notes?: string | null
           order_date?: string
           order_number?: string
+          previous_total?: number | null
+          received_at?: string | null
+          received_by?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requires_reapproval?: boolean | null
           status?: string
           subtotal?: number | null
           supplier_id?: string | null
           tax_amount?: number | null
           tenant_id?: string
           total_amount?: number | null
+          total_paid?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1499,10 +1713,129 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "purchase_orders_received_by_fkey"
+            columns: ["received_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_received_by_fkey"
+            columns: ["received_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "purchase_orders_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_payments: {
+        Row: {
+          account_id: string | null
+          amount: number
+          created_at: string | null
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          payment_type: string
+          processed_by: string | null
+          purchase_order_id: string
+          tenant_id: string
+          transaction_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_date: string
+          payment_method?: string | null
+          payment_type: string
+          processed_by?: string | null
+          purchase_order_id: string
+          tenant_id: string
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          payment_type?: string
+          processed_by?: string | null
+          purchase_order_id?: string
+          tenant_id?: string
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_payments_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_payments_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_payments_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_payments_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_payments_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -2737,6 +3070,17 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gerant" | "commercial" | "comptable" | "production"
+      purchase_order_status:
+        | "draft"
+        | "pending_approval"
+        | "approved"
+        | "rejected"
+        | "partially_paid"
+        | "paid"
+        | "partially_received"
+        | "received"
+        | "modified"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2865,6 +3209,18 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gerant", "commercial", "comptable", "production"],
+      purchase_order_status: [
+        "draft",
+        "pending_approval",
+        "approved",
+        "rejected",
+        "partially_paid",
+        "paid",
+        "partially_received",
+        "received",
+        "modified",
+        "cancelled",
+      ],
     },
   },
 } as const
