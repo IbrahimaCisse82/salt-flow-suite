@@ -86,14 +86,14 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
     }
 
     try {
-      // 1. Créer la commande
-      const order = await createPurchaseOrder.mutateAsync({
-        supplier_id: formData.supplier_id,
-        order_date: formData.order_date,
-        expected_delivery_date: formData.expected_delivery_date || undefined,
-        notes: formData.notes || undefined,
-        status: "draft",
-      });
+       // 1. Créer la commande (en brouillon, sera soumise après ajout des articles)
+       const order = await createPurchaseOrder.mutateAsync({
+         supplier_id: formData.supplier_id,
+         order_date: formData.order_date,
+         expected_delivery_date: formData.expected_delivery_date || undefined,
+         notes: formData.notes || undefined,
+         submit_for_approval: false,
+       });
 
       // 2. Créer les lignes de commande
       for (const item of items) {
