@@ -23,7 +23,7 @@ const permissionsData: PermissionItem[] = [
   { module: "Stocks", admin: "none", gerant: "full", commercial: "none", comptable: "none", production: "view" },
   { module: "Équipes", admin: "none", gerant: "full", commercial: "none", comptable: "none", production: "view" },
   { module: "Pointages", admin: "none", gerant: "validate", commercial: "none", comptable: "none", production: "create" },
-  { module: "Congés", admin: "none", gerant: "validate", commercial: "none", comptable: "none", production: "view" },
+  
   { module: "Commercial", admin: "none", gerant: "full", commercial: "create", comptable: "none", production: "none" },
   { module: "Clients", admin: "none", gerant: "full", commercial: "create", comptable: "none", production: "none" },
   { module: "Ventes", admin: "none", gerant: "full", commercial: "create", comptable: "view", production: "none" },
@@ -264,7 +264,6 @@ export const RolePermissionsMatrix = () => {
                 <li className="text-muted-foreground">• /production</li>
                 <li className="text-muted-foreground">• /stocks</li>
                 <li className="text-muted-foreground">• /equipes</li>
-                <li className="text-muted-foreground">• /conges</li>
                 <li className="text-muted-foreground">• /commercial</li>
                 <li className="text-muted-foreground">• /comptabilite</li>
                 <li className="text-muted-foreground">• /rapports</li>
@@ -312,7 +311,7 @@ export const RolePermissionsMatrix = () => {
                 <li className="text-muted-foreground">• /production</li>
                 <li className="text-muted-foreground">• /stocks</li>
                 <li className="text-muted-foreground">• /equipes</li>
-                <li className="text-muted-foreground">• /conges</li>
+                
                 <li className="text-muted-foreground">• /parametres</li>
               </ul>
             </div>

@@ -15,7 +15,7 @@ const Production = lazy(() => import('@/pages/Production'));
 const Campagne = lazy(() => import('@/pages/Campagne'));
 const Commercial = lazy(() => import('@/pages/Commercial'));
 const Equipes = lazy(() => import('@/pages/Equipes'));
-const Conges = lazy(() => import('@/pages/Conges'));
+
 const Achats = lazy(() => import('@/pages/Achats'));
 const Stocks = lazy(() => import('@/pages/Stocks'));
 const Comptabilite = lazy(() => import('@/pages/Comptabilite'));
@@ -113,16 +113,6 @@ export const AppRoutes = () => {
             <ProtectedRoute>
               <RoleProtectedRoute>
                 <Equipes />
-              </RoleProtectedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/conges"
-          element={
-            <ProtectedRoute>
-              <RoleProtectedRoute>
-                <Conges />
               </RoleProtectedRoute>
             </ProtectedRoute>
           }
