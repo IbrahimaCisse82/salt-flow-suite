@@ -6,7 +6,6 @@ import {
   Database,
   Package,
   Users,
-  CalendarDays,
   TrendingUp,
   Wallet,
   ShoppingCart,
@@ -56,7 +55,7 @@ const salinesNavItems: NavItem[] = [
   { icon: Database, label: "Production", href: "/production" },
   { icon: Package, label: "Stocks", href: "/stocks" },
   { icon: Users, label: "Équipes", href: "/equipes" },
-  { icon: CalendarDays, label: "Congés", href: "/conges" },
+  
   { icon: TrendingUp, label: "Commercial", href: "/commercial" },
   { icon: Wallet, label: "Comptabilité", href: "/comptabilite" },
   { icon: ShoppingCart, label: "Achats", href: "/achats" },
