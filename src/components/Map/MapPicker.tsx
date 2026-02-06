@@ -19,7 +19,7 @@ const MapPicker: React.FC<MapPickerProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
-  const [mapboxToken] = useState<string>('pk.eyJ1IjoiaWJyYWhpbWFjaXNzZTgyIiwiYSI6ImNtY3ptMng5ZTBydmwyaXNhenBkMnhmaGIifQ.FKspbOsYB0bacbstqVUyMA');
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
   const [coordinates, setCoordinates] = useState({ lat: initialLat, lng: initialLng });
 
   useEffect(() => {
