@@ -9,8 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useExpenseTypes } from "@/hooks/useExpenseTypes";
 
 export interface BudgetExpense {
   id: string;
@@ -35,35 +34,9 @@ export const BudgetPhaseTab = ({
 }: BudgetPhaseTabProps) => {
   const phaseTotal = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
-  const { data: expenseTypes, isLoading: loadingExpenseTypes } = useQuery({
-    queryKey: ["expense-types-budget"],
-    queryFn: async () => {
-      // Récupérer le tenant_id de l'utilisateur
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("tenant_id")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile?.tenant_id) return [];
-
-      const { data, error } = await supabase
-        .from("expense_types")
-        .select("*")
-        .eq("tenant_id", profile.tenant_id)
-        .eq("is_active", true)
-        .order("name");
-
-      if (error) {
-        console.error("Error fetching expense types:", error);
-        return [];
-      }
-      return data || [];
-    },
-  });
+  // Utiliser le hook useExpenseTypes qui laisse le RLS gérer le filtrage
+  // Cela permet d'accéder aux catégories globales et aux catégories du tenant
+  const { activeExpenseTypes, isLoading: loadingExpenseTypes } = useExpenseTypes();
 
   return (
     <div className="space-y-4">
@@ -104,8 +77,8 @@ export const BudgetPhaseTab = ({
                       <div className="px-2 py-4 text-center text-sm text-muted-foreground">
                         Chargement...
                       </div>
-                    ) : expenseTypes && expenseTypes.length > 0 ? (
-                      expenseTypes.map((expenseType) => (
+                    ) : activeExpenseTypes && activeExpenseTypes.length > 0 ? (
+                      activeExpenseTypes.map((expenseType) => (
                         <SelectItem key={expenseType.id} value={expenseType.name}>
                           {expenseType.name}
                         </SelectItem>
