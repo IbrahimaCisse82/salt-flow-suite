@@ -36,12 +36,36 @@ import {
 import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
 import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { z } from "zod";
+
+// Schéma de validation pour la campagne
+const campagneSchema = z.object({
+  name: z.string().min(1, "Le nom de la campagne est requis").max(100, "Le nom ne peut pas dépasser 100 caractères"),
+  year: z.number().min(2020, "L'année doit être au moins 2020").max(2100, "L'année doit être au maximum 2100"),
+  startDate: z.string().min(1, "La date de début est requise"),
+  endDate: z.string().min(1, "La date de fin est requise"),
+  targetProduction: z.number().min(1, "L'objectif de production doit être supérieur à 0"),
+  revenueForecast: z.number().min(0, "Les revenus prévisionnels doivent être positifs"),
+});
+
+type CampagneFormData = z.infer<typeof campagneSchema>;
 
 const Campagne = () => {
   const { toast } = useToast();
   const { isOpen } = useSidebar();
   const [showNewCampagneDialog, setShowNewCampagneDialog] = useState(false);
   const [showBudgetDialog, setShowBudgetDialog] = useState(false);
+  
+  // État du formulaire de création de campagne
+  const [formData, setFormData] = useState<CampagneFormData>({
+    name: '',
+    year: new Date().getFullYear(),
+    startDate: '',
+    endDate: '',
+    targetProduction: 0,
+    revenueForecast: 0,
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   // Use custom hooks for data management
   const { activeCampagne, createCampagne, isCreating } = useCampagnes();
@@ -138,9 +162,64 @@ const Campagne = () => {
     }
   });
 
-  const handleCreateCampagne = () => {
-    setShowNewCampagneDialog(false);
-    setShowBudgetDialog(true);
+  // Mise à jour d'un champ du formulaire
+  const updateFormField = <K extends keyof CampagneFormData>(field: K, value: CampagneFormData[K]) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Effacer l'erreur du champ modifié
+    if (formErrors[field]) {
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  // Validation du formulaire avant de passer au budget
+  const validateAndProceed = () => {
+    try {
+      // Valider les données
+      campagneSchema.parse(formData);
+      
+      // Vérifier que la date de fin est après la date de début
+      if (formData.startDate && formData.endDate && formData.startDate >= formData.endDate) {
+        setFormErrors({ endDate: "La date de fin doit être postérieure à la date de début" });
+        return;
+      }
+      
+      // Tout est valide, passer au dialogue de budget
+      setFormErrors({});
+      setShowNewCampagneDialog(false);
+      setShowBudgetDialog(true);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            errors[err.path[0].toString()] = err.message;
+          }
+        });
+        setFormErrors(errors);
+        toast({
+          title: "Formulaire incomplet",
+          description: "Veuillez remplir tous les champs obligatoires",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  // Réinitialiser le formulaire
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      year: new Date().getFullYear(),
+      startDate: '',
+      endDate: '',
+      targetProduction: 0,
+      revenueForecast: 0,
+    });
+    setFormErrors({});
   };
 
   const handleAddExpense = (phase: string) => {
@@ -196,15 +275,16 @@ const Campagne = () => {
       // Calculer le budget total
       const totalBudget = calculateTotalBudget();
 
-      // Créer la campagne
+      // Créer la campagne avec les données du formulaire
       const { data: campagne, error: campagneError } = await supabase
         .from('campagnes')
         .insert({
           tenant_id: profile.tenant_id,
-          name: 'Campagne 2025',
-          year: 2025,
-          start_date: '2025-01-01',
-          end_date: '2025-11-30',
+          name: formData.name,
+          year: formData.year,
+          start_date: formData.startDate,
+          end_date: formData.endDate,
+          target_production: formData.targetProduction,
           status: 'planification',
           budget_total: totalBudget
         })
@@ -249,7 +329,7 @@ const Campagne = () => {
       });
       
       setShowBudgetDialog(false);
-      // Réinitialiser les dépenses
+      // Réinitialiser les dépenses et le formulaire
       setPhaseExpenses({
         'preparation-bassins': [],
         'mise-en-eau': [],
@@ -257,6 +337,7 @@ const Campagne = () => {
         'recolte-principale': [],
         'traitement-stockage': []
       });
+      resetForm();
 
       // Rafraîchir les données
       window.location.reload();
@@ -649,60 +730,135 @@ const Campagne = () => {
           </Card>
 
           {/* Dialog Nouvelle Campagne */}
-          <Dialog open={showNewCampagneDialog} onOpenChange={setShowNewCampagneDialog}>
+          <Dialog open={showNewCampagneDialog} onOpenChange={(open) => {
+            setShowNewCampagneDialog(open);
+            if (!open) resetForm();
+          }}>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Créer une nouvelle campagne</DialogTitle>
                 <DialogDescription>
-                  Définissez les paramètres de la nouvelle campagne de production
+                  Définissez les paramètres de la nouvelle campagne de production. Tous les champs sont obligatoires.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="campagne-name">Nom de la campagne</Label>
-                    <Input id="campagne-name" placeholder="Ex: Campagne 2026" />
+                    <Label htmlFor="campagne-name">
+                      Nom de la campagne <span className="text-destructive">*</span>
+                    </Label>
+                    <Input 
+                      id="campagne-name" 
+                      placeholder="Ex: Campagne 2026" 
+                      value={formData.name}
+                      onChange={(e) => updateFormField('name', e.target.value)}
+                      className={formErrors.name ? "border-destructive" : ""}
+                    />
+                    {formErrors.name && (
+                      <p className="text-xs text-destructive">{formErrors.name}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="campagne-year">Année</Label>
-                    <Input id="campagne-year" type="number" placeholder="2026" />
+                    <Label htmlFor="campagne-year">
+                      Année <span className="text-destructive">*</span>
+                    </Label>
+                    <Input 
+                      id="campagne-year" 
+                      type="number" 
+                      placeholder="2026"
+                      value={formData.year || ''}
+                      onChange={(e) => updateFormField('year', parseInt(e.target.value) || 0)}
+                      className={formErrors.year ? "border-destructive" : ""}
+                    />
+                    {formErrors.year && (
+                      <p className="text-xs text-destructive">{formErrors.year}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="start-date">Date de début</Label>
-                    <Input id="start-date" type="date" />
+                    <Label htmlFor="start-date">
+                      Date de début <span className="text-destructive">*</span>
+                    </Label>
+                    <Input 
+                      id="start-date" 
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => updateFormField('startDate', e.target.value)}
+                      className={formErrors.startDate ? "border-destructive" : ""}
+                    />
+                    {formErrors.startDate && (
+                      <p className="text-xs text-destructive">{formErrors.startDate}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="end-date">Date de fin</Label>
-                    <Input id="end-date" type="date" />
+                    <Label htmlFor="end-date">
+                      Date de fin <span className="text-destructive">*</span>
+                    </Label>
+                    <Input 
+                      id="end-date" 
+                      type="date"
+                      value={formData.endDate}
+                      onChange={(e) => updateFormField('endDate', e.target.value)}
+                      className={formErrors.endDate ? "border-destructive" : ""}
+                    />
+                    {formErrors.endDate && (
+                      <p className="text-xs text-destructive">{formErrors.endDate}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="target-production">Objectif production (tonnes)</Label>
-                  <Input id="target-production" type="number" placeholder="1200" />
+                  <Label htmlFor="target-production">
+                    Objectif production (tonnes) <span className="text-destructive">*</span>
+                  </Label>
+                  <Input 
+                    id="target-production" 
+                    type="number" 
+                    placeholder="1200"
+                    value={formData.targetProduction || ''}
+                    onChange={(e) => updateFormField('targetProduction', parseFloat(e.target.value) || 0)}
+                    className={formErrors.targetProduction ? "border-destructive" : ""}
+                  />
+                  {formErrors.targetProduction && (
+                    <p className="text-xs text-destructive">{formErrors.targetProduction}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="revenue-forecast">Revenus prévisionnels (FCFA)</Label>
-                  <Input id="revenue-forecast" type="number" placeholder="630000" />
+                  <Label htmlFor="revenue-forecast">
+                    Revenus prévisionnels (FCFA) <span className="text-destructive">*</span>
+                  </Label>
+                  <Input 
+                    id="revenue-forecast" 
+                    type="number" 
+                    placeholder="630000"
+                    value={formData.revenueForecast || ''}
+                    onChange={(e) => updateFormField('revenueForecast', parseFloat(e.target.value) || 0)}
+                    className={formErrors.revenueForecast ? "border-destructive" : ""}
+                  />
+                  {formErrors.revenueForecast && (
+                    <p className="text-xs text-destructive">{formErrors.revenueForecast}</p>
+                  )}
                 </div>
 
                 <div className="flex gap-2 pt-4 border-t">
                   <Button 
                     variant="outline" 
                     className="flex-1"
-                    onClick={() => setShowNewCampagneDialog(false)}
+                    onClick={() => {
+                      setShowNewCampagneDialog(false);
+                      resetForm();
+                    }}
                   >
                     Annuler
                   </Button>
                   <Button 
                     className="flex-1 bg-gradient-to-r from-primary to-accent"
-                    onClick={handleCreateCampagne}
+                    onClick={validateAndProceed}
                   >
-                    Créer la campagne
+                    Continuer vers le budget
                   </Button>
                 </div>
               </div>
