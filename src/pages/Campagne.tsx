@@ -413,9 +413,13 @@ const Campagne = () => {
         )}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">Plan de Campagne 2025</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">
+                {activeCampagne ? `${activeCampagne.name} ${activeCampagne.year}` : "Plan de campagne"}
+              </h1>
               <p className="text-sm sm:text-base text-muted-foreground break-words">
-                Planification et suivi de la campagne saline en cours
+                {activeCampagne 
+                  ? "Planification et suivi de la campagne saline en cours" 
+                  : "Aucune campagne active - Créez un nouveau plan de campagne"}
               </p>
             </div>
             <Button 
