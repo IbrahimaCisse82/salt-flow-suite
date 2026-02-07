@@ -5,7 +5,7 @@ import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { BudgetPhaseTab, BudgetExpense } from "@/components/Campaign/BudgetPhaseTab";
@@ -53,6 +53,7 @@ type CampagneFormData = z.infer<typeof campagneSchema>;
 const Campagne = () => {
   const { toast } = useToast();
   const { isOpen } = useSidebar();
+  const queryClient = useQueryClient();
   const [showNewCampagneDialog, setShowNewCampagneDialog] = useState(false);
   const [showBudgetDialog, setShowBudgetDialog] = useState(false);
   
@@ -68,7 +69,7 @@ const Campagne = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   // Use custom hooks for data management
-  const { activeCampagne, createCampagne, isCreating } = useCampagnes();
+  const { activeCampagne, campagnes, createCampagne, isCreating, isLoading: campagnesLoading } = useCampagnes();
   const { phaseBudgets, upsertPhaseBudget, isUpdating } = useCampagneBudgets(activeCampagne?.id);
   
   const [phaseExpenses, setPhaseExpenses] = useState<Record<string, BudgetExpense[]>>({
@@ -260,41 +261,20 @@ const Campagne = () => {
 
   const handleSaveBudget = async () => {
     try {
-      // Get tenant_id from profile
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-      
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user.id)
-        .single();
-      
-      if (!profile?.tenant_id) throw new Error('Profile not found');
-
       // Calculer le budget total
       const totalBudget = calculateTotalBudget();
 
-      // Créer la campagne avec les données du formulaire
-      const { data: campagne, error: campagneError } = await supabase
-        .from('campagnes')
-        .insert({
-          tenant_id: profile.tenant_id,
-          name: formData.name,
-          year: formData.year,
-          start_date: formData.startDate,
-          end_date: formData.endDate,
-          target_production: formData.targetProduction,
-          status: 'planification',
-          budget_total: totalBudget
-        })
-        .select()
-        .single();
+      // Créer la campagne via le hook (qui gère tenant_id et invalidation du cache)
+      const campagne = await createCampagne({
+        name: formData.name,
+        year: formData.year,
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        target_production: formData.targetProduction,
+        budget_total: totalBudget
+      });
 
-      if (campagneError) {
-        console.error('Campagne creation error:', campagneError);
-        throw campagneError;
-      }
+      if (!campagne) throw new Error("Échec de la création de la campagne");
 
       // Regrouper les dépenses par phase et calculer le total par phase
       const phaseTotals: Record<string, number> = {};
@@ -305,7 +285,7 @@ const Campagne = () => {
         }
       });
 
-      // Sauvegarder les budgets par phase (structure correcte de la table)
+      // Sauvegarder les budgets par phase
       const budgetEntries = Object.entries(phaseTotals).map(([phase, amount]) => ({
         campagne_id: campagne.id,
         phase: phase,
@@ -324,8 +304,8 @@ const Campagne = () => {
       }
 
       toast({
-        title: "Budget enregistré",
-        description: `Le budget prévisionnel de ${totalBudget.toLocaleString()} FCFA a été enregistré avec succès`,
+        title: "Campagne créée avec succès",
+        description: `"${formData.name}" avec un budget de ${totalBudget.toLocaleString()} FCFA`,
       });
       
       setShowBudgetDialog(false);
@@ -339,13 +319,15 @@ const Campagne = () => {
       });
       resetForm();
 
-      // Rafraîchir les données
-      window.location.reload();
+      // Invalider les queries pour rafraîchir les données
+      queryClient.invalidateQueries({ queryKey: ['campagnes'] });
+      queryClient.invalidateQueries({ queryKey: ['active-campagne'] });
+      queryClient.invalidateQueries({ queryKey: ['campagne-stats'] });
     } catch (error) {
       logger.error('Error saving budget:', error);
       toast({
         title: "Erreur",
-        description: error instanceof Error ? error.message : "Impossible d'enregistrer le budget",
+        description: error instanceof Error ? error.message : "Impossible de créer la campagne",
         variant: "destructive"
       });
     }
