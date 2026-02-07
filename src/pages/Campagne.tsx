@@ -445,65 +445,71 @@ const Campagne = () => {
                     </div>
                   ))}
                 </div>
-              ) : (
+              ) : activeCampagne ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-1 truncate">Période</p>
-                  <p className="text-sm sm:text-lg font-semibold break-words">
-                    {campagneStats?.campagne?.start_date ? 
-                      `${new Date(campagneStats.campagne.start_date).toLocaleDateString('fr-FR', { month: 'short' })} - ${new Date(campagneStats.campagne.end_date).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}` 
-                      : 'Jan - Nov 2025'
-                    }
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1 truncate">
-                    {campagneStats?.campagne?.status === 'en_cours' ? 'En cours' : 
-                     campagneStats?.campagne?.status === 'terminee' ? 'Terminée' : 
-                     'Planification'}
-                  </p>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1 truncate">Période</p>
+                    <p className="text-sm sm:text-lg font-semibold break-words">
+                      {activeCampagne.start_date && activeCampagne.end_date ? 
+                        `${new Date(activeCampagne.start_date).toLocaleDateString('fr-FR', { month: 'short' })} - ${new Date(activeCampagne.end_date).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}` 
+                        : `${activeCampagne.year}`
+                      }
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1 truncate">
+                      {activeCampagne.status === 'en_cours' ? 'En cours' : 
+                       activeCampagne.status === 'terminee' ? 'Terminée' : 
+                       'Planification'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Progression globale</p>
+                    <p className="text-lg font-semibold">
+                      {activeCampagne.target_production && campagneStats?.totalProduction !== undefined ? 
+                        Math.round((campagneStats.totalProduction / Number(activeCampagne.target_production)) * 100) 
+                        : 0}%
+                    </p>
+                    <Progress 
+                      value={activeCampagne.target_production && campagneStats?.totalProduction !== undefined ? 
+                        Math.min(100, Math.round((campagneStats.totalProduction / Number(activeCampagne.target_production)) * 100))
+                        : 0
+                      } 
+                      className="mt-2" 
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Objectif production</p>
+                    <p className="text-lg font-semibold">
+                      {activeCampagne.target_production ? 
+                        Number(activeCampagne.target_production).toLocaleString() 
+                        : '0'} tonnes
+                    </p>
+                    <p className="text-xs text-primary mt-1">
+                      {campagneStats?.totalProduction?.toLocaleString() || 0} t réalisées (
+                      {activeCampagne.target_production && campagneStats?.totalProduction !== undefined ? 
+                        Math.round((campagneStats.totalProduction / Number(activeCampagne.target_production)) * 100) 
+                        : 0}%)
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Budget prévisionnel</p>
+                    <p className="text-lg font-semibold">
+                      {activeCampagne.budget_total ? 
+                        Number(activeCampagne.budget_total).toLocaleString() 
+                        : '0'} FCFA
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {campagneStats?.totalExpenses ? 
+                        `${campagneStats.totalExpenses.toLocaleString()} FCFA dépensés` 
+                        : 'Budget total des phases'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Progression globale</p>
-                  <p className="text-lg font-semibold">
-                    {campagneStats?.campagne?.target_production ? 
-                      Math.round((campagneStats.totalProduction / parseFloat(campagneStats.campagne.target_production.toString())) * 100) 
-                      : 42}%
-                  </p>
-                  <Progress 
-                    value={campagneStats?.campagne?.target_production ? 
-                      Math.round((campagneStats.totalProduction / parseFloat(campagneStats.campagne.target_production.toString())) * 100) 
-                      : 42
-                    } 
-                    className="mt-2" 
-                  />
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="font-medium">Aucune campagne active</p>
+                  <p className="text-sm">Créez un nouveau plan de campagne pour commencer</p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Objectif production</p>
-                  <p className="text-lg font-semibold">
-                    {campagneStats?.campagne?.target_production ? 
-                      parseFloat(campagneStats.campagne.target_production.toString()).toLocaleString() 
-                      : '1,200'} tonnes
-                  </p>
-                  <p className="text-xs text-green-600 mt-1">
-                    {campagneStats?.totalProduction?.toLocaleString() || 0} t réalisées (
-                    {campagneStats?.campagne?.target_production ? 
-                      Math.round((campagneStats.totalProduction / parseFloat(campagneStats.campagne.target_production.toString())) * 100) 
-                      : 0}%)
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Budget prévisionnel</p>
-                  <p className="text-lg font-semibold">
-                    {(campagneStats?.campagne?.budget_total ? 
-                      parseFloat(campagneStats.campagne.budget_total.toString()) 
-                      : calculateTotalBudget()).toLocaleString()} FCFA
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {campagneStats?.totalExpenses ? 
-                      `${campagneStats.totalExpenses.toLocaleString()} FCFA dépensés` 
-                      : 'Budget total des phases'}
-                  </p>
-                </div>
-              </div>
               )}
             </CardContent>
           </Card>
