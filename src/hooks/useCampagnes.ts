@@ -33,17 +33,36 @@ export const useCampagnes = () => {
     queryFn: async () => {
       if (!profile?.tenant_id) return null;
 
-      const { data, error } = await supabase
+      // Chercher d'abord une campagne avec status 'active'
+      const { data: activeCamp, error: activeError } = await supabase
         .from('campagnes')
         .select('*')
         .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       
-      if (error) {
-        console.error('Error loading active campagne:', error);
+      if (activeError) {
+        console.error('Error loading active campagne:', activeError);
+      }
+      
+      if (activeCamp) return activeCamp;
+
+      // Sinon, prendre la campagne la plus récente (par année puis par date de création)
+      const { data: latestCamp, error: latestError } = await supabase
+        .from('campagnes')
+        .select('*')
+        .order('year', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (latestError) {
+        console.error('Error loading latest campagne:', latestError);
         return null;
       }
-      return data;
+      
+      return latestCamp;
     },
     enabled: !!profile?.tenant_id,
     retry: 1

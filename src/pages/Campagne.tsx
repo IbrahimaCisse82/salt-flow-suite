@@ -87,9 +87,9 @@ const Campagne = () => {
   
   const [activePhaseIndex, setActivePhaseIndex] = useState(2);
 
-  // Récupérer les statistiques de la campagne
+  // Récupérer les statistiques de la campagne (dépend de activeCampagne)
   const { data: campagneStats, isLoading: statsLoading } = useQuery({
-    queryKey: ['campagne-stats'],
+    queryKey: ['campagne-stats', activeCampagne?.id],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
@@ -102,13 +102,8 @@ const Campagne = () => {
       
       if (!profile) throw new Error('Profile not found');
 
-      // Récupérer la campagne active
-      const { data: campagne } = await supabase
-        .from('campagnes')
-        .select('*')
-        .eq('tenant_id', profile.tenant_id)
-        .eq('year', 2025)
-        .single();
+      // Utiliser la campagne active déjà chargée
+      const campagne = activeCampagne;
 
       // Récupérer la production totale
       const { data: production } = await supabase
