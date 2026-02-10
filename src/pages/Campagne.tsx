@@ -86,7 +86,7 @@ const Campagne = () => {
   ]));
   
   const [phaseEndOverrides, setPhaseEndOverrides] = useState<Record<number, string>>({});
-  const [activePhaseIndex, setActivePhaseIndex] = useState(2);
+  const [activePhaseIndex, setActivePhaseIndex] = useState(0);
 
   // Récupérer les statistiques de la campagne (dépend de activeCampagne)
   const { data: campagneStats, isLoading: statsLoading } = useQuery({
