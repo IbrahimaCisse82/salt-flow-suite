@@ -367,33 +367,58 @@ const Campagne = () => {
       });
     }
   };
-  const phases = [
-    { 
-      name: "Préparation des bassins", 
-      startDate: "2025-01-01",
-      endDate: "2025-01-31"
-    },
-    { 
-      name: "Mise en eau", 
-      startDate: "2025-02-01",
-      endDate: "2025-02-15"
-    },
-    { 
-      name: "Évaporation", 
-      startDate: "2025-02-16",
-      endDate: "2025-06-30"
-    },
-    { 
-      name: "Récolte principale", 
-      startDate: "2025-07-01",
-      endDate: "2025-09-30"
-    },
-    { 
-      name: "Traitement et stockage", 
-      startDate: "2025-10-01",
-      endDate: "2025-11-30"
-    },
-  ];
+  // Calculer les phases dynamiquement à partir des dates de la campagne active
+  const phases = (() => {
+    if (!activeCampagne?.start_date || !activeCampagne?.end_date) {
+      return [
+        { name: "Préparation des bassins", startDate: "", endDate: "" },
+        { name: "Mise en eau", startDate: "", endDate: "" },
+        { name: "Évaporation", startDate: "", endDate: "" },
+        { name: "Récolte principale", startDate: "", endDate: "" },
+        { name: "Traitement et stockage", startDate: "", endDate: "" },
+      ];
+    }
+
+    const start = new Date(activeCampagne.start_date);
+    const end = new Date(activeCampagne.end_date);
+    const totalDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+    
+    // Répartition proportionnelle : Préparation 10%, Mise en eau 5%, Évaporation 45%, Récolte 25%, Stockage 15%
+    const ratios = [0.10, 0.05, 0.45, 0.25, 0.15];
+    const phaseNames = [
+      "Préparation des bassins",
+      "Mise en eau", 
+      "Évaporation",
+      "Récolte principale",
+      "Traitement et stockage",
+    ];
+    
+    const result: { name: string; startDate: string; endDate: string }[] = [];
+    let currentDate = new Date(start);
+    
+    for (let i = 0; i < phaseNames.length; i++) {
+      const phaseDays = Math.round(totalDays * ratios[i]);
+      const phaseStart = new Date(currentDate);
+      const phaseEnd = new Date(currentDate);
+      phaseEnd.setDate(phaseEnd.getDate() + Math.max(1, phaseDays - 1));
+      
+      // La dernière phase se termine à la date de fin de campagne
+      if (i === phaseNames.length - 1) {
+        phaseEnd.setTime(end.getTime());
+      }
+      
+      result.push({
+        name: phaseNames[i],
+        startDate: phaseStart.toISOString().split('T')[0],
+        endDate: phaseEnd.toISOString().split('T')[0],
+      });
+      
+      currentDate = new Date(phaseEnd);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return result;
+  })();
 
   return (
     <div className="min-h-screen bg-background">
