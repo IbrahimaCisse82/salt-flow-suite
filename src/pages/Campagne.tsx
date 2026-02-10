@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCampagnes } from "@/hooks/useCampagnes";
 import { useCampagneBudgets } from "@/hooks/useCampagneBudgets";
 import { Header } from "@/components/Layout/Header";
@@ -87,6 +87,24 @@ const Campagne = () => {
   
   const [phaseEndOverrides, setPhaseEndOverrides] = useState<Record<number, string>>({});
   const [activePhaseIndex, setActivePhaseIndex] = useState(0);
+
+  // Synchroniser l'état local avec les données persistées de la campagne active
+  useEffect(() => {
+    if (activeCampagne) {
+      setActivePhaseIndex(activeCampagne.active_phase_index ?? 0);
+      const overrides = activeCampagne.phase_end_overrides;
+      if (overrides && typeof overrides === 'object' && !Array.isArray(overrides)) {
+        // Convertir les clés string en number
+        const parsed: Record<number, string> = {};
+        for (const [key, value] of Object.entries(overrides as Record<string, string>)) {
+          parsed[Number(key)] = value;
+        }
+        setPhaseEndOverrides(parsed);
+      } else {
+        setPhaseEndOverrides({});
+      }
+    }
+  }, [activeCampagne?.id, activeCampagne?.active_phase_index, activeCampagne?.phase_end_overrides]);
 
   // Récupérer les statistiques de la campagne (dépend de activeCampagne)
   const { data: campagneStats, isLoading: statsLoading } = useQuery({
@@ -335,15 +353,30 @@ const Campagne = () => {
     return "upcoming";
   };
 
-  const togglePhaseCompletion = (index: number) => {
+  const persistPhaseState = async (newIndex: number, newOverrides: Record<number, string>) => {
+    if (!activeCampagne?.id) return;
+    await supabase
+      .from('campagnes')
+      .update({
+        active_phase_index: newIndex,
+        phase_end_overrides: newOverrides,
+      })
+      .eq('id', activeCampagne.id);
+    queryClient.invalidateQueries({ queryKey: ['active-campagne'] });
+    queryClient.invalidateQueries({ queryKey: ['campagnes'] });
+  };
+
+  const togglePhaseCompletion = async (index: number) => {
     const status = getPhaseStatus(index);
     
     if (status === "active") {
       if (index < 4) {
-        // Enregistrer la date de fin réelle de la phase complétée (aujourd'hui)
         const today = new Date().toISOString().split('T')[0];
-        setPhaseEndOverrides(prev => ({ ...prev, [index]: today }));
-        setActivePhaseIndex(index + 1);
+        const newOverrides = { ...phaseEndOverrides, [index]: today };
+        const newIndex = index + 1;
+        setPhaseEndOverrides(newOverrides);
+        setActivePhaseIndex(newIndex);
+        await persistPhaseState(newIndex, newOverrides);
         toast({
           title: "Phase clôturée",
           description: `La phase a été complétée. Passage à la phase suivante.`,
@@ -356,18 +389,17 @@ const Campagne = () => {
       }
     } else if (status === "upcoming" && index === activePhaseIndex + 1) {
       setActivePhaseIndex(index);
+      await persistPhaseState(index, phaseEndOverrides);
       toast({
         title: "Passage à la phase suivante",
         description: `Phase active mise à jour.`,
       });
     } else if (status === "completed" && index === activePhaseIndex - 1) {
-      // Revenir à la phase précédente - supprimer l'override
-      setPhaseEndOverrides(prev => {
-        const next = { ...prev };
-        delete next[index];
-        return next;
-      });
+      const newOverrides = { ...phaseEndOverrides };
+      delete newOverrides[index];
+      setPhaseEndOverrides(newOverrides);
       setActivePhaseIndex(index);
+      await persistPhaseState(index, newOverrides);
       toast({
         title: "Retour à la phase précédente",
         description: `Phase active mise à jour.`,
