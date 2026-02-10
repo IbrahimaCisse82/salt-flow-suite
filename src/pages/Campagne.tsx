@@ -85,6 +85,7 @@ const Campagne = () => {
     "Mise en eau"
   ]));
   
+  const [phaseEndOverrides, setPhaseEndOverrides] = useState<Record<number, string>>({});
   const [activePhaseIndex, setActivePhaseIndex] = useState(2);
 
   // Récupérer les statistiques de la campagne (dépend de activeCampagne)
@@ -338,8 +339,10 @@ const Campagne = () => {
     const status = getPhaseStatus(index);
     
     if (status === "active") {
-      // Passer à la phase suivante
       if (index < 4) {
+        // Enregistrer la date de fin réelle de la phase complétée (aujourd'hui)
+        const today = new Date().toISOString().split('T')[0];
+        setPhaseEndOverrides(prev => ({ ...prev, [index]: today }));
         setActivePhaseIndex(index + 1);
         toast({
           title: "Phase clôturée",
@@ -352,14 +355,18 @@ const Campagne = () => {
         });
       }
     } else if (status === "upcoming" && index === activePhaseIndex + 1) {
-      // Aller à la phase suivante manuellement
       setActivePhaseIndex(index);
       toast({
         title: "Passage à la phase suivante",
         description: `Phase active mise à jour.`,
       });
     } else if (status === "completed" && index === activePhaseIndex - 1) {
-      // Revenir à la phase précédente
+      // Revenir à la phase précédente - supprimer l'override
+      setPhaseEndOverrides(prev => {
+        const next = { ...prev };
+        delete next[index];
+        return next;
+      });
       setActivePhaseIndex(index);
       toast({
         title: "Retour à la phase précédente",
@@ -367,24 +374,8 @@ const Campagne = () => {
       });
     }
   };
-  // Calculer les phases dynamiquement à partir des dates de la campagne active
+  // Calculer les phases dynamiquement, en tenant compte des phases clôturées (overrides)
   const phases = (() => {
-    if (!activeCampagne?.start_date || !activeCampagne?.end_date) {
-      return [
-        { name: "Préparation des bassins", startDate: "", endDate: "" },
-        { name: "Mise en eau", startDate: "", endDate: "" },
-        { name: "Évaporation", startDate: "", endDate: "" },
-        { name: "Récolte principale", startDate: "", endDate: "" },
-        { name: "Traitement et stockage", startDate: "", endDate: "" },
-      ];
-    }
-
-    const start = new Date(activeCampagne.start_date);
-    const end = new Date(activeCampagne.end_date);
-    const totalDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
-    
-    // Répartition proportionnelle : Préparation 10%, Mise en eau 5%, Évaporation 45%, Récolte 25%, Stockage 15%
-    const ratios = [0.10, 0.05, 0.45, 0.25, 0.15];
     const phaseNames = [
       "Préparation des bassins",
       "Mise en eau", 
@@ -392,17 +383,42 @@ const Campagne = () => {
       "Récolte principale",
       "Traitement et stockage",
     ];
+
+    if (!activeCampagne?.start_date || !activeCampagne?.end_date) {
+      return phaseNames.map(name => ({ name, startDate: "", endDate: "" }));
+    }
+
+    const start = new Date(activeCampagne.start_date);
+    const end = new Date(activeCampagne.end_date);
+    const baseRatios = [0.10, 0.05, 0.45, 0.25, 0.15];
     
     const result: { name: string; startDate: string; endDate: string }[] = [];
     let currentDate = new Date(start);
     
     for (let i = 0; i < phaseNames.length; i++) {
-      const phaseDays = Math.round(totalDays * ratios[i]);
       const phaseStart = new Date(currentDate);
+
+      // Si cette phase a un override (clôturée manuellement), utiliser cette date de fin
+      if (phaseEndOverrides[i]) {
+        const overrideEnd = new Date(phaseEndOverrides[i]);
+        result.push({
+          name: phaseNames[i],
+          startDate: phaseStart.toISOString().split('T')[0],
+          endDate: overrideEnd.toISOString().split('T')[0],
+        });
+        currentDate = new Date(overrideEnd);
+        currentDate.setDate(currentDate.getDate() + 1);
+        continue;
+      }
+
+      // Pour les phases restantes, redistribuer le temps restant proportionnellement
+      const remainingDays = Math.max(1, Math.round((end.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)));
+      const remainingRatioSum = baseRatios.slice(i).reduce((a, b) => a + b, 0);
+      const phaseDays = Math.round(remainingDays * (baseRatios[i] / remainingRatioSum));
+      
       const phaseEnd = new Date(currentDate);
       phaseEnd.setDate(phaseEnd.getDate() + Math.max(1, phaseDays - 1));
       
-      // La dernière phase se termine à la date de fin de campagne
       if (i === phaseNames.length - 1) {
         phaseEnd.setTime(end.getTime());
       }
