@@ -177,6 +177,7 @@ export type Database = {
           deleted_at: string | null
           id: string
           is_active: boolean | null
+          is_maintenance: boolean | null
           location: string | null
           name: string
           status: string | null
@@ -191,6 +192,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_maintenance?: boolean | null
           location?: string | null
           name: string
           status?: string | null
@@ -205,6 +207,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_maintenance?: boolean | null
           location?: string | null
           name?: string
           status?: string | null

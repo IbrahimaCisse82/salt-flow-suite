@@ -33,10 +33,11 @@ export const useCampagnes = () => {
     queryFn: async () => {
       if (!profile?.tenant_id) return null;
 
-      // Chercher d'abord une campagne avec status 'active'
+      // Chercher d'abord une campagne avec status 'active' pour ce tenant
       const { data: activeCamp, error: activeError } = await supabase
         .from('campagnes')
         .select('*')
+        .eq('tenant_id', profile.tenant_id)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -48,10 +49,11 @@ export const useCampagnes = () => {
       
       if (activeCamp) return activeCamp;
 
-      // Sinon, prendre la campagne la plus récente (par année puis par date de création)
+      // Sinon, prendre la campagne la plus récente pour ce tenant
       const { data: latestCamp, error: latestError } = await supabase
         .from('campagnes')
         .select('*')
+        .eq('tenant_id', profile.tenant_id)
         .order('year', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(1)
