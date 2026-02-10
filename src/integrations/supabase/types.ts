@@ -261,6 +261,7 @@ export type Database = {
       }
       campagnes: {
         Row: {
+          active_phase_index: number
           actual_production: number | null
           budget_total: number | null
           created_at: string | null
@@ -268,6 +269,7 @@ export type Database = {
           end_date: string | null
           id: string
           name: string
+          phase_end_overrides: Json
           start_date: string | null
           status: string | null
           target_production: number | null
@@ -276,6 +278,7 @@ export type Database = {
           year: number | null
         }
         Insert: {
+          active_phase_index?: number
           actual_production?: number | null
           budget_total?: number | null
           created_at?: string | null
@@ -283,6 +286,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           name: string
+          phase_end_overrides?: Json
           start_date?: string | null
           status?: string | null
           target_production?: number | null
@@ -291,6 +295,7 @@ export type Database = {
           year?: number | null
         }
         Update: {
+          active_phase_index?: number
           actual_production?: number | null
           budget_total?: number | null
           created_at?: string | null
@@ -298,6 +303,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           name?: string
+          phase_end_overrides?: Json
           start_date?: string | null
           status?: string | null
           target_production?: number | null
