@@ -154,6 +154,8 @@ const Production = () => {
         quantity: formData.quantity,
         salt_type: formData.type,
         quality_grade: formData.quality,
+        team_id: formData.team || null,
+        status: formData.status || 'completed',
       });
 
       setIsDialogOpen(false);

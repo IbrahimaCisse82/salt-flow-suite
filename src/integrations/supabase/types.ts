@@ -1256,7 +1256,9 @@ export type Database = {
           quality_grade: string | null
           quantity: number | null
           salt_type: string
+          status: string | null
           stock_updated: boolean | null
+          team_id: string | null
           tenant_id: string
           traceability_code: string | null
           updated_at: string | null
@@ -1272,7 +1274,9 @@ export type Database = {
           quality_grade?: string | null
           quantity?: number | null
           salt_type: string
+          status?: string | null
           stock_updated?: boolean | null
+          team_id?: string | null
           tenant_id: string
           traceability_code?: string | null
           updated_at?: string | null
@@ -1288,7 +1292,9 @@ export type Database = {
           quality_grade?: string | null
           quantity?: number | null
           salt_type?: string
+          status?: string | null
           stock_updated?: boolean | null
+          team_id?: string | null
           tenant_id?: string
           traceability_code?: string | null
           updated_at?: string | null
@@ -1309,6 +1315,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "production_records_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "production_records_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -1324,7 +1337,9 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          notification_preferences: Json | null
           phone: string | null
+          security_preferences: Json | null
           tenant_id: string | null
           updated_at: string | null
         }
@@ -1334,7 +1349,9 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          notification_preferences?: Json | null
           phone?: string | null
+          security_preferences?: Json | null
           tenant_id?: string | null
           updated_at?: string | null
         }
@@ -1344,7 +1361,9 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          notification_preferences?: Json | null
           phone?: string | null
+          security_preferences?: Json | null
           tenant_id?: string | null
           updated_at?: string | null
         }

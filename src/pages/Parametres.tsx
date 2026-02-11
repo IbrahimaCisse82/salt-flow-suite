@@ -70,6 +70,8 @@ const Parametres = () => {
     autoBackup: true
   });
 
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
+
   // Récupérer l'utilisateur et le profil
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['current-user'],
@@ -98,6 +100,14 @@ const Parametres = () => {
           phone: profile.phone || "",
           password: ""
         });
+        // Load preferences from DB
+        if (!prefsLoaded && profile.notification_preferences) {
+          setNotifications(profile.notification_preferences as any);
+        }
+        if (!prefsLoaded && profile.security_preferences) {
+          setSecurity(profile.security_preferences as any);
+        }
+        setPrefsLoaded(true);
       }
       
       return { user, profile: { ...profile, role: roleData?.role } };
@@ -236,8 +246,20 @@ const Parametres = () => {
       });
     }
   });
+  // Save preferences to DB
+  const savePreferences = async (notifPrefs: typeof notifications, secPrefs: typeof security) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from('profiles')
+      .update({
+        notification_preferences: notifPrefs,
+        security_preferences: secPrefs,
+      })
+      .eq('id', user.id);
+  };
 
-  // Exporter les données
+
   const handleExportData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -665,7 +687,9 @@ const Parametres = () => {
                 <Switch 
                   checked={notifications.weather}
                   onCheckedChange={(checked) => {
-                    setNotifications({ ...notifications, weather: checked });
+                    const newNotifs = { ...notifications, weather: checked };
+                    setNotifications(newNotifs);
+                    savePreferences(newNotifs, security);
                     toast({
                       title: checked ? "Activé" : "Désactivé",
                       description: `Alertes météorologiques ${checked ? 'activées' : 'désactivées'}`,
@@ -683,7 +707,9 @@ const Parametres = () => {
                 <Switch 
                   checked={notifications.stock}
                   onCheckedChange={(checked) => {
-                    setNotifications({ ...notifications, stock: checked });
+                    const newNotifs = { ...notifications, stock: checked };
+                    setNotifications(newNotifs);
+                    savePreferences(newNotifs, security);
                     toast({
                       title: checked ? "Activé" : "Désactivé",
                       description: `Alertes de stock ${checked ? 'activées' : 'désactivées'}`,
@@ -701,7 +727,9 @@ const Parametres = () => {
                 <Switch 
                   checked={notifications.reports}
                   onCheckedChange={(checked) => {
-                    setNotifications({ ...notifications, reports: checked });
+                    const newNotifs = { ...notifications, reports: checked };
+                    setNotifications(newNotifs);
+                    savePreferences(newNotifs, security);
                     toast({
                       title: checked ? "Activé" : "Désactivé",
                       description: `Rapports automatiques ${checked ? 'activés' : 'désactivés'}`,
@@ -719,7 +747,9 @@ const Parametres = () => {
                 <Switch 
                   checked={notifications.production}
                   onCheckedChange={(checked) => {
-                    setNotifications({ ...notifications, production: checked });
+                    const newNotifs = { ...notifications, production: checked };
+                    setNotifications(newNotifs);
+                    savePreferences(newNotifs, security);
                     toast({
                       title: checked ? "Activé" : "Désactivé",
                       description: `Alertes production ${checked ? 'activées' : 'désactivées'}`,
@@ -749,7 +779,9 @@ const Parametres = () => {
                 <Switch 
                   checked={security.twoFactor}
                   onCheckedChange={(checked) => {
-                    setSecurity({ ...security, twoFactor: checked });
+                    const newSec = { ...security, twoFactor: checked };
+                    setSecurity(newSec);
+                    savePreferences(notifications, newSec);
                     toast({
                       title: checked ? "2FA activé" : "2FA désactivé",
                       description: checked 
@@ -844,7 +876,9 @@ const Parametres = () => {
                   <Switch 
                     checked={security.autoBackup}
                     onCheckedChange={(checked) => {
-                      setSecurity({ ...security, autoBackup: checked });
+                      const newSec = { ...security, autoBackup: checked };
+                      setSecurity(newSec);
+                      savePreferences(notifications, newSec);
                       toast({
                         title: checked ? "Activé" : "Désactivé",
                         description: checked 
