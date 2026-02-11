@@ -98,36 +98,6 @@ const reportTypes = [
   },
 ];
 
-const recentReports = [
-  {
-    name: "Rapport mensuel Mars 2025",
-    type: "Campagne",
-    date: "2025-03-15",
-    size: "2.4 MB",
-    format: "PDF"
-  },
-  {
-    name: "Bilan financier Q1 2025",
-    type: "Financier",
-    date: "2025-03-10",
-    size: "1.8 MB",
-    format: "Excel"
-  },
-  {
-    name: "Analyse production Février",
-    type: "Production",
-    date: "2025-03-01",
-    size: "3.1 MB",
-    format: "PDF"
-  },
-  {
-    name: "Performance équipes Février",
-    type: "RH",
-    date: "2025-03-01",
-    size: "980 KB",
-    format: "PDF"
-  },
-];
 
 const Rapports = () => {
   const { toast } = useToast();
@@ -584,12 +554,19 @@ const Rapports = () => {
     }
   };
 
-  const handleDownloadRecent = (report: any) => {
-    toast({
-      title: "Téléchargement simulé",
-      description: `Téléchargement de ${report.name}`,
-    });
-  };
+  // Fetch recent financial reports from DB
+  const { data: recentFinancialReports = [] } = useQuery({
+    queryKey: ['recent-financial-reports'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('financial_reports')
+        .select('id, report_type, period_start, period_end, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   const handleScheduleReport = () => {
     setIsScheduleDialogOpen(true);
@@ -817,37 +794,39 @@ const Rapports = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {recentReports.map((report, index) => (
-                      <div 
-                        key={index}
-                        className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/30 transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <FileText className="h-6 w-6 text-primary" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">{report.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {report.type} • {report.date} • {report.size}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <Badge variant="outline">{report.format}</Badge>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="gap-2"
-                            onClick={() => handleDownloadRecent(report)}
+                    {recentFinancialReports.length === 0 ? (
+                      <p className="text-center py-8 text-muted-foreground">
+                        Aucun rapport généré. Utilisez les boutons ci-dessus pour créer un rapport.
+                      </p>
+                    ) : (
+                      recentFinancialReports.map((report) => {
+                        const typeLabel = report.report_type === 'bilan' ? 'Bilan' : report.report_type === 'compte_resultat' ? 'Compte de résultat' : report.report_type;
+                        return (
+                          <div 
+                            key={report.id}
+                            className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/30 transition-colors"
                           >
-                            <Download className="h-4 w-4" />
-                            Télécharger
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                            <div className="flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <FileText className="h-6 w-6 text-primary" />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold">{typeLabel}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {new Date(report.period_start).toLocaleDateString('fr-FR')} - {new Date(report.period_end).toLocaleDateString('fr-FR')} • {new Date(report.created_at).toLocaleDateString('fr-FR')}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <Badge variant={report.status === 'validated' ? 'default' : 'outline'}>
+                                {report.status === 'validated' ? 'Validé' : 'Brouillon'}
+                              </Badge>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -862,36 +841,48 @@ const Rapports = () => {
                     <div className="space-y-4">
                       <h3 className="font-semibold text-sm text-muted-foreground">Production</h3>
                       <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm">Production totale</span>
-                          <span className="font-semibold">438 tonnes</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm">Rendement moyen</span>
-                          <span className="font-semibold">4.2 t/ha</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm">Qualité A+</span>
-                          <span className="font-semibold text-green-600">87%</span>
-                        </div>
+                        {(() => {
+                          const totalProd = productionRecords.reduce((sum, p) => sum + Number(p.quantity || 0), 0);
+                          const qualityAPlus = productionRecords.filter(p => p.quality_grade === 'A+').length;
+                          const qualityPct = productionRecords.length > 0 ? Math.round((qualityAPlus / productionRecords.length) * 100) : 0;
+                          return (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Production totale</span>
+                                <span className="font-semibold">{Math.round(totalProd)} tonnes</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Enregistrements</span>
+                                <span className="font-semibold">{productionRecords.length}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Qualité A+</span>
+                                <span className="font-semibold text-green-600">{qualityPct}%</span>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
 
                     <div className="space-y-4">
                       <h3 className="font-semibold text-sm text-muted-foreground">Commercial</h3>
                       <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm">Chiffre d'affaires</span>
-                          <span className="font-semibold">128,000 FCFA</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm">Commandes</span>
-                          <span className="font-semibold">48</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm">Croissance</span>
-                          <span className="font-semibold text-green-600">+18%</span>
-                        </div>
+                        {(() => {
+                          const totalRevenue = sales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0);
+                          return (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Chiffre d'affaires</span>
+                                <span className="font-semibold">{totalRevenue.toLocaleString()} FCFA</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Ventes</span>
+                                <span className="font-semibold">{sales.length}</span>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -900,15 +891,11 @@ const Rapports = () => {
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm">Employés actifs</span>
-                          <span className="font-semibold">42</span>
+                          <span className="font-semibold">{employees.length}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm">Productivité</span>
-                          <span className="font-semibold">92%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm">Bassins actifs</span>
-                          <span className="font-semibold">4/8</span>
+                          <span className="text-sm">Masse salariale</span>
+                          <span className="font-semibold">{employees.reduce((sum, e) => sum + Number(e.salary || 0), 0).toLocaleString()} FCFA</span>
                         </div>
                       </div>
                     </div>

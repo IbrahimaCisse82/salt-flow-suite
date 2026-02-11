@@ -12,6 +12,8 @@ export interface CreateProductionRecordInput {
   quality_grade?: string | null;
   traceability_code?: string | null;
   campagne_id?: string | null;
+  team_id?: string | null;
+  status?: string | null;
 }
 
 export const useProductionRecords = () => {
@@ -59,6 +61,8 @@ export const useCreateProductionRecord = () => {
           quality_grade: cleanString(input.quality_grade ?? undefined),
           traceability_code: cleanString(input.traceability_code ?? undefined),
           campagne_id: input.campagne_id ?? null,
+          team_id: input.team_id ?? null,
+          status: cleanString(input.status ?? undefined) || 'completed',
         })
         .select()
         .single();

@@ -80,6 +80,9 @@ const Stocks = () => {
   const { items: inventoryItems, createItem, isLoading: inventoryLoading } = useInventoryItems();
   const { recordMovement } = useStockMovements();
   
+  // Get warehouses from inventory items
+  const warehouses = inventoryItems.filter(item => item.item_category === 'warehouse');
+  
   const [movementFormData, setMovementFormData] = useState({
     movementType: "",
     date: "",
@@ -343,9 +346,15 @@ const Stocks = () => {
                       <SelectValue placeholder="Sélectionner l'entrepôt" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Entrepôt A">Entrepôt A</SelectItem>
-                      <SelectItem value="Entrepôt B">Entrepôt B</SelectItem>
-                      <SelectItem value="Entrepôt C">Entrepôt C</SelectItem>
+                      {warehouses.length > 0 ? warehouses.map((w) => (
+                        <SelectItem key={w.id} value={w.item_name}>{w.item_name}</SelectItem>
+                      )) : (
+                        <>
+                          <SelectItem value="Entrepôt A">Entrepôt A</SelectItem>
+                          <SelectItem value="Entrepôt B">Entrepôt B</SelectItem>
+                          <SelectItem value="Entrepôt C">Entrepôt C</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -440,9 +449,15 @@ const Stocks = () => {
                       <SelectValue placeholder="Sélectionner l'entrepôt" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Entrepôt A">Entrepôt A</SelectItem>
-                      <SelectItem value="Entrepôt B">Entrepôt B</SelectItem>
-                      <SelectItem value="Entrepôt C">Entrepôt C</SelectItem>
+                      {warehouses.length > 0 ? warehouses.map((w) => (
+                        <SelectItem key={w.id} value={w.item_name}>{w.item_name}</SelectItem>
+                      )) : (
+                        <>
+                          <SelectItem value="Entrepôt A">Entrepôt A</SelectItem>
+                          <SelectItem value="Entrepôt B">Entrepôt B</SelectItem>
+                          <SelectItem value="Entrepôt C">Entrepôt C</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -640,7 +655,12 @@ const Stocks = () => {
                   <Package className="h-8 w-8 text-primary" />
                 </div>
                 <p className="text-sm text-muted-foreground">Stock total</p>
-                <p className="text-3xl font-bold">506 t</p>
+                {stockLoading ? (
+                  <Skeleton className="h-9 w-20 mt-1" />
+                ) : (
+                  <p className="text-3xl font-bold">{Math.round(totalStock)} t</p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">{stockByType.length} catégories</p>
                 <p className="text-xs text-muted-foreground mt-1">5 catégories</p>
               </CardContent>
             </Card>
@@ -650,9 +670,9 @@ const Stocks = () => {
                 <div className="flex items-center justify-between mb-2 md:mb-3">
                   <Warehouse className="h-6 w-6 md:h-8 md:w-8 text-accent" />
                 </div>
-                <p className="text-xs md:text-sm text-muted-foreground truncate">Capacité utilisée</p>
-                <p className="text-2xl md:text-3xl font-bold">65%</p>
-                <p className="text-[10px] md:text-xs text-muted-foreground mt-1 truncate">786 / 1200 tonnes</p>
+                <p className="text-xs md:text-sm text-muted-foreground truncate">Entrepôts</p>
+                <p className="text-2xl md:text-3xl font-bold">{warehouses.length}</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground mt-1 truncate">Lieux de stockage</p>
               </CardContent>
             </Card>
 
