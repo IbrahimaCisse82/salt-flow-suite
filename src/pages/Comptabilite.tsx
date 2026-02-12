@@ -647,7 +647,7 @@ const Comptabilite = () => {
           account_id: formData.accountId,
           transaction_type: 'depense',
           journal_code: journalCode,
-          date: formData.date,
+          transaction_date: formData.date,
           amount: amount,
           description: formData.description,
           reference: documentNumber,

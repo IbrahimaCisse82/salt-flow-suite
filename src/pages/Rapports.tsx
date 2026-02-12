@@ -154,9 +154,9 @@ const Rapports = () => {
         .from('transactions')
         .select(`
           *,
-          account:accounts(name)
+          account:accounts(account_name)
         `)
-        .order('date', { ascending: false })
+        .order('transaction_date', { ascending: false })
         .limit(100);
       if (error) throw error;
       return data || [];
@@ -759,9 +759,9 @@ const Rapports = () => {
                           variant="outline" 
                           className="w-full gap-2"
                           onClick={() => handleGenerateReport(report.title)}
-                          disabled={generatingReport === report.title.toLowerCase().split(' ')[0]}
+                          disabled={generatingReport !== null}
                         >
-                          {generatingReport === report.title.toLowerCase().split(' ')[0] ? (
+                          {generatingReport !== null ? (
                             <>
                               <Loader2 className="h-4 w-4 animate-spin" />
                               Génération...

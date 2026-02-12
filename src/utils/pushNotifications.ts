@@ -65,7 +65,7 @@ export async function subscribeToPushNotifications(userId: string): Promise<bool
     const registration = await navigator.serviceWorker.ready;
 
     // S'abonner aux notifications push
-    const subscription = await registration.pushManager.subscribe({
+    const subscription = await (registration as any).pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource
     });
@@ -104,7 +104,7 @@ export async function unsubscribeFromPushNotifications(): Promise<boolean> {
     }
 
     const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
+    const subscription = await (registration as any).pushManager.getSubscription();
 
     if (!subscription) {
       return true;
@@ -140,7 +140,7 @@ export async function isPushNotificationSubscribed(): Promise<boolean> {
     }
 
     const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
+    const subscription = await (registration as any).pushManager.getSubscription();
 
     return subscription !== null;
   } catch (error) {
