@@ -2311,6 +2311,89 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          inventory_item_id: string | null
+          item_name: string
+          movement_type: string
+          new_quantity: number | null
+          notes: string | null
+          previous_quantity: number | null
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          tenant_id: string
+          unit_of_measure: string | null
+          warehouse: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_item_id?: string | null
+          item_name: string
+          movement_type: string
+          new_quantity?: number | null
+          notes?: string | null
+          previous_quantity?: number | null
+          quantity: number
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id: string
+          unit_of_measure?: string | null
+          warehouse?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_item_id?: string | null
+          item_name?: string
+          movement_type?: string
+          new_quantity?: number | null
+          notes?: string | null
+          previous_quantity?: number | null
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id?: string
+          unit_of_measure?: string | null
+          warehouse?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "orphaned_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null
