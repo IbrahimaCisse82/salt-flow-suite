@@ -182,6 +182,7 @@ export type Database = {
           name: string
           status: string | null
           tenant_id: string
+          type_bassin: Database["public"]["Enums"]["bassin_type"] | null
           updated_at: string | null
         }
         Insert: {
@@ -197,6 +198,7 @@ export type Database = {
           name: string
           status?: string | null
           tenant_id: string
+          type_bassin?: Database["public"]["Enums"]["bassin_type"] | null
           updated_at?: string | null
         }
         Update: {
@@ -212,6 +214,7 @@ export type Database = {
           name?: string
           status?: string | null
           tenant_id?: string
+          type_bassin?: Database["public"]["Enums"]["bassin_type"] | null
           updated_at?: string | null
         }
         Relationships: [
@@ -3098,6 +3101,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gerant" | "commercial" | "comptable" | "production"
+      bassin_type:
+        | "Table salante"
+        | "Bassin 1"
+        | "Bassin 2"
+        | "Bassin 3"
+        | "Bassin 4"
       purchase_order_status:
         | "draft"
         | "pending_approval"
@@ -3237,6 +3246,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gerant", "commercial", "comptable", "production"],
+      bassin_type: [
+        "Table salante",
+        "Bassin 1",
+        "Bassin 2",
+        "Bassin 3",
+        "Bassin 4",
+      ],
       purchase_order_status: [
         "draft",
         "pending_approval",
