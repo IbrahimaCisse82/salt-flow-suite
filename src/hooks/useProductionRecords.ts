@@ -77,10 +77,11 @@ export const useCreateProductionRecord = () => {
         description: "La récolte a été enregistrée avec succès",
       });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      const message = error?.message || (typeof error === 'string' ? error : "Impossible d'enregistrer la récolte");
       toast({
         title: "Erreur",
-        description: error.message || "Impossible d'enregistrer la récolte",
+        description: message,
         variant: "destructive",
       });
     },

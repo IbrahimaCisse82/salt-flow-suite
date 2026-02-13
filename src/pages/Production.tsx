@@ -168,9 +168,8 @@ const Production = () => {
         team: "",
         status: "completed",
       });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      toast({ title: "Erreur", description: message, variant: "destructive" });
+    } catch (error: any) {
+      // onError in the mutation already shows a toast, so we don't duplicate
     }
   };
 
