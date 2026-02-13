@@ -215,7 +215,7 @@ const Production = () => {
                       <SelectValue placeholder="Sélectionner un bassin" />
                     </SelectTrigger>
                      <SelectContent>
-                      {bassins?.map((bassin) => (
+                      {bassins?.filter(b => b.is_active && b.type_bassin === 'Table salante').map((bassin) => (
                         <SelectItem key={bassin.id} value={bassin.id}>
                           {bassin.name}
                         </SelectItem>
