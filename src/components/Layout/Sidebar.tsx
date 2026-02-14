@@ -24,6 +24,7 @@ import {
   BookOpenCheck,
   Landmark,
   FilePlus2,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -66,6 +67,7 @@ const salinesNavItems: NavItem[] = [
     { icon: BookOpenCheck, label: "Grand Livre", href: "/comptabilite/grand-livre" },
     { icon: Landmark, label: "Rapprochement", href: "/comptabilite/rapprochement" },
     { icon: FilePlus2, label: "Opérations Diverses", href: "/comptabilite/operations-diverses" },
+    { icon: Lock, label: "Clôture exercice", href: "/comptabilite/cloture" },
   ]},
   { icon: ShoppingCart, label: "Achats", href: "/achats" },
   { icon: FileText, label: "Rapports", href: "/rapports" },
