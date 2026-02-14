@@ -122,13 +122,18 @@ const Stocks = () => {
   const handleMovementSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const movementType = movementFormData.movementType === 'Transfert' ? 'transfer' 
+        : movementFormData.movementType === 'Entrée' ? 'entry' : 'exit';
+      
       await recordMovement.mutateAsync({
         item_name: movementFormData.saltType,
-        movement_type: movementFormData.movementType === 'Entrée' ? 'entry' : 'exit',
+        movement_type: movementType,
         quantity: parseFloat(movementFormData.quantity) || 0,
         date: movementFormData.date,
         warehouse: movementFormData.warehouse,
-        notes: movementFormData.notes
+        notes: movementFormData.movementType === 'Transfert' 
+          ? `Transfert vers ${movementFormData.warehouse}${movementFormData.notes ? ' - ' + movementFormData.notes : ''}`
+          : movementFormData.notes
       });
       setIsMovementDialogOpen(false);
       setMovementFormData({ movementType: "", date: "", saltType: "", warehouse: "", quantity: "", notes: "" });
@@ -194,7 +199,7 @@ const Stocks = () => {
             <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nouveau mouvement de stock</DialogTitle>
-                <DialogDescription>Enregistrer une entrée ou sortie de stock</DialogDescription>
+                <DialogDescription>Enregistrer une entrée, sortie ou transfert de stock</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleMovementSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -204,6 +209,7 @@ const Stocks = () => {
                     <SelectContent>
                       <SelectItem value="Entrée"><div className="flex items-center gap-2"><ArrowUpCircle className="h-4 w-4 text-green-600" /><span>Entrée</span></div></SelectItem>
                       <SelectItem value="Sortie"><div className="flex items-center gap-2"><ArrowDownCircle className="h-4 w-4 text-red-600" /><span>Sortie</span></div></SelectItem>
+                      <SelectItem value="Transfert"><div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-primary" /><span>Transfert vers entrepôt</span></div></SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -225,7 +231,7 @@ const Stocks = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Entrepôt</Label>
+                  <Label>{movementFormData.movementType === 'Transfert' ? 'Entrepôt de destination' : 'Entrepôt'}</Label>
                   <Select value={movementFormData.warehouse} onValueChange={(v) => setMovementFormData({...movementFormData, warehouse: v})} required>
                     <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
                     <SelectContent>
@@ -236,6 +242,9 @@ const Stocks = () => {
                       )}
                     </SelectContent>
                   </Select>
+                  {movementFormData.movementType === 'Transfert' && (
+                    <p className="text-xs text-muted-foreground">Le sel sera transféré du stock principal vers cet entrepôt</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Quantité (tonnes)</Label>
@@ -457,7 +466,7 @@ const Stocks = () => {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" />Stocks par catégorie</CardTitle>
-                    <Button onClick={() => setIsStockDialogOpen(true)} size="sm" className="gap-2"><Plus className="h-4 w-4" />Nouveau stock</Button>
+                    <CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" />Stocks par catégorie</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
