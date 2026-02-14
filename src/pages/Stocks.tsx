@@ -116,7 +116,7 @@ const Stocks = () => {
     saltType: "", quantity: "", warehouse: "", harvestDate: "", qualityGrade: "", unitCost: "", lotNumber: "", notes: ""
   });
   const [warehouseFormData, setWarehouseFormData] = useState({
-    name: "", code: "", capacity: "", location: "", latitude: 14.7167, longitude: -17.4677, notes: ""
+    name: "", code: "", capacity: "", location: "", latitude: 14.7167, longitude: -17.4677, address: "", notes: ""
   });
 
   const handleMovementSubmit = async (e: React.FormEvent) => {
@@ -160,6 +160,9 @@ const Stocks = () => {
   const handleWarehouseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const gpsInfo = `Lat: ${warehouseFormData.latitude.toFixed(6)}, Long: ${warehouseFormData.longitude.toFixed(6)}`;
+      const addrInfo = warehouseFormData.address ? ` | Adresse: ${warehouseFormData.address}` : '';
+      const notesInfo = warehouseFormData.notes ? ` - ${warehouseFormData.notes}` : '';
       await createItem.mutateAsync({
         item_name: warehouseFormData.name,
         item_code: warehouseFormData.code,
@@ -167,10 +170,10 @@ const Stocks = () => {
         storage_location: warehouseFormData.location,
         quantity_on_hand: warehouseFormData.capacity,
         unit_of_measure: 'tonnes',
-        notes: `Lat: ${warehouseFormData.latitude.toFixed(6)}, Long: ${warehouseFormData.longitude.toFixed(6)} - ${warehouseFormData.notes}`
+        notes: `${gpsInfo}${addrInfo}${notesInfo}`
       });
       setIsWarehouseDialogOpen(false);
-      setWarehouseFormData({ name: "", code: "", capacity: "", location: "", latitude: 14.7167, longitude: -17.4677, notes: "" });
+      setWarehouseFormData({ name: "", code: "", capacity: "", location: "", latitude: 14.7167, longitude: -17.4677, address: "", notes: "" });
     } catch (error) {
       console.error("Warehouse creation error:", error);
     }
@@ -352,7 +355,7 @@ const Stocks = () => {
                   <MapPicker
                     initialLat={warehouseFormData.latitude}
                     initialLng={warehouseFormData.longitude}
-                    onLocationChange={(lat, lng) => setWarehouseFormData({...warehouseFormData, latitude: lat, longitude: lng})}
+                    onLocationChange={(lat, lng, addr) => setWarehouseFormData({...warehouseFormData, latitude: lat, longitude: lng, address: addr || ''})}
                   />
                 </div>
                 <div className="space-y-2">
