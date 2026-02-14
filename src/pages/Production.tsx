@@ -36,6 +36,7 @@ import { YieldAnalysis } from "@/components/Production/YieldAnalysis";
 import { QualityTestForm } from "@/components/Production/QualityTestForm";
 import { QualityCertificateForm } from "@/components/Production/QualityCertificateForm";
 import { TraceabilityView } from "@/components/Production/TraceabilityView";
+import { ProductionBottomCards } from "@/components/Production/ProductionBottomCards";
 import { useQualityTests } from "@/hooks/useQualityTests";
 import { useQualityCertificates } from "@/hooks/useQualityCertificates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -522,55 +523,11 @@ const Production = () => {
           {/* Contrôle qualité */}
           <YieldAnalysis />
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Paramètres de qualité</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                  <span className="text-sm font-medium">Salinité moyenne</span>
-                  <span className="font-bold text-primary">29.5%</span>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                  <span className="text-sm font-medium">Taux d'humidité</span>
-                  <span className="font-bold text-accent">3.2%</span>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                  <span className="text-sm font-medium">Granulométrie</span>
-                  <span className="font-bold text-green-600">Conforme</span>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                  <span className="text-sm font-medium">Pureté</span>
-                  <span className="font-bold text-primary">98.5%</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Statistiques hebdomadaires</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                  <span className="text-sm font-medium">Production semaine</span>
-                  <span className="font-bold">68.5 tonnes</span>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                  <span className="text-sm font-medium">Nombre de récoltes</span>
-                  <span className="font-bold">8 récoltes</span>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                  <span className="text-sm font-medium">Coût moyen/tonne</span>
-                  <span className="font-bold">145 FCFA</span>
-                </div>
-                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                  <span className="text-sm font-medium">Taux de conformité</span>
-                  <span className="font-bold text-green-600">96%</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <ProductionBottomCards 
+            productionRecords={productionRecords}
+            qualityTests={qualityTests}
+            isLoading={isLoading || qualityLoading}
+          />
             </TabsContent>
 
             <TabsContent value="quality" className="space-y-6">
