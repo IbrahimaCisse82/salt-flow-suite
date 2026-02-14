@@ -132,7 +132,7 @@ export const QualityCertificateForm = ({ open, onOpenChange, certificate }: Qual
                 name="quantity_certified"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Quantité certifiée (kg)</FormLabel>
+                    <FormLabel>Quantité certifiée (tonnes)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" {...field} />
                     </FormControl>

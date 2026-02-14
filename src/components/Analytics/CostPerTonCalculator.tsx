@@ -81,10 +81,8 @@ export const CostPerTonCalculator = () => {
   };
 
   const formatWeight = (kg: number) => {
-    if (kg >= 1000) {
-      return `${(kg / 1000).toFixed(2)} tonnes`;
-    }
-    return `${kg.toFixed(0)} kg`;
+    const tonnes = kg / 1000;
+    return `${tonnes.toFixed(2)} tonnes`;
   };
 
   const costCategories = previewData ? [

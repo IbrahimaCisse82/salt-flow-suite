@@ -8,13 +8,13 @@ describe('StatsCard', () => {
     const { getByText } = render(
       <StatsCard
         title="Total Production"
-        value="1,234 kg"
+        value="1,234 tonnes"
         icon={TrendingUp}
       />
     );
 
     expect(getByText('Total Production')).toBeInTheDocument();
-    expect(getByText('1,234 kg')).toBeInTheDocument();
+    expect(getByText('1,234 tonnes')).toBeInTheDocument();
   });
 
   it('should render change with trend up', () => {

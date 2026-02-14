@@ -119,17 +119,21 @@ function renderClassic(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
   if (company.ninea) { doc.text(`NINEA: ${company.ninea}`, 15, y); y += 5; }
   if (company.rccm) { doc.text(`RCCM: ${company.rccm}`, 15, y); y += 5; }
 
-  // Client box (right)
-  const bx = 110, by = 45, bw = pw - bx - 15, bh = 35;
+  // Client box (right) – dynamic height
+  const bx = 110, by = 45, bw = pw - bx - 15;
+  const clientLines: string[] = [invoice.clientName];
+  if (invoice.clientType) clientLines.push(`Type: ${invoice.clientType}`);
+  if (invoice.clientAddress) clientLines.push(invoice.clientAddress);
+  if (invoice.clientPhone) clientLines.push(`Tél: ${invoice.clientPhone}`);
+  if (invoice.clientEmail) clientLines.push(`Email: ${invoice.clientEmail}`);
+  const bh = Math.max(35, 8 + clientLines.length * 5 + 3);
   doc.setDrawColor(...PRIMARY); doc.setLineWidth(0.5);
   doc.rect(bx, by, bw, bh);
   let cy = by + 8;
   doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK);
-  doc.text(invoice.clientName, bx + 5, cy); cy += 6;
+  doc.text(clientLines[0], bx + 5, cy); cy += 6;
   doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...GRAY);
-  if (invoice.clientAddress) { doc.text(invoice.clientAddress, bx + 5, cy); cy += 5; }
-  if (invoice.clientPhone) { doc.text(`Tél: ${invoice.clientPhone}`, bx + 5, cy); cy += 5; }
-  if (invoice.clientEmail) { doc.text(`Email: ${invoice.clientEmail}`, bx + 5, cy); }
+  for (let i = 1; i < clientLines.length; i++) { doc.text(clientLines[i], bx + 5, cy); cy += 5; }
 
   // Table
   const subtotal = invoice.quantity * invoice.unitPrice;
@@ -138,7 +142,7 @@ function renderClassic(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
     startY: 95,
     head: [["Description", "Prix unitaire", "Unité", "Quantité", "Montant HT"]],
     body: [
-      [`Sel - ${invoice.saltType}`, `${fmt(invoice.unitPrice)} FCFA`, "kg", `${fmt(invoice.quantity)}`, `${fmt(subtotal)} FCFA`],
+      [`Sel - ${invoice.saltType}`, `${fmt(invoice.unitPrice)} FCFA`, "tonne", `${fmt(invoice.quantity)}`, `${fmt(subtotal)} FCFA`],
       ...(discount > 0 ? [["Remise", "", "", "", `-${fmt(discount)} FCFA`]] : []),
     ],
     headStyles: { fillColor: PRIMARY, textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9, halign: "center" },
@@ -236,6 +240,7 @@ function renderModern(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, lo
   if (company.rccm) leftLines.push(`RCCM: ${company.rccm}`);
 
   const rightLines: string[] = [invoice.clientName];
+  if (invoice.clientType) rightLines.push(`Type: ${invoice.clientType}`);
   if (invoice.clientAddress) rightLines.push(invoice.clientAddress);
   if (invoice.clientPhone) rightLines.push(`Tél: ${invoice.clientPhone}`);
   if (invoice.clientEmail) rightLines.push(invoice.clientEmail);
@@ -253,7 +258,7 @@ function renderModern(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, lo
   const discount = invoice.discount || 0;
   autoTable(doc, {
     startY: sepY + 8,
-    head: [["#", "Description", "Qté (kg)", "Prix unitaire", "Total"]],
+    head: [["#", "Description", "Qté (tonnes)", "Prix unitaire", "Total"]],
     body: [
       ["1", `Sel - ${invoice.saltType}`, fmt(invoice.quantity), `${fmt(invoice.unitPrice)} F`, `${fmt(subtotal)} F`],
       ...(discount > 0 ? [["", "Remise", "", "", `-${fmt(discount)} F`]] : []),
@@ -342,6 +347,7 @@ function renderMinimal(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
   if (company.phone) leftL.push(company.phone);
   if (company.email) leftL.push(company.email);
   const rightL: string[] = [];
+  if (invoice.clientType) rightL.push(`Type: ${invoice.clientType}`);
   if (invoice.clientAddress) rightL.push(invoice.clientAddress);
   if (invoice.clientPhone) rightL.push(invoice.clientPhone);
   if (invoice.clientEmail) rightL.push(invoice.clientEmail);
@@ -357,7 +363,7 @@ function renderMinimal(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
     startY: tableStart,
     head: [["Description", "Quantité", "Prix unitaire", "Montant"]],
     body: [
-      [`Sel – ${invoice.saltType}`, `${fmt(invoice.quantity)} kg`, `${fmt(invoice.unitPrice)} FCFA`, `${fmt(subtotal)} FCFA`],
+      [`Sel – ${invoice.saltType}`, `${fmt(invoice.quantity)} t`, `${fmt(invoice.unitPrice)} FCFA`, `${fmt(subtotal)} FCFA`],
       ...(discount > 0 ? [["Remise", "", "", `-${fmt(discount)} FCFA`]] : []),
     ],
     headStyles: { fillColor: [255, 255, 255], textColor: [...GRAY], fontStyle: "bold", fontSize: 8, halign: "left" },
@@ -446,8 +452,14 @@ function renderElegant(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
   doc.line(60, 68, pw - 60, 68);
 
   // Company info (left) + Client info (right) in a cream background band
+  const elegantClientLines: string[] = [invoice.clientName];
+  if (invoice.clientType) elegantClientLines.push(`Type: ${invoice.clientType}`);
+  if (invoice.clientAddress) elegantClientLines.push(invoice.clientAddress);
+  if (invoice.clientPhone) elegantClientLines.push(invoice.clientPhone);
+  if (invoice.clientEmail) elegantClientLines.push(invoice.clientEmail);
+  const bandH = Math.max(30, 10 + elegantClientLines.length * 5);
   doc.setFillColor(...CREAM);
-  doc.rect(18, 74, pw - 36, 30, "F");
+  doc.rect(18, 74, pw - 36, bandH, "F");
 
   let ly = 82;
   doc.setFontSize(8); doc.setFont("times", "bold"); doc.setTextColor(...GOLD);
@@ -456,12 +468,13 @@ function renderElegant(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
 
   doc.setFont("times", "normal"); doc.setFontSize(9); doc.setTextColor(...DARK);
   doc.text(company.name || "", 25, ly + 3);
-  doc.text(invoice.clientName, pw / 2 + 10, ly + 3);
+  doc.text(elegantClientLines[0], pw / 2 + 10, ly + 3);
   doc.setFontSize(8); doc.setTextColor(...GRAY);
   if (company.address) doc.text(company.address, 25, ly + 8);
   if (company.phone) doc.text(company.phone, 25, ly + 13);
-  if (invoice.clientAddress) doc.text(invoice.clientAddress, pw / 2 + 10, ly + 8);
-  if (invoice.clientPhone) doc.text(invoice.clientPhone, pw / 2 + 10, ly + 13);
+  for (let i = 1; i < elegantClientLines.length; i++) {
+    doc.text(elegantClientLines[i], pw / 2 + 10, ly + 3 + i * 5);
+  }
 
   // Table with gold header
   const subtotal = invoice.quantity * invoice.unitPrice;
@@ -470,7 +483,7 @@ function renderElegant(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
     startY: 112,
     head: [["Description", "Quantité", "Prix unitaire", "Montant HT"]],
     body: [
-      [`Sel – ${invoice.saltType}`, `${fmt(invoice.quantity)} kg`, `${fmt(invoice.unitPrice)} FCFA`, `${fmt(subtotal)} FCFA`],
+      [`Sel – ${invoice.saltType}`, `${fmt(invoice.quantity)} t`, `${fmt(invoice.unitPrice)} FCFA`, `${fmt(subtotal)} FCFA`],
       ...(discount > 0 ? [["Remise", "", "", `-${fmt(discount)} FCFA`]] : []),
     ],
     headStyles: { fillColor: GOLD, textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9, halign: "center", font: "times" },
