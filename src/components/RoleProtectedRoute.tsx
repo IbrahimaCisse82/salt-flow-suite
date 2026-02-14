@@ -14,11 +14,11 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
   const userRole = (profile?.role as UserRole) || null;
   const currentPath = location.pathname;
 
-  // Afficher le loader pendant la vérification
+  // Loader léger sans plein écran pour éviter le flash blanc
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
