@@ -36,7 +36,7 @@ const CHARGE_ACCOUNTS = [
 ];
 
 const IMMO_ACCOUNTS = [
-  { value: '231', label: '231 – Bâtiments' },
+  { value: '231', label: '231 – Immobilisations en cours' },
   { value: '241', label: '241 – Matériel et outillage' },
   { value: '244', label: '244 – Matériel de transport' },
   { value: '245', label: '245 – Matériel de bureau' },
@@ -74,6 +74,10 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
     charge_account_number: "6011",
     tva_rate: 18,
     invoice_number: "",
+    payment_mode: "credit" as "credit" | "comptant",
+    commissioning_date: "",
+    useful_life_years: 5,
+    depreciation_method: "lineaire",
   });
 
   const { budgetLines, getCategoriesForPhase, checkBudget, phasesWithBudget, isLoading: budgetLoading } = 
@@ -175,6 +179,10 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
         charge_account_number: formData.charge_account_number,
         tva_rate: formData.tva_rate,
         invoice_number: formData.invoice_number || undefined,
+        payment_mode: formData.payment_mode,
+        commissioning_date: formData.purchase_type === 'immobilisation' ? formData.commissioning_date || undefined : undefined,
+        useful_life_years: formData.purchase_type === 'immobilisation' ? formData.useful_life_years : undefined,
+        depreciation_method: formData.purchase_type === 'immobilisation' ? formData.depreciation_method : undefined,
       });
 
       for (const item of items) {
@@ -216,6 +224,10 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
         charge_account_number: "6011",
         tva_rate: 18,
         invoice_number: "",
+        payment_mode: "credit",
+        commissioning_date: "",
+        useful_life_years: 5,
+        depreciation_method: "lineaire",
       });
       setItems([]);
       onOpenChange(false);
@@ -332,7 +344,68 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
                   onChange={(e) => setFormData({ ...formData, tva_rate: parseFloat(e.target.value) || 0 })}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label>Mode de paiement *</Label>
+                <Select
+                  value={formData.payment_mode}
+                  onValueChange={(value: "credit" | "comptant") => setFormData({ ...formData, payment_mode: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="credit">À crédit (via 4011 Fournisseurs)</SelectItem>
+                    <SelectItem value="comptant">Comptant (direct Banque 5211)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            {/* Champs immobilisation */}
+            {formData.purchase_type === 'immobilisation' && (
+              <div className="mt-4 p-3 border rounded-lg bg-accent/10 space-y-3">
+                <h5 className="text-sm font-medium">Paramètres d'immobilisation</h5>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-2">
+                    <Label>Date de mise en service</Label>
+                    <Input
+                      type="date"
+                      value={formData.commissioning_date}
+                      onChange={(e) => setFormData({ ...formData, commissioning_date: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Durée amortissement (ans) *</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="50"
+                      value={formData.useful_life_years}
+                      onChange={(e) => setFormData({ ...formData, useful_life_years: parseInt(e.target.value) || 5 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Méthode</Label>
+                    <Select
+                      value={formData.depreciation_method}
+                      onValueChange={(v) => setFormData({ ...formData, depreciation_method: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="lineaire">Linéaire</SelectItem>
+                        <SelectItem value="degressif">Dégressif</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  À l'approbation, une fiche d'immobilisation et un plan d'amortissement seront générés automatiquement.
+                </p>
+              </div>
+            )}
           </div>
           {/* Sélection Phase et Catégorie budgétaire */}
           <div className="space-y-4 border rounded-lg p-4 bg-muted/30">

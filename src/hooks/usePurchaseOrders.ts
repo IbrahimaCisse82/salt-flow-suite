@@ -36,6 +36,10 @@ export interface CreatePurchaseOrderInput {
   charge_account_number?: string;
   tva_rate?: number;
   invoice_number?: string;
+  payment_mode?: "credit" | "comptant";
+  commissioning_date?: string;
+  useful_life_years?: number;
+  depreciation_method?: string;
 }
  
  const generateOrderNumber = (): string => {
@@ -104,6 +108,10 @@ export interface CreatePurchaseOrderInput {
         charge_account_number: input.charge_account_number || null,
         tva_rate: input.tva_rate ?? 18,
         invoice_number: input.invoice_number || null,
+        payment_mode: input.payment_mode || 'credit',
+        commissioning_date: input.commissioning_date || null,
+        useful_life_years: input.useful_life_years || 5,
+        depreciation_method: input.depreciation_method || 'lineaire',
       };
  
         // Calculer les montants HT/TVA/TTC après insertion des items
