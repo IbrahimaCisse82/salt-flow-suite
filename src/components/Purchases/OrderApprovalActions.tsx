@@ -129,8 +129,8 @@
      );
    }
  
-  // Annuler (brouillon, en attente, rejetée, approuvée, partiellement payée/reçue)
-  if (["draft", "pending_approval", "rejected", "approved", "partially_paid", "partially_received"].includes(order.status)) {
+   // Annuler (brouillon, en attente, rejetée, approuvée, partiellement payée — pas reçue ni partiellement reçue)
+   if (["draft", "pending_approval", "rejected", "approved", "partially_paid"].includes(order.status)) {
      return (
        <>
          <Button onClick={() => setCancelDialogOpen(true)} size="sm" variant="outline" className="gap-2 text-destructive">

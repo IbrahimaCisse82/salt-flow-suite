@@ -256,12 +256,12 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
                       </Badge>
                       {sale.can_be_delivered && <Badge variant="default">Livrable</Badge>}
                       <div className="flex gap-1">
-                        {onEditInvoice && sale.sale_status !== "completed" && sale.sale_status !== "cancelled" && (
+                        {onEditInvoice && sale.sale_status !== "completed" && sale.sale_status !== "cancelled" && sale.sale_status !== "delivered" && (
                           <Button size="sm" variant="outline" onClick={() => onEditInvoice(sale)} disabled={isUpdating}>
                             <Pencil className="h-4 w-4" />
                           </Button>
                         )}
-                        {onCancelInvoice && sale.sale_status !== "completed" && sale.sale_status !== "cancelled" && (
+                        {onCancelInvoice && sale.sale_status !== "completed" && sale.sale_status !== "cancelled" && sale.sale_status !== "delivered" && (
                           <Button size="sm" variant="outline" className="text-destructive" onClick={() => setCancelId(sale.id)} disabled={isUpdating}>
                             <XCircle className="h-4 w-4" />
                           </Button>
