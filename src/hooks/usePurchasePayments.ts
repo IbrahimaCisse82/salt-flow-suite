@@ -109,19 +109,38 @@
            .eq("id", input.purchase_order_id);
        }
  
-       // 3. Créer une transaction comptable si account_id fourni
-       if (input.account_id) {
-         const transactionType = input.payment_type === "refund" ? "recette" : "achat";
-         await supabase.from("transactions").insert({
-           tenant_id,
-           account_id: input.account_id,
-           transaction_type: transactionType,
-           transaction_date: input.payment_date,
-           amount: input.amount,
-           description: `${input.payment_type === "refund" ? "Retour" : "Paiement"} commande achat`,
-           reference: payment.id,
-         });
-       }
+        // 3. Créer une transaction comptable et mettre à jour le solde si account_id fourni
+        if (input.account_id) {
+          const transactionType = input.payment_type === "refund" ? "recette" : "achat";
+          await supabase.from("transactions").insert({
+            tenant_id,
+            account_id: input.account_id,
+            transaction_type: transactionType,
+            transaction_date: input.payment_date,
+            amount: input.amount,
+            description: `${input.payment_type === "refund" ? "Retour" : "Paiement"} commande achat`,
+            reference: payment.id,
+          });
+
+          // Mettre à jour le solde du compte
+          const { data: account } = await supabase
+            .from("accounts")
+            .select("balance")
+            .eq("id", input.account_id)
+            .single();
+
+          if (account) {
+            const currentBalance = account.balance || 0;
+            const newBalance = input.payment_type === "refund"
+              ? currentBalance + input.amount
+              : currentBalance - input.amount;
+
+            await supabase
+              .from("accounts")
+              .update({ balance: newBalance })
+              .eq("id", input.account_id);
+          }
+        }
  
        // 4. Marquer les notifications comme actionnées
        await supabase
