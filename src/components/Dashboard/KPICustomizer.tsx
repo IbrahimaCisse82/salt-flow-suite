@@ -57,7 +57,7 @@ export const KPICustomizer = ({ onSave }: KPICustomizerProps) => {
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="gap-2"
+        className="gap-2 bg-white/90 text-foreground border-white/50 hover:bg-white"
       >
         <Settings className="h-4 w-4" />
         <span className="hidden sm:inline">Personnaliser</span>
