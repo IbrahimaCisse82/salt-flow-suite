@@ -41,8 +41,6 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
   // Vérifier si l'utilisateur a accès à cette page
   const hasAccess = hasAccessToPage(userRole, currentPath);
 
-  console.log('[RoleProtectedRoute] path:', currentPath, 'role:', userRole, 'hasAccess:', hasAccess);
-
   if (!hasAccess) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
