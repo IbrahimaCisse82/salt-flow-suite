@@ -13,9 +13,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, AlertCircle } from "lucide-react";
+import { Plus, Trash2, AlertCircle, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+
+// Comptes SYSCOHADA protégés - ne peuvent pas être mouvementés via les écritures diverses
+const RESTRICTED_ACCOUNT_PREFIXES = [
+  { prefix: "101", label: "Capital social", reason: "Seules les opérations d'augmentation/réduction de capital sont autorisées" },
+  { prefix: "102", label: "Capital par dotation", reason: "Réservé aux entités publiques, mouvementé uniquement par dotation" },
+  { prefix: "103", label: "Capital personnel", reason: "Mouvementé automatiquement lors de la clôture (virement 104→103)" },
+  { prefix: "11", label: "Réserves", reason: "Mouvementé uniquement par affectation du résultat" },
+  { prefix: "13", label: "Résultat de l'exercice", reason: "Alimenté automatiquement par la clôture d'exercice (classes 6 et 7)" },
+];
+
+const isAccountRestricted = (accountNumber: string): string | null => {
+  for (const restricted of RESTRICTED_ACCOUNT_PREFIXES) {
+    if (accountNumber.startsWith(restricted.prefix)) {
+      return `${restricted.label} (${accountNumber}) : ${restricted.reason}`;
+    }
+  }
+  return null;
+};
 
 interface JournalLine {
   id: string;
@@ -50,7 +68,7 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
     }
   ]);
 
-  // Récupérer le plan comptable
+  // Récupérer le plan comptable (exclure les comptes protégés)
   const { data: chartOfAccounts = [] } = useQuery({
     queryKey: ['chart-of-accounts'],
     queryFn: async () => {
@@ -61,7 +79,7 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
         .order('account_number');
       
       if (error) throw error;
-      return data || [];
+      return (data || []).filter(acc => !isAccountRestricted(acc.account_number));
     }
   });
 
@@ -258,6 +276,13 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
           rows={2}
         />
       </div>
+
+      <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+        <ShieldAlert className="h-4 w-4 text-amber-600" />
+        <AlertDescription className="text-sm text-amber-800 dark:text-amber-200">
+          <strong>Comptes protégés SYSCOHADA :</strong> Les comptes de capital (101-103), réserves (11) et résultat (13) ne sont pas accessibles ici. Ils sont mouvementés automatiquement par les procédures de clôture et d'affectation du résultat.
+        </AlertDescription>
+      </Alert>
 
       <Card>
         <CardHeader>
