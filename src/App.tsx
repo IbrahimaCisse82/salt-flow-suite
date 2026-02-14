@@ -92,6 +92,7 @@ const App = () => (
               <Route path="/comptabilite" element={<RoleProtectedRoute><Comptabilite /></RoleProtectedRoute>} />
               <Route path="/achats" element={<RoleProtectedRoute><Achats /></RoleProtectedRoute>} />
               <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
+              <Route path="/gestion-utilisateurs" element={<Navigate to="/utilisateurs" replace />} />
               <Route path="/admin" element={<RoleProtectedRoute><AdminDashboard /></RoleProtectedRoute>} />
               <Route path="/admin/tenants" element={<RoleProtectedRoute><AdminTenants /></RoleProtectedRoute>} />
               <Route path="/admin/users" element={<RoleProtectedRoute><AdminUserManagement /></RoleProtectedRoute>} />
