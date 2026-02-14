@@ -612,7 +612,10 @@ const Stocks = () => {
                               <TableCell className="text-right font-medium">{Math.round(m.quantity)} {m.unit_of_measure}</TableCell>
                               <TableCell className="text-right text-muted-foreground">{Math.round(m.previous_quantity)}</TableCell>
                               <TableCell className="text-right text-muted-foreground">{Math.round(m.new_quantity)}</TableCell>
-                              <TableCell className="text-xs text-muted-foreground">{m.reference_type || '-'}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {m.reference_type === 'sale' ? 'Vente' : m.reference_type === 'transfer' ? 'Transfert' : m.reference_type || '-'}
+                                {m.warehouse && <span className="block text-muted-foreground/70">{m.warehouse}</span>}
+                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -642,66 +645,121 @@ const Stocks = () => {
                       </Button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {warehouses.map((w) => {
-                        // Extract GPS from notes if available
-                        const gpsMatch = w.notes?.match(/Lat:\s*([\d.-]+),\s*Long:\s*([\d.-]+)/);
-                        // Get stock items for this warehouse
-                        const warehouseStock = stockByType.filter(s => s.warehouse === w.item_name);
-                        const warehouseTotalStock = warehouseStock.reduce((sum, s) => sum + s.quantity, 0);
-                        const warehouseTotalReserved = warehouseStock.reduce((sum, s) => sum + s.reserved, 0);
-                        return (
-                          <Card key={w.id} className="border">
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between mb-3">
-                                <div>
-                                  <h3 className="font-semibold text-lg">{w.item_name}</h3>
-                                  {w.item_code && <p className="text-xs text-muted-foreground">Code: {w.item_code}</p>}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {warehouses.map((w) => {
+                          const gpsMatch = w.notes?.match(/Lat:\s*([\d.-]+),\s*Long:\s*([\d.-]+)/);
+                          const warehouseStock = stockByType.filter(s => s.warehouse === w.item_name);
+                          const warehouseTotalStock = warehouseStock.reduce((sum, s) => sum + s.quantity, 0);
+                          const warehouseTotalReserved = warehouseStock.reduce((sum, s) => sum + s.reserved, 0);
+                          return (
+                            <Card key={w.id} className="border">
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div>
+                                    <h3 className="font-semibold text-lg">{w.item_name}</h3>
+                                    {w.item_code && <p className="text-xs text-muted-foreground">Code: {w.item_code}</p>}
+                                  </div>
+                                  <Warehouse className="h-6 w-6 text-accent" />
                                 </div>
-                                <Warehouse className="h-6 w-6 text-accent" />
-                              </div>
-                              <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Capacité</span>
-                                  <span className="font-medium">{w.quantity_on_hand ?? 0} tonnes</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Stock actuel</span>
-                                  <span className="font-medium">{Math.round(warehouseTotalStock)} tonnes</span>
-                                </div>
-                                {warehouseTotalReserved > 0 && (
+                                <div className="space-y-2 text-sm">
                                   <div className="flex justify-between">
-                                    <span className="text-amber-600">🔒 Sous commande</span>
-                                    <span className="font-medium text-amber-600">{Math.round(warehouseTotalReserved)} tonnes</span>
+                                    <span className="text-muted-foreground">Capacité</span>
+                                    <span className="font-medium">{w.quantity_on_hand ?? 0} tonnes</span>
                                   </div>
-                                )}
-                                {warehouseStock.length > 0 && (
-                                  <div className="pt-2 border-t space-y-1">
-                                    {warehouseStock.map(s => (
-                                      <div key={s.key} className="flex justify-between text-xs">
-                                        <span>{s.type}</span>
-                                        <span>
-                                          {Math.round(s.available)} dispo
-                                          {s.reserved > 0 && <span className="text-amber-600 ml-1">/ {Math.round(s.reserved)} réservé</span>}
-                                        </span>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Stock actuel</span>
+                                    <span className="font-medium">{Math.round(warehouseTotalStock)} tonnes</span>
+                                  </div>
+                                  {warehouseTotalReserved > 0 && (
+                                    <div className="flex justify-between">
+                                      <span className="text-amber-600">🔒 Sous commande</span>
+                                      <span className="font-medium text-amber-600">{Math.round(warehouseTotalReserved)} tonnes</span>
+                                    </div>
+                                  )}
+                                  {warehouseStock.length > 0 && (
+                                    <div className="pt-2 border-t space-y-1">
+                                      {warehouseStock.map(s => (
+                                        <div key={s.key} className="flex justify-between text-xs">
+                                          <span>{s.type}</span>
+                                          <span>
+                                            {Math.round(s.available)} dispo
+                                            {s.reserved > 0 && <span className="text-amber-600 ml-1">/ {Math.round(s.reserved)} réservé</span>}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {w.storage_location && (
+                                    <div className="flex items-center gap-1 text-muted-foreground">
+                                      <MapPin className="h-3 w-3" />
+                                      <span>{w.storage_location}</span>
+                                    </div>
+                                  )}
+                                  {gpsMatch && (
+                                    <p className="text-xs text-muted-foreground">GPS: {parseFloat(gpsMatch[1]).toFixed(4)}, {parseFloat(gpsMatch[2]).toFixed(4)}</p>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                      {/* Show orphaned storage locations not matching any warehouse */}
+                      {(() => {
+                        const warehouseNames = warehouses.map(w => w.item_name);
+                        const orphanedLocations = stockByType.filter(s => !warehouseNames.includes(s.warehouse));
+                        if (orphanedLocations.length === 0) return null;
+                        const grouped = orphanedLocations.reduce((acc, s) => {
+                          if (!acc[s.warehouse]) acc[s.warehouse] = [];
+                          acc[s.warehouse].push(s);
+                          return acc;
+                        }, {} as Record<string, typeof orphanedLocations>);
+                        return (
+                          <div className="mt-4">
+                            <h4 className="text-sm font-medium text-muted-foreground mb-2">Emplacements non rattachés à un entrepôt</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {Object.entries(grouped).map(([location, items]) => {
+                                const locTotal = items.reduce((sum, s) => sum + s.quantity, 0);
+                                const locReserved = items.reduce((sum, s) => sum + s.reserved, 0);
+                                return (
+                                  <Card key={location} className="border border-dashed">
+                                    <CardContent className="p-4">
+                                      <div className="flex items-start justify-between mb-3">
+                                        <h3 className="font-semibold">{location}</h3>
+                                        <MapPin className="h-5 w-5 text-muted-foreground" />
                                       </div>
-                                    ))}
-                                  </div>
-                                )}
-                                {w.storage_location && (
-                                  <div className="flex items-center gap-1 text-muted-foreground">
-                                    <MapPin className="h-3 w-3" />
-                                    <span>{w.storage_location}</span>
-                                  </div>
-                                )}
-                                {gpsMatch && (
-                                  <p className="text-xs text-muted-foreground">GPS: {parseFloat(gpsMatch[1]).toFixed(4)}, {parseFloat(gpsMatch[2]).toFixed(4)}</p>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
+                                      <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Stock actuel</span>
+                                          <span className="font-medium">{Math.round(locTotal)} tonnes</span>
+                                        </div>
+                                        {locReserved > 0 && (
+                                          <div className="flex justify-between">
+                                            <span className="text-amber-600">🔒 Sous commande</span>
+                                            <span className="font-medium text-amber-600">{Math.round(locReserved)} tonnes</span>
+                                          </div>
+                                        )}
+                                        <div className="pt-2 border-t space-y-1">
+                                          {items.map(s => (
+                                            <div key={s.key} className="flex justify-between text-xs">
+                                              <span>{s.type}</span>
+                                              <span>
+                                                {Math.round(s.available)} dispo
+                                                {s.reserved > 0 && <span className="text-amber-600 ml-1">/ {Math.round(s.reserved)} réservé</span>}
+                                              </span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                );
+                              })}
+                            </div>
+                          </div>
                         );
-                      })}
+                      })()}
                     </div>
                   )}
                 </CardContent>
