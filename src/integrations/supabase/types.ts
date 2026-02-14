@@ -2124,6 +2124,7 @@ export type Database = {
           transaction_id: string | null
           unit_price: number | null
           updated_at: string | null
+          warehouse_id: string | null
         }
         Insert: {
           amount_paid?: number | null
@@ -2157,6 +2158,7 @@ export type Database = {
           transaction_id?: string | null
           unit_price?: number | null
           updated_at?: string | null
+          warehouse_id?: string | null
         }
         Update: {
           amount_paid?: number | null
@@ -2190,6 +2192,7 @@ export type Database = {
           transaction_id?: string | null
           unit_price?: number | null
           updated_at?: string | null
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -2225,6 +2228,13 @@ export type Database = {
             columns: ["transaction_id"]
             isOneToOne: false
             referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
             referencedColumns: ["id"]
           },
         ]

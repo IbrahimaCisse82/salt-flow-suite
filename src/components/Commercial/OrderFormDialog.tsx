@@ -4,19 +4,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Warehouse } from "lucide-react";
 
-interface OrderFormState {
+export interface OrderFormState {
   client_id: string;
   salt_type: string;
   quantity: string;
   unit_price: string;
   notes: string;
+  warehouse_id: string;
 }
 
 interface OrderFormDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   clients: any[];
+  warehouses: any[];
   form: OrderFormState;
   onFormChange: (form: OrderFormState) => void;
   onSubmit: () => void;
@@ -27,6 +30,7 @@ export const OrderFormDialog = ({
   isOpen,
   onOpenChange,
   clients,
+  warehouses,
   form,
   onFormChange,
   onSubmit,
@@ -65,6 +69,23 @@ export const OrderFormDialog = ({
               <SelectItem value="export">Sel export</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+        <div>
+          <Label className="flex items-center gap-1">
+            <Warehouse className="h-4 w-4" />
+            Entrepôt source *
+          </Label>
+          <Select value={form.warehouse_id} onValueChange={(v) => onFormChange({ ...form, warehouse_id: v })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionner l'entrepôt" />
+            </SelectTrigger>
+            <SelectContent>
+              {warehouses.map((w: any) => (
+                <SelectItem key={w.id} value={w.id}>{w.item_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground mt-1">Le stock sera réservé dans cet entrepôt</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
