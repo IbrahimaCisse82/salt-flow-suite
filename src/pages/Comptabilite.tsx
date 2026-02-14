@@ -1122,15 +1122,18 @@ const Comptabilite = () => {
               <CreditCard className="h-4 w-4" />
               Rapprochement bancaire
             </Button>
+            <Button variant="outline" className="flex items-center gap-2" onClick={() => navigate('/comptabilite/operations-diverses')}>
+              <FileText className="h-4 w-4" />
+              Opérations Diverses
+            </Button>
           </div>
 
           <Tabs defaultValue="achats" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="achats">Achats</TabsTrigger>
               <TabsTrigger value="salaires">Salaires</TabsTrigger>
               <TabsTrigger value="vente">Vente</TabsTrigger>
               <TabsTrigger value="virement">Virement</TabsTrigger>
-              <TabsTrigger value="divers">Divers</TabsTrigger>
             </TabsList>
 
             {/* Onglet Achats (anciennement Dépenses) */}
@@ -1331,91 +1334,8 @@ const Comptabilite = () => {
               </Card>
             </TabsContent>
 
-            {/* Onglet Divers */}
-            <TabsContent value="divers" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Écritures diverses</h2>
-                <Button 
-                  className="gap-2 bg-gradient-to-r from-primary to-accent"
-                  onClick={() => {
-                    setTransactionType("divers");
-                    setShowTransactionDialog(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Nouvelle écriture
-                </Button>
-              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Régularisations comptables</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {diversEntries.length === 0 ? (
-                      <p className="text-muted-foreground text-center py-8">Aucune écriture diverse enregistrée</p>
-                    ) : (
-                      diversEntries.map((entry) => (
-                        <div key={entry.id} className="p-4 border rounded-lg space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-semibold">{entry.description}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {entry.transaction_date} {entry.reference && `• Réf: ${entry.reference}`}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-lg font-bold">{Number(entry.amount).toLocaleString()} FCFA</p>
-                            </div>
-                          </div>
-                          
-                          {entry.journal_entries && entry.journal_entries.length > 0 && (
-                            <div className="mt-3 space-y-2">
-                              <p className="text-sm font-medium text-muted-foreground">Détail des écritures:</p>
-                              <div className="grid grid-cols-1 gap-2">
-                                {entry.journal_entries.map((line: any) => (
-                                  <div key={line.id} className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
-                                    <div className="flex-1">
-                                      <span className="font-medium">
-                                        {line.account?.account_number} - {line.account?.account_name}
-                                      </span>
-                                      {line.description && (
-                                        <p className="text-xs text-muted-foreground">{line.description}</p>
-                                      )}
-                                    </div>
-                                    <div className="flex gap-4 min-w-[200px] justify-end">
-                                      <div className="text-right">
-                                        <p className="text-xs text-muted-foreground">Débit</p>
-                                        <p className="font-medium">
-                                          {Number(line.debit) > 0 ? Number(line.debit).toLocaleString() : '-'}
-                                        </p>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="text-xs text-muted-foreground">Crédit</p>
-                                        <p className="font-medium">
-                                          {Number(line.credit) > 0 ? Number(line.credit).toLocaleString() : '-'}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {entry.notes && (
-                            <p className="text-sm text-muted-foreground italic mt-2">
-                              Note: {entry.notes}
-                            </p>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+
 
 
 

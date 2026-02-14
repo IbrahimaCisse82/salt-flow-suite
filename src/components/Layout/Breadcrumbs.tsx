@@ -33,6 +33,7 @@ const routeLabels: Record<string, string> = {
   "/admin/email-templates": "Templates Emails",
   "/comptabilite/grand-livre": "Grand Livre",
   "/comptabilite/rapprochement": "Rapprochement",
+  "/comptabilite/operations-diverses": "Opérations Diverses",
 };
 
 export const Breadcrumbs = () => {
