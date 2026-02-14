@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Trash2, AlertTriangle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,11 +7,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { useExpenseTypes } from "@/hooks/useExpenseTypes";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { usePurchaseOrderItems } from "@/hooks/usePurchaseOrderItems";
+import { useCampagnes } from "@/hooks/useCampagnes";
+import { useCampagneBudgetLines } from "@/hooks/useCampagneBudgetLines";
 import { toast } from "@/hooks/use-toast";
+
+const phaseLabels: Record<string, string> = {
+  'preparation-bassins': 'Préparation des bassins',
+  'mise-en-eau': 'Mise en eau',
+  'evaporation': 'Évaporation',
+  'recolte-principale': 'Récolte principale',
+  'traitement-stockage': 'Traitement et stockage'
+};
 
 interface OrderItem {
   id: string;
@@ -30,16 +42,21 @@ interface PurchaseOrderFormProps {
 
 export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps) {
   const { suppliers } = useSuppliers();
-  const { activeExpenseTypes } = useExpenseTypes();
   const { createPurchaseOrder } = usePurchaseOrders();
   const { createItem } = usePurchaseOrderItems();
+  const { activeCampagne } = useCampagnes();
 
   const [formData, setFormData] = useState({
     supplier_id: "",
     order_date: new Date().toISOString().split("T")[0],
     expected_delivery_date: "",
     notes: "",
+    campagne_phase: "",
+    expense_category: "",
   });
+
+  const { budgetLines, getCategoriesForPhase, checkBudget, phasesWithBudget, isLoading: budgetLoading } = 
+    useCampagneBudgetLines(activeCampagne?.id);
 
   const [items, setItems] = useState<OrderItem[]>([]);
   const [newItem, setNewItem] = useState({
@@ -50,6 +67,24 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
     unit_of_measure: "unité",
   });
 
+  // Catégories disponibles pour la phase sélectionnée
+  const availableCategories = useMemo(() => {
+    if (!formData.campagne_phase) return [];
+    return getCategoriesForPhase(formData.campagne_phase);
+  }, [formData.campagne_phase, getCategoriesForPhase]);
+
+  // Vérification budgétaire
+  const subtotal = items.reduce((sum, item) => sum + item.line_total, 0);
+  
+  const budgetCheck = useMemo(() => {
+    if (!formData.campagne_phase || !formData.expense_category || !activeCampagne?.id) {
+      return null;
+    }
+    return checkBudget(formData.campagne_phase, formData.expense_category, subtotal);
+  }, [formData.campagne_phase, formData.expense_category, subtotal, checkBudget, activeCampagne?.id]);
+
+  const isBudgetExceeded = budgetCheck !== null && !budgetCheck.allowed && subtotal > 0;
+
   const addItem = () => {
     if (!newItem.item_name || newItem.quantity <= 0 || newItem.unit_price <= 0) {
       toast({ title: "Erreur", description: "Remplissez tous les champs de l'article", variant: "destructive" });
@@ -59,6 +94,7 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
     const item: OrderItem = {
       id: crypto.randomUUID(),
       ...newItem,
+      item_category: formData.expense_category,
       line_total: newItem.quantity * newItem.unit_price,
     };
 
@@ -70,8 +106,6 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
     setItems(items.filter(item => item.id !== id));
   };
 
-  const subtotal = items.reduce((sum, item) => sum + item.line_total, 0);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -80,22 +114,42 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
       return;
     }
 
+    if (!formData.campagne_phase) {
+      toast({ title: "Erreur", description: "Sélectionnez une phase de campagne", variant: "destructive" });
+      return;
+    }
+
+    if (!formData.expense_category) {
+      toast({ title: "Erreur", description: "Sélectionnez une catégorie de dépense", variant: "destructive" });
+      return;
+    }
+
     if (items.length === 0) {
       toast({ title: "Erreur", description: "Ajoutez au moins un article", variant: "destructive" });
       return;
     }
 
-    try {
-       // 1. Créer la commande (en brouillon, sera soumise après ajout des articles)
-       const order = await createPurchaseOrder.mutateAsync({
-         supplier_id: formData.supplier_id,
-         order_date: formData.order_date,
-         expected_delivery_date: formData.expected_delivery_date || undefined,
-         notes: formData.notes || undefined,
-         submit_for_approval: false,
-       });
+    if (isBudgetExceeded) {
+      toast({ 
+        title: "Budget insuffisant", 
+        description: "Le montant de la commande dépasse le budget disponible. Veuillez faire une révision budgétaire avant de continuer.",
+        variant: "destructive" 
+      });
+      return;
+    }
 
-      // 2. Créer les lignes de commande
+    try {
+      const order = await createPurchaseOrder.mutateAsync({
+        supplier_id: formData.supplier_id,
+        order_date: formData.order_date,
+        expected_delivery_date: formData.expected_delivery_date || undefined,
+        notes: formData.notes || undefined,
+        submit_for_approval: false,
+        campagne_id: activeCampagne?.id,
+        campagne_phase: formData.campagne_phase,
+        expense_category: formData.expense_category,
+      });
+
       for (const item of items) {
         await createItem.mutateAsync({
           purchase_order_id: order.id,
@@ -109,12 +163,13 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
 
       toast({ title: "Commande créée", description: `Bon de commande créé avec ${items.length} article(s)` });
       
-      // Reset
       setFormData({
         supplier_id: "",
         order_date: new Date().toISOString().split("T")[0],
         expected_delivery_date: "",
         notes: "",
+        campagne_phase: "",
+        expense_category: "",
       });
       setItems([]);
       onOpenChange(false);
@@ -128,7 +183,7 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nouvelle commande d'achat</DialogTitle>
-          <DialogDescription>Créer un bon de commande fournisseur avec articles</DialogDescription>
+          <DialogDescription>Créer un bon de commande fournisseur avec contrôle budgétaire</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -171,10 +226,141 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
             </div>
           </div>
 
+          {/* Sélection Phase et Catégorie budgétaire */}
+          <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+            <h4 className="font-medium flex items-center gap-2">
+              Imputation budgétaire
+              {activeCampagne && (
+                <Badge variant="outline">{activeCampagne.name}</Badge>
+              )}
+            </h4>
+
+            {!activeCampagne ? (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Aucune campagne active</AlertTitle>
+                <AlertDescription>
+                  Vous devez d'abord créer une campagne avec un budget pour pouvoir passer des commandes.
+                </AlertDescription>
+              </Alert>
+            ) : phasesWithBudget.length === 0 && !budgetLoading ? (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Aucun budget défini</AlertTitle>
+                <AlertDescription>
+                  La campagne active n'a pas de lignes budgétaires. Allez dans "Plan de campagne" pour définir le budget.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Phase de campagne *</Label>
+                  <Select
+                    value={formData.campagne_phase}
+                    onValueChange={(value) => setFormData({ 
+                      ...formData, 
+                      campagne_phase: value, 
+                      expense_category: "" 
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner la phase" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {phasesWithBudget.map((phase) => (
+                        <SelectItem key={phase} value={phase}>
+                          {phaseLabels[phase] || phase}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Catégorie de dépense *</Label>
+                  <Select
+                    value={formData.expense_category}
+                    onValueChange={(value) => setFormData({ ...formData, expense_category: value })}
+                    disabled={!formData.campagne_phase}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={formData.campagne_phase ? "Sélectionner la catégorie" : "Choisissez d'abord la phase"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.expense_category}>
+                          <div className="flex items-center justify-between gap-3 w-full">
+                            <span>{cat.expense_category}</span>
+                            <span className="text-xs text-muted-foreground">
+                              Reste: {cat.remaining_amount.toLocaleString()} F
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {/* Indicateur de budget */}
+            {budgetCheck && formData.expense_category && (
+              <div className="mt-3 space-y-2 rounded-md border p-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Budget alloué</span>
+                  <span className="font-medium">{budgetCheck.budgeted.toLocaleString()} F</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Déjà engagé</span>
+                  <span className="font-medium">{budgetCheck.spent.toLocaleString()} F</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Disponible</span>
+                  <span className={`font-bold ${budgetCheck.remaining <= 0 ? 'text-destructive' : 'text-green-600'}`}>
+                    {budgetCheck.remaining.toLocaleString()} F
+                  </span>
+                </div>
+                <Progress 
+                  value={Math.min((budgetCheck.spent / budgetCheck.budgeted) * 100, 100)} 
+                  className={budgetCheck.spent >= budgetCheck.budgeted ? "[&>div]:bg-destructive" : ""}
+                />
+                {subtotal > 0 && (
+                  <div className="flex items-center justify-between text-sm pt-1 border-t">
+                    <span className="font-medium">Cette commande</span>
+                    <span className={`font-bold ${isBudgetExceeded ? 'text-destructive' : 'text-green-600'}`}>
+                      {subtotal.toLocaleString()} F
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isBudgetExceeded && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Budget dépassé</AlertTitle>
+                <AlertDescription>
+                  Le montant de cette commande ({subtotal.toLocaleString()} F) dépasse le budget disponible ({budgetCheck!.remaining.toLocaleString()} F).
+                  Vous devez effectuer une révision budgétaire avant de continuer.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {budgetCheck && !isBudgetExceeded && subtotal > 0 && (
+              <Alert className="border-green-600/30 bg-green-50/50 dark:bg-green-950/20">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertTitle className="text-green-700 dark:text-green-400">Budget disponible</AlertTitle>
+                <AlertDescription className="text-green-600 dark:text-green-400">
+                  Le budget est suffisant pour cette commande.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+
           {/* Ajout d'articles */}
           <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
             <h4 className="font-medium">Ajouter un article</h4>
-            <div className="grid grid-cols-6 gap-3 items-end">
+            <div className="grid grid-cols-5 gap-3 items-end">
               <div className="col-span-2 space-y-2">
                 <Label>Désignation *</Label>
                 <Input 
@@ -182,24 +368,6 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
                   value={newItem.item_name}
                   onChange={(e) => setNewItem({ ...newItem, item_name: e.target.value })}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label>Catégorie</Label>
-                <Select 
-                  value={newItem.item_category}
-                  onValueChange={(value) => setNewItem({ ...newItem, item_category: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {activeExpenseTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.name}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Quantité *</Label>
@@ -219,7 +387,7 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
                   onChange={(e) => setNewItem({ ...newItem, unit_price: parseFloat(e.target.value) || 0 })}
                 />
               </div>
-              <Button type="button" onClick={addItem} className="gap-2">
+              <Button type="button" onClick={addItem} className="gap-2" disabled={!formData.expense_category}>
                 <Plus className="h-4 w-4" />
                 Ajouter
               </Button>
@@ -289,7 +457,10 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={items.length === 0 || createPurchaseOrder.isPending}>
+            <Button 
+              type="submit" 
+              disabled={items.length === 0 || createPurchaseOrder.isPending || isBudgetExceeded || !formData.campagne_phase || !formData.expense_category}
+            >
               {createPurchaseOrder.isPending ? "Création..." : "Créer la commande"}
             </Button>
           </DialogFooter>

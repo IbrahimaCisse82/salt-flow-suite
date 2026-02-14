@@ -23,13 +23,16 @@
    approver?: { full_name: string | null } | null;
  }
  
- export interface CreatePurchaseOrderInput {
-   supplier_id: string;
-   order_date?: string;
-   expected_delivery_date?: string;
-   notes?: string;
-   submit_for_approval?: boolean;
- }
+export interface CreatePurchaseOrderInput {
+  supplier_id: string;
+  order_date?: string;
+  expected_delivery_date?: string;
+  notes?: string;
+  submit_for_approval?: boolean;
+  campagne_id?: string;
+  campagne_phase?: string;
+  expense_category?: string;
+}
  
  const generateOrderNumber = (): string => {
    const date = new Date();
@@ -79,18 +82,21 @@
          ? (input.submit_for_approval ? "approved" : "draft")
          : (input.submit_for_approval ? "pending_approval" : "draft");
  
-       const orderData: PurchaseOrderInsert = {
-         tenant_id,
-         order_number: generateOrderNumber(),
-         supplier_id: input.supplier_id,
-         order_date: input.order_date || new Date().toISOString().split("T")[0],
-         expected_delivery_date: input.expected_delivery_date,
-         notes: input.notes,
-         status,
-         created_by: user?.id,
-         approved_by: isManager && input.submit_for_approval ? user?.id : null,
-         approved_at: isManager && input.submit_for_approval ? new Date().toISOString() : null,
-       };
+      const orderData: PurchaseOrderInsert = {
+        tenant_id,
+        order_number: generateOrderNumber(),
+        supplier_id: input.supplier_id,
+        order_date: input.order_date || new Date().toISOString().split("T")[0],
+        expected_delivery_date: input.expected_delivery_date,
+        notes: input.notes,
+        status,
+        created_by: user?.id,
+        approved_by: isManager && input.submit_for_approval ? user?.id : null,
+        approved_at: isManager && input.submit_for_approval ? new Date().toISOString() : null,
+        campagne_id: input.campagne_id || null,
+        campagne_phase: input.campagne_phase || null,
+        expense_category: input.expense_category || null,
+      };
  
        const { data, error } = await supabase
          .from("purchase_orders")

@@ -227,6 +227,44 @@ export type Database = {
           },
         ]
       }
+      campagne_budget_lines: {
+        Row: {
+          budgeted_amount: number
+          campagne_id: string
+          created_at: string | null
+          expense_category: string
+          id: string
+          phase: string
+          updated_at: string | null
+        }
+        Insert: {
+          budgeted_amount?: number
+          campagne_id: string
+          created_at?: string | null
+          expense_category: string
+          id?: string
+          phase: string
+          updated_at?: string | null
+        }
+        Update: {
+          budgeted_amount?: number
+          campagne_id?: string
+          created_at?: string | null
+          expense_category?: string
+          id?: string
+          phase?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campagne_budget_lines_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campagne_phase_budgets: {
         Row: {
           budgeted_amount: number | null
@@ -1641,11 +1679,14 @@ export type Database = {
           actual_delivery_date: string | null
           approved_at: string | null
           approved_by: string | null
+          campagne_id: string | null
+          campagne_phase: string | null
           created_at: string | null
           created_by: string | null
           deleted_at: string | null
           discount_amount: number | null
           expected_delivery_date: string | null
+          expense_category: string | null
           id: string
           modification_reason: string | null
           notes: string | null
@@ -1671,11 +1712,14 @@ export type Database = {
           actual_delivery_date?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          campagne_id?: string | null
+          campagne_phase?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
+          expense_category?: string | null
           id?: string
           modification_reason?: string | null
           notes?: string | null
@@ -1701,11 +1745,14 @@ export type Database = {
           actual_delivery_date?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          campagne_id?: string | null
+          campagne_phase?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
+          expense_category?: string | null
           id?: string
           modification_reason?: string | null
           notes?: string | null
@@ -1740,6 +1787,13 @@ export type Database = {
             columns: ["approved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
             referencedColumns: ["id"]
           },
           {
