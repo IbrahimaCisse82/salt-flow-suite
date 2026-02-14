@@ -103,58 +103,69 @@
      },
    });
  
-   // Marquer un article comme reçu
-   const receiveItem = useMutation({
-     mutationFn: async ({ itemId, orderId, notes }: { itemId: string; orderId: string; notes?: string }) => {
-       const { data: { user } } = await supabase.auth.getUser();
-       
-       const { error } = await supabase
-         .from("purchase_order_items")
-         .update({ 
-           is_received: true,
-           received_at: new Date().toISOString(),
-           received_by: user?.id,
-           received_notes: notes
-         })
-         .eq("id", itemId);
- 
-       if (error) throw error;
- 
-       // Vérifier si tous les articles sont reçus
-       const { data: items } = await supabase
-         .from("purchase_order_items")
-         .select("is_received")
-         .eq("purchase_order_id", orderId);
- 
-       const allReceived = items?.every(i => i.is_received);
-       const someReceived = items?.some(i => i.is_received);
- 
-       // Mettre à jour le statut de la commande
-       const newStatus = allReceived ? "received" : (someReceived ? "partially_received" : undefined);
-       if (newStatus) {
-         await supabase
-           .from("purchase_orders")
-           .update({ 
-             status: newStatus,
-             received_at: allReceived ? new Date().toISOString() : null,
-             received_by: allReceived ? user?.id : null
-           })
-           .eq("id", orderId);
- 
-         // Historique
-         await supabase.from("purchase_order_history").insert({
-           purchase_order_id: orderId,
-           action_type: allReceived ? "fully_received" : "partially_received",
-           action_by: user?.id,
-           new_status: newStatus,
-         });
-       }
-     },
-     onSuccess: (_, variables) => {
-       queryClient.invalidateQueries({ queryKey: ["purchase-order-items", variables.orderId] });
-       queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
-     },
-   });
+  // Réception partielle ou totale d'un article
+    const receiveItem = useMutation({
+      mutationFn: async ({ itemId, orderId, receivedQty, notes }: { itemId: string; orderId: string; receivedQty: number; notes?: string }) => {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // Get current item
+        const { data: item } = await supabase
+          .from("purchase_order_items")
+          .select("quantity, received_quantity")
+          .eq("id", itemId)
+          .single();
+
+        if (!item) throw new Error("Article introuvable");
+
+        const newReceivedQty = (item.received_quantity || 0) + receivedQty;
+        const isFullyReceived = newReceivedQty >= (item.quantity || 0);
+
+        const { error } = await supabase
+          .from("purchase_order_items")
+          .update({ 
+            received_quantity: newReceivedQty,
+            is_received: isFullyReceived,
+            received_at: isFullyReceived ? new Date().toISOString() : null,
+            received_by: isFullyReceived ? user?.id : null,
+            received_notes: notes || undefined
+          })
+          .eq("id", itemId);
+
+        if (error) throw error;
+
+        // Vérifier l'état global de la commande
+        const { data: items } = await supabase
+          .from("purchase_order_items")
+          .select("is_received, received_quantity, quantity")
+          .eq("purchase_order_id", orderId);
+
+        const allReceived = items?.every(i => i.is_received);
+        const someReceived = items?.some(i => (i.received_quantity || 0) > 0);
+
+        const newStatus = allReceived ? "received" : (someReceived ? "partially_received" : undefined);
+        if (newStatus) {
+          await supabase
+            .from("purchase_orders")
+            .update({ 
+              status: newStatus,
+              received_at: allReceived ? new Date().toISOString() : null,
+              received_by: allReceived ? user?.id : null
+            })
+            .eq("id", orderId);
+
+          await supabase.from("purchase_order_history").insert({
+            purchase_order_id: orderId,
+            action_type: allReceived ? "fully_received" : "partially_received",
+            action_by: user?.id,
+            new_status: newStatus,
+          });
+        }
+      },
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries({ queryKey: ["purchase-order-items", variables.orderId] });
+        queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
+      },
+    });
  
    return {
      items: data,
