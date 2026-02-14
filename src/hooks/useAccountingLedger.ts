@@ -63,9 +63,25 @@ export const useAccountingLedger = (startDate?: string, endDate?: string) => {
       }
 
       // Transformer les données avec type assertion
-      return (data || [])
-        .filter((entry: any) => entry.transactions?.tenant_id === tenant_id)
-        .filter((entry: any) => {
+      type JournalEntryRaw = {
+        id: string;
+        transaction_id: string | null;
+        account_number: string | null;
+        account_name: string | null;
+        debit: number | null;
+        credit: number | null;
+        description: string | null;
+        transactions: {
+          transaction_date: string | null;
+          transaction_type: string | null;
+          reference: string | null;
+          tenant_id: string;
+        } | null;
+      };
+
+      return ((data || []) as JournalEntryRaw[])
+        .filter((entry) => entry.transactions?.tenant_id === tenant_id)
+        .filter((entry) => {
           if (!startDate && !endDate) return true;
           const txDate = entry.transactions?.transaction_date;
           if (!txDate) return true;
@@ -73,7 +89,7 @@ export const useAccountingLedger = (startDate?: string, endDate?: string) => {
           if (endDate && txDate > endDate) return false;
           return true;
         })
-        .map((entry: any) => ({
+        .map((entry) => ({
           id: entry.id,
           transaction_id: entry.transaction_id,
           transaction_date: entry.transactions?.transaction_date,

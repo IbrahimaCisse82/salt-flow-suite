@@ -81,7 +81,7 @@ export const useClients = () => {
           : "Le client sera synchronisé quand vous serez en ligne",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erreur",
         description: error.message || "Impossible de créer le client",
@@ -112,7 +112,7 @@ export const useClients = () => {
         description: "Les modifications ont été enregistrées",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erreur",
         description: error.message || "Impossible de mettre à jour le client",
@@ -142,7 +142,7 @@ export const useClients = () => {
         description: "Le client a été supprimé",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erreur",
         description: error.message || "Impossible de supprimer le client",

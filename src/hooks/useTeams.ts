@@ -264,7 +264,7 @@ export const useTeams = () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
       toast({ title: "Succès", description: "Membre ajouté à l'équipe" });
     },
-    onError: (error: any) => {
+    onError: (error: Error & { code?: string }) => {
       if (error.code === "23505") {
         toast({ title: "Info", description: "Ce membre fait déjà partie de l'équipe" });
       } else {

@@ -1,22 +1,24 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
-import { corsHeaders } from '../_shared/cors.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0'
+import { getCorsHeaders } from '../_shared/cors.ts'
+import { logger } from '../_shared/logger.ts'
 
-serve(async (req) => {
+Deno.serve(async (req) => {
+  const origin = req.headers.get('origin')
+  const corsHeaders = getCorsHeaders(origin)
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    )
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+    const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: {
+        headers: { Authorization: req.headers.get('Authorization')! },
+      },
+    })
 
     // Verify the user is authenticated and is an admin
     const {
@@ -24,7 +26,10 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser()
 
     if (!user) {
-      throw new Error('Not authenticated')
+      return new Response(
+        JSON.stringify({ error: 'Non authentifié' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Check if user is admin
@@ -35,27 +40,33 @@ serve(async (req) => {
       .single()
 
     if (roleError || roleData?.role !== 'admin') {
-      throw new Error('Unauthorized: Only admins can update user roles')
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé - seuls les admins peuvent modifier les rôles' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Get the request body
     const { userId, newRole } = await req.json()
 
     if (!userId || !newRole) {
-      throw new Error('Missing required fields: userId and newRole')
+      return new Response(
+        JSON.stringify({ error: 'Champs requis manquants: userId et newRole' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Validate role
     const validRoles = ['admin', 'gerant', 'commercial', 'comptable', 'production']
     if (!validRoles.includes(newRole)) {
-      throw new Error(`Invalid role. Must be one of: ${validRoles.join(', ')}`)
+      return new Response(
+        JSON.stringify({ error: `Rôle invalide. Doit être l'un de: ${validRoles.join(', ')}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Use service role client to update the role
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
     // Get current role
     const { data: currentRoleData } = await supabaseAdmin
@@ -79,8 +90,11 @@ serve(async (req) => {
       })
 
     if (updateError) {
-      console.error('Error updating role:', updateError)
-      throw updateError
+      logger.error('Error updating role:', updateError)
+      return new Response(
+        JSON.stringify({ error: 'Impossible de mettre à jour le rôle' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Log the role change in security audit log
@@ -99,7 +113,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Role updated successfully from ${oldRole} to ${newRole}`,
+        message: `Rôle mis à jour de ${oldRole} à ${newRole}`,
         oldRole,
         newRole
       }),
@@ -110,8 +124,8 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    logger.error('Error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue'
     return new Response(
       JSON.stringify({ error: errorMessage }),
       {

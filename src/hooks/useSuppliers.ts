@@ -1,12 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenantId } from "./useTenantId";
-import type { Database } from "@/integrations/supabase/types";
-
-// Types alignés sur la base de données
-type SupplierRow = Database["public"]["Tables"]["suppliers"]["Row"];
-type SupplierInsert = Database["public"]["Tables"]["suppliers"]["Insert"];
-type SupplierUpdate = Database["public"]["Tables"]["suppliers"]["Update"];
+import { SupplierRow, SupplierInsert, SupplierUpdate } from "@/types/database.types";
 
 // Export du type Supplier pour utilisation externe
 export type Supplier = SupplierRow;

@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
     }
 
     // Crée l'utilisateur sans envoi d'email (confirmation forcée)
-    const userMetadata: any = {
+    const userMetadata: Record<string, string> = {
       full_name: sanitizedFullName,
       role: finalRole,
     }

@@ -67,7 +67,7 @@ export const useExpenseTypes = () => {
       queryClient.invalidateQueries({ queryKey: ["expense-types"] });
       toast({ title: "Type de dépense créé", description: "Le type de dépense a été ajouté avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     },
   });
@@ -85,7 +85,7 @@ export const useExpenseTypes = () => {
       queryClient.invalidateQueries({ queryKey: ["expense-types"] });
       toast({ title: "Type de dépense modifié", description: "Les modifications ont été enregistrées" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     },
   });
@@ -103,7 +103,7 @@ export const useExpenseTypes = () => {
       queryClient.invalidateQueries({ queryKey: ["expense-types"] });
       toast({ title: "Type de dépense supprimé" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     },
   });
