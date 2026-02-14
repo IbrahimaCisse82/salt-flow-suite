@@ -1,0 +1,2 @@
+INSERT INTO inventory_items (tenant_id, item_name, item_code, item_category, quantity_on_hand, unit_of_measure, notes, is_active)
+VALUES ('98f910f4-7414-4775-b9d7-1dbb28660fb1', 'Entrepôt principal', 'ENT-PRINCIPAL', 'warehouse', 0, 'tonnes', 'Entrepôt d''attente - Stock temporaire avant affectation', true);
