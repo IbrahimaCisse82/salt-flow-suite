@@ -30,7 +30,6 @@ const Index = () => {
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [kpiRefreshKey, setKpiRefreshKey] = useState(0);
   
-  // Attendre que le profil soit chargé avant d'exécuter les hooks
   const { data: employees = [] } = useEmployees();
   const { data: dailyWorkers = [] } = useDailyWorkers();
   const { teams } = useTeams();
@@ -48,28 +47,10 @@ const Index = () => {
     setKpiRefreshKey(prev => prev + 1);
   }, []);
 
-  // Afficher un loader pendant le chargement du profil
-  if (loading || !profile) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="flex">
-          <Sidebar />
-          <main className={cn(
-            "flex-1 p-6 transition-all duration-300",
-            isOpen ? "md:ml-64" : "md:ml-16"
-          )}>
-            <DashboardSkeleton />
-          </main>
-        </div>
-      </div>
-    );
-  }
-
-  // OPTIMIZATION: Memoize expensive calculations
+  // All useMemo calls BEFORE any conditional return (Rules of Hooks)
   const isManager = useMemo(() => 
-    profile.role === 'admin' || profile.role === 'gerant',
-    [profile.role]
+    profile?.role === 'admin' || profile?.role === 'gerant',
+    [profile?.role]
   );
 
   const permanentCount = useMemo(() => 
@@ -107,6 +88,24 @@ const Index = () => {
       : 0,
     [activeCampagne?.target_production, totalProduction]
   );
+
+  // Conditional return AFTER all hooks
+  if (loading || !profile) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex">
+          <Sidebar />
+          <main className={cn(
+            "flex-1 p-6 transition-all duration-300",
+            isOpen ? "md:ml-64" : "md:ml-16"
+          )}>
+            <DashboardSkeleton />
+          </main>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-background">
