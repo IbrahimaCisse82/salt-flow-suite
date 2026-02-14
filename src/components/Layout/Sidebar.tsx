@@ -196,7 +196,7 @@ const SidebarComponent = () => {
       {userRole !== 'admin' && isOpen && activeCampagne && (
         <div className="border-t p-4">
           <div className="rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 p-4">
-            <p className="text-sm font-medium mb-1">{activeCampagne.name}</p>
+            <p className="text-sm font-medium mb-1">{activeCampagne.name} {activeCampagne.year}</p>
             {activeCampagne.target_production > 0 && (
               <>
                 <p className="text-xs text-muted-foreground">
