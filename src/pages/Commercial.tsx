@@ -78,7 +78,7 @@ const Commercial = () => {
   const draftSales = sales.filter((s) => !s.sale_status || s.sale_status === "draft");
   const invoicedSales = sales.filter((s) => ["invoiced", "confirmed"].includes(s.sale_status || ""));
   const deliverableSales = sales.filter((s) => s.can_be_delivered && s.sale_status !== "completed");
-  const deliveredSales = sales.filter((s) => s.sale_status === "delivered" || s.sale_status === "completed");
+  const deliveredSales = sales.filter((s) => s.sale_status === "completed");
 
   // Client stats
   const getClientStats = (clientId: string) => {
