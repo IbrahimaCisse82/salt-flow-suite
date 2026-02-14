@@ -880,6 +880,7 @@ export type Database = {
           notes: string | null
           quantity_on_hand: number | null
           reorder_level: number | null
+          reserved_quantity: number | null
           storage_location: string | null
           tenant_id: string
           unit_cost: number | null
@@ -899,6 +900,7 @@ export type Database = {
           notes?: string | null
           quantity_on_hand?: number | null
           reorder_level?: number | null
+          reserved_quantity?: number | null
           storage_location?: string | null
           tenant_id: string
           unit_cost?: number | null
@@ -918,6 +920,7 @@ export type Database = {
           notes?: string | null
           quantity_on_hand?: number | null
           reorder_level?: number | null
+          reserved_quantity?: number | null
           storage_location?: string | null
           tenant_id?: string
           unit_cost?: number | null

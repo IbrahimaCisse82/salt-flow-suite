@@ -83,23 +83,32 @@ const Stocks = () => {
   // Build stock by type from inventory_items (single source of truth)
   const stockByType = productionItems.reduce((acc, item) => {
     const type = item.item_name || 'Autre';
+    const qty = Number(item.quantity_on_hand || 0);
+    const reserved = Number((item as any).reserved_quantity || 0);
     const existing = acc.find(s => s.type === type);
     if (existing) {
-      existing.quantity += Number(item.quantity_on_hand || 0);
+      existing.quantity += qty;
+      existing.reserved += reserved;
     } else {
       acc.push({
         type,
-        quantity: Number(item.quantity_on_hand || 0),
+        quantity: qty,
+        reserved,
+        available: qty - reserved,
         unit: item.unit_of_measure || 'tonnes',
-        status: getStockStatus(Number(item.quantity_on_hand || 0), item.reorder_level),
+        status: getStockStatus(qty - reserved, item.reorder_level),
         reorderLevel: item.reorder_level,
         lastUpdate: item.updated_at || item.created_at || new Date().toISOString(),
       });
     }
     return acc;
-  }, [] as Array<{ type: string; quantity: number; unit: string; status: string; reorderLevel: number | null; lastUpdate: string }>);
+  }, [] as Array<{ type: string; quantity: number; reserved: number; available: number; unit: string; status: string; reorderLevel: number | null; lastUpdate: string }>);
+  
+  // Recalculate available for aggregated items
+  stockByType.forEach(s => { s.available = s.quantity - s.reserved; s.status = getStockStatus(s.available, s.reorderLevel); });
 
-  const totalStock = stockByType.reduce((sum, item) => sum + item.quantity, 0);
+  const totalStock = stockByType.reduce((sum, item) => sum + item.available, 0);
+  const totalReserved = stockByType.reduce((sum, item) => sum + item.reserved, 0);
   const alertCount = stockByType.filter(s => s.status === 'faible').length;
   
   // Chart data
@@ -400,7 +409,9 @@ const Stocks = () => {
                 {inventoryLoading ? <Skeleton className="h-9 w-20 mt-1" /> : (
                   <p className="text-3xl font-bold">{Math.round(totalStock)} t</p>
                 )}
-                <p className="text-xs text-muted-foreground mt-1">{stockByType.length} catégories</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stockByType.length} catégories{totalReserved > 0 ? ` | ${Math.round(totalReserved)}t réservées` : ''}
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -489,11 +500,16 @@ const Stocks = () => {
                                 <h3 className="font-semibold">{stock.type}</h3>
                                 <Badge variant="outline" className={`${config.color} ${config.border} text-xs`}>{config.label}</Badge>
                               </div>
-                              <p className="text-xl font-bold">{Math.round(stock.quantity)} {stock.unit}</p>
+                              <div className="text-right">
+                                <p className="text-xl font-bold">{Math.round(stock.available)} {stock.unit}</p>
+                                {stock.reserved > 0 && (
+                                  <p className="text-xs text-amber-600">({Math.round(stock.reserved)} réservées)</p>
+                                )}
+                              </div>
                             </div>
-                            <Progress value={(stock.quantity / maxQty) * 100} className="h-2" />
+                            <Progress value={(stock.available / maxQty) * 100} className="h-2" />
                             <div className="flex justify-between mt-1">
-                              <p className="text-xs text-muted-foreground">Seuil: {stock.reorderLevel ?? 50} {stock.unit}</p>
+                              <p className="text-xs text-muted-foreground">Seuil: {stock.reorderLevel ?? 50} {stock.unit} | Total: {Math.round(stock.quantity)} {stock.unit}</p>
                               <p className="text-xs text-muted-foreground">MAJ: {new Date(stock.lastUpdate).toLocaleDateString('fr-FR')}</p>
                             </div>
                           </div>
