@@ -54,60 +54,187 @@ const STYLES: StyleOption[] = [
   },
 ];
 
-const MiniInvoicePreview = ({ style }: { style: StyleOption }) => (
-  <div className="w-full aspect-[3/4] rounded-lg border bg-white p-3 flex flex-col gap-2 text-[6px] leading-tight shadow-sm">
-    {/* Header */}
+// ── CLASSIC preview: traditional boxed layout ──
+const ClassicPreview = ({ style }: { style: StyleOption }) => (
+  <div className="w-full aspect-[3/4] rounded-lg border bg-white p-3 flex flex-col gap-1.5 text-[6px] leading-tight shadow-sm">
     <div className="flex justify-between items-start">
-      <div>
-        <div className="w-12 h-2 rounded" style={{ backgroundColor: style.preview.headerBg }} />
-        <div className="w-8 h-1 bg-gray-200 rounded mt-1" />
-      </div>
+      <div className="w-12 h-2 rounded" style={{ backgroundColor: style.preview.headerBg }} />
       <div className="text-right">
-        <div className="font-bold" style={{ color: style.preview.headerBg }}>FACTURE</div>
+        <div className="font-bold" style={{ color: style.preview.headerBg, fontSize: "5px" }}>Facture N°</div>
         <div className="w-10 h-1 bg-gray-200 rounded ml-auto mt-0.5" />
       </div>
     </div>
-
-    {/* Company + Client */}
     <div className="flex justify-between mt-1">
       <div className="space-y-0.5">
         <div className="w-14 h-1 bg-gray-300 rounded" />
         <div className="w-10 h-1 bg-gray-200 rounded" />
-        <div className="w-12 h-1 bg-gray-200 rounded" />
       </div>
       <div className="border rounded p-1" style={{ borderColor: style.preview.headerBg }}>
-        <div className="w-12 h-1 bg-gray-300 rounded" />
-        <div className="w-10 h-1 bg-gray-200 rounded mt-0.5" />
+        <div className="w-10 h-1 bg-gray-300 rounded" />
         <div className="w-8 h-1 bg-gray-200 rounded mt-0.5" />
       </div>
     </div>
-
-    {/* Table */}
     <div className="mt-auto">
-      <div className="rounded-t h-2.5 flex items-center px-1" style={{ backgroundColor: style.preview.headerBg }}>
-        <span className="text-white font-bold" style={{ fontSize: "4px" }}>Description</span>
+      <div className="rounded-t h-2 flex items-center px-1" style={{ backgroundColor: style.preview.headerBg }}>
+        <span className="text-white font-bold" style={{ fontSize: "3px" }}>Description | Prix | Qté | Montant</span>
       </div>
-      <div className="h-2 px-1 flex items-center" style={{ backgroundColor: style.preview.tableBg }}>
-        <span style={{ fontSize: "4px", color: style.preview.textColor }}>Sel - gros</span>
-      </div>
-      <div className="h-2 px-1 flex items-center bg-white">
-        <span style={{ fontSize: "4px", color: style.preview.textColor }}>Sel - fin</span>
-      </div>
+      <div className="h-1.5" style={{ backgroundColor: style.preview.tableBg }} />
+      <div className="h-1.5 bg-white" />
     </div>
-
-    {/* Total */}
     <div className="flex justify-end">
-      <div className="rounded px-2 py-0.5" style={{ backgroundColor: style.preview.totalBg }}>
-        <span className="text-white font-bold" style={{ fontSize: "5px" }}>TOTAL: 50 000 FCFA</span>
+      <div className="rounded px-1.5 py-0.5" style={{ backgroundColor: style.preview.totalBg }}>
+        <span className="text-white font-bold" style={{ fontSize: "4px" }}>Total TTC: 50 000 F</span>
       </div>
     </div>
-
-    {/* Footer */}
-    <div className="mt-auto pt-1 border-t text-center" style={{ borderColor: style.preview.headerBg }}>
-      <div className="w-20 h-1 bg-gray-200 rounded mx-auto" />
+    <div className="flex justify-between mt-auto">
+      <div className="w-16 h-1 bg-gray-200 rounded" />
+      <div className="w-10 h-5 border rounded" style={{ borderColor: style.preview.headerBg }} />
+    </div>
+    <div className="pt-0.5 border-t" style={{ borderColor: style.preview.headerBg }}>
+      <div className="w-20 h-0.5 bg-gray-200 rounded mx-auto" />
     </div>
   </div>
 );
+
+// ── MODERN preview: full-width banner, side totals ──
+const ModernPreview = ({ style }: { style: StyleOption }) => (
+  <div className="w-full aspect-[3/4] rounded-lg border bg-white flex flex-col text-[6px] leading-tight shadow-sm overflow-hidden">
+    {/* Full banner */}
+    <div className="px-2 py-2 flex justify-between items-center" style={{ backgroundColor: style.preview.headerBg }}>
+      <div>
+        <div className="w-14 h-1.5 bg-white/80 rounded" />
+        <div className="w-10 h-0.5 bg-white/40 rounded mt-0.5" />
+      </div>
+      <div className="text-right text-white font-bold" style={{ fontSize: "6px" }}>FACTURE</div>
+    </div>
+    <div className="px-3 pt-2 flex gap-4">
+      <div className="flex-1 space-y-0.5">
+        <div className="font-bold" style={{ color: style.preview.headerBg, fontSize: "3px" }}>ÉMETTEUR</div>
+        <div className="w-12 h-1 bg-gray-300 rounded" />
+        <div className="w-10 h-0.5 bg-gray-200 rounded" />
+      </div>
+      <div className="flex-1 space-y-0.5">
+        <div className="font-bold" style={{ color: style.preview.headerBg, fontSize: "3px" }}>DESTINATAIRE</div>
+        <div className="w-12 h-1 bg-gray-300 rounded" />
+        <div className="w-10 h-0.5 bg-gray-200 rounded" />
+      </div>
+    </div>
+    <div className="mx-3 mt-2">
+      <div className="h-2 flex items-center px-1 rounded-t" style={{ backgroundColor: style.preview.headerBg }}>
+        <span className="text-white font-bold" style={{ fontSize: "3px" }}># | Description | Qté | Total</span>
+      </div>
+      <div className="h-1.5" style={{ backgroundColor: style.preview.tableBg }} />
+      <div className="h-1.5 bg-white border-b" style={{ borderColor: "#eee" }} />
+    </div>
+    <div className="mx-3 mt-auto mb-1 flex justify-end">
+      <div className="rounded p-1 w-16" style={{ backgroundColor: style.preview.tableBg }}>
+        <div className="w-full h-0.5 bg-gray-300 rounded mb-0.5" />
+        <div className="rounded px-1 py-0.5" style={{ backgroundColor: style.preview.totalBg }}>
+          <span className="text-white font-bold" style={{ fontSize: "3px" }}>TOTAL: 50 000 F</span>
+        </div>
+      </div>
+    </div>
+    <div className="px-2 py-1 text-center" style={{ backgroundColor: style.preview.headerBg }}>
+      <div className="w-20 h-0.5 bg-white/40 rounded mx-auto" />
+    </div>
+  </div>
+);
+
+// ── MINIMAL preview: centered title, no boxes, clean lines ──
+const MinimalPreview = ({ style }: { style: StyleOption }) => (
+  <div className="w-full aspect-[3/4] rounded-lg border bg-white p-3 flex flex-col gap-1 text-[6px] leading-tight shadow-sm">
+    <div className="text-center">
+      <div className="font-bold" style={{ color: style.preview.textColor, fontSize: "8px" }}>FACTURE</div>
+      <div className="w-8 h-0.5 mx-auto mt-0.5" style={{ backgroundColor: style.preview.textColor }} />
+      <div className="text-gray-400 mt-0.5" style={{ fontSize: "3px" }}>N° 001 — 14/02/2026</div>
+    </div>
+    <div className="flex gap-4 mt-2 px-1">
+      <div className="flex-1 space-y-0.5">
+        <div className="text-gray-400" style={{ fontSize: "3px" }}>DE</div>
+        <div className="w-12 h-1 bg-gray-300 rounded" />
+        <div className="w-10 h-0.5 bg-gray-200 rounded" />
+      </div>
+      <div className="flex-1 space-y-0.5">
+        <div className="text-gray-400" style={{ fontSize: "3px" }}>POUR</div>
+        <div className="w-12 h-1 bg-gray-300 rounded" />
+        <div className="w-10 h-0.5 bg-gray-200 rounded" />
+      </div>
+    </div>
+    <div className="mt-auto px-1">
+      <div className="flex justify-between border-b pb-0.5" style={{ borderColor: "#ddd" }}>
+        <span className="text-gray-400" style={{ fontSize: "3px" }}>Description</span>
+        <span className="text-gray-400" style={{ fontSize: "3px" }}>Montant</span>
+      </div>
+      <div className="flex justify-between py-0.5">
+        <span style={{ fontSize: "3px", color: style.preview.textColor }}>Sel – gros</span>
+        <span style={{ fontSize: "3px", color: style.preview.textColor }}>25 000 F</span>
+      </div>
+      <div className="flex justify-between py-0.5 border-b" style={{ borderColor: "#ddd" }}>
+        <span style={{ fontSize: "3px", color: style.preview.textColor }}>Sel – fin</span>
+        <span style={{ fontSize: "3px", color: style.preview.textColor }}>25 000 F</span>
+      </div>
+    </div>
+    <div className="flex justify-end px-1">
+      <div>
+        <div className="w-16 h-0.5 mt-1" style={{ backgroundColor: style.preview.textColor }} />
+        <div className="text-right font-bold mt-0.5" style={{ color: style.preview.textColor, fontSize: "5px" }}>Total: 50 000 FCFA</div>
+      </div>
+    </div>
+    <div className="mt-auto pt-0.5 border-t border-gray-200 text-center">
+      <div className="w-20 h-0.5 bg-gray-200 rounded mx-auto" />
+    </div>
+  </div>
+);
+
+// ── ELEGANT preview: double border, gold accents, centered ──
+const ElegantPreview = ({ style }: { style: StyleOption }) => (
+  <div className="w-full aspect-[3/4] rounded-lg border bg-white flex flex-col text-[6px] leading-tight shadow-sm overflow-hidden">
+    <div className="m-1.5 flex-1 flex flex-col border-2 p-2" style={{ borderColor: style.preview.headerBg }}>
+      <div className="mx-1 border-t border-b py-0.5" style={{ borderColor: style.preview.headerBg }} />
+      <div className="text-center mt-1">
+        <div className="font-bold" style={{ color: style.preview.textColor, fontSize: "5px" }}>MON ENTREPRISE</div>
+      </div>
+      <div className="text-center mt-1">
+        <div className="font-bold italic" style={{ color: style.preview.headerBg, fontSize: "7px" }}>Facture</div>
+        <div className="text-gray-400 mt-0.5" style={{ fontSize: "3px" }}>N° 001</div>
+      </div>
+      <div className="mx-4 border-t mt-1" style={{ borderColor: style.preview.headerBg }} />
+      <div className="mt-1.5 mx-1 rounded p-1" style={{ backgroundColor: style.preview.tableBg }}>
+        <div className="flex gap-2">
+          <div className="flex-1 space-y-0.5">
+            <div className="font-bold" style={{ color: style.preview.headerBg, fontSize: "3px" }}>ÉMETTEUR</div>
+            <div className="w-10 h-0.5 bg-gray-300 rounded" />
+          </div>
+          <div className="flex-1 space-y-0.5">
+            <div className="font-bold" style={{ color: style.preview.headerBg, fontSize: "3px" }}>CLIENT</div>
+            <div className="w-10 h-0.5 bg-gray-300 rounded" />
+          </div>
+        </div>
+      </div>
+      <div className="mt-auto mx-1">
+        <div className="h-2 flex items-center px-1 rounded-t" style={{ backgroundColor: style.preview.headerBg }}>
+          <span className="text-white font-bold" style={{ fontSize: "3px" }}>Description | Qté | Montant</span>
+        </div>
+        <div className="h-1.5" style={{ backgroundColor: style.preview.tableBg }} />
+      </div>
+      <div className="flex justify-center mt-1">
+        <div className="rounded px-2 py-0.5" style={{ backgroundColor: style.preview.totalBg }}>
+          <span className="text-white font-bold" style={{ fontSize: "4px" }}>Total TTC: 50 000 F</span>
+        </div>
+      </div>
+      <div className="mx-4 border-t border-b py-0.5 mt-auto" style={{ borderColor: style.preview.headerBg }}>
+        <div className="w-16 h-0.5 bg-gray-200 rounded mx-auto" />
+      </div>
+    </div>
+  </div>
+);
+
+const PREVIEW_MAP: Record<InvoiceStyle, React.FC<{ style: StyleOption }>> = {
+  classic: ClassicPreview,
+  modern: ModernPreview,
+  minimal: MinimalPreview,
+  elegant: ElegantPreview,
+};
 
 export const InvoiceTemplateSelector = () => {
   const { tenant } = useAuth();
@@ -197,7 +324,7 @@ export const InvoiceTemplateSelector = () => {
                       <Check className="h-3 w-3 text-primary-foreground" />
                     </div>
                   )}
-                  <MiniInvoicePreview style={style} />
+                  {(() => { const Preview = PREVIEW_MAP[style.id]; return <Preview style={style} />; })()}
                   <div className="mt-3 space-y-1">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-sm">{style.name}</p>
