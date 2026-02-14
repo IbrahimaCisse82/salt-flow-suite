@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { supabase } from "@/integrations/supabase/client";
 import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
 import { usePurchaseOrderItems } from "@/hooks/usePurchaseOrderItems";
 import { useCampagnes } from "@/hooks/useCampagnes";
@@ -24,6 +25,22 @@ const phaseLabels: Record<string, string> = {
   'recolte-principale': 'Récolte principale',
   'traitement-stockage': 'Traitement et stockage'
 };
+
+const CHARGE_ACCOUNTS = [
+  { value: '6011', label: '6011 – Achats de marchandises' },
+  { value: '6021', label: '6021 – Achats de matières premières' },
+  { value: '6041', label: '6041 – Achats de services' },
+  { value: '6051', label: '6051 – Autres achats' },
+  { value: '611', label: '611 – Transports' },
+  { value: '621', label: '621 – Services extérieurs' },
+];
+
+const IMMO_ACCOUNTS = [
+  { value: '231', label: '231 – Bâtiments' },
+  { value: '241', label: '241 – Matériel et outillage' },
+  { value: '244', label: '244 – Matériel de transport' },
+  { value: '245', label: '245 – Matériel de bureau' },
+];
 
 interface OrderItem {
   id: string;
@@ -53,6 +70,10 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
     notes: "",
     campagne_phase: "",
     expense_category: "",
+    purchase_type: "charge" as "charge" | "immobilisation",
+    charge_account_number: "6011",
+    tva_rate: 18,
+    invoice_number: "",
   });
 
   const { budgetLines, getCategoriesForPhase, checkBudget, phasesWithBudget, isLoading: budgetLoading } = 
@@ -75,6 +96,8 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
 
   // Vérification budgétaire
   const subtotal = items.reduce((sum, item) => sum + item.line_total, 0);
+  const tvaAmount = Math.round(subtotal * (formData.tva_rate / 100));
+  const totalTTC = subtotal + tvaAmount;
   
   const budgetCheck = useMemo(() => {
     if (!formData.campagne_phase || !formData.expense_category || !activeCampagne?.id) {
@@ -148,6 +171,10 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
         campagne_id: activeCampagne?.id,
         campagne_phase: formData.campagne_phase,
         expense_category: formData.expense_category,
+        purchase_type: formData.purchase_type,
+        charge_account_number: formData.charge_account_number,
+        tva_rate: formData.tva_rate,
+        invoice_number: formData.invoice_number || undefined,
       });
 
       for (const item of items) {
@@ -161,6 +188,21 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
         });
       }
 
+      // Mettre à jour les montants HT/TVA/TTC sur la commande
+      const { error: updateError } = await supabase
+        .from("purchase_orders")
+        .update({
+          subtotal: subtotal,
+          amount_ht: subtotal,
+          tva_amount: tvaAmount,
+          tax_amount: tvaAmount,
+          total_amount: totalTTC,
+          tva_rate: formData.tva_rate,
+        })
+        .eq("id", order.id);
+
+      if (updateError) console.error("Erreur mise à jour montants:", updateError);
+
       toast({ title: "Commande créée", description: `Bon de commande créé avec ${items.length} article(s)` });
       
       setFormData({
@@ -170,6 +212,10 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
         notes: "",
         campagne_phase: "",
         expense_category: "",
+        purchase_type: "charge",
+        charge_account_number: "6011",
+        tva_rate: 18,
+        invoice_number: "",
       });
       setItems([]);
       onOpenChange(false);
@@ -224,8 +270,70 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
                 onChange={(e) => setFormData({ ...formData, expected_delivery_date: e.target.value })}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label>N° Facture fournisseur</Label>
+              <Input 
+                placeholder="FAC-XXXX"
+                value={formData.invoice_number}
+                onChange={(e) => setFormData({ ...formData, invoice_number: e.target.value })}
+              />
+            </div>
           </div>
 
+          {/* Type d'achat et compte comptable */}
+          <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+            <h4 className="font-medium">Imputation comptable SYSCOHADA</h4>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Type d'achat *</Label>
+                <Select
+                  value={formData.purchase_type}
+                  onValueChange={(value: "charge" | "immobilisation") => setFormData({ 
+                    ...formData, 
+                    purchase_type: value,
+                    charge_account_number: value === 'charge' ? '6011' : '241',
+                  })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="charge">Charge (classe 6)</SelectItem>
+                    <SelectItem value="immobilisation">Immobilisation (classe 2)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Compte comptable *</Label>
+                <Select
+                  value={formData.charge_account_number}
+                  onValueChange={(value) => setFormData({ ...formData, charge_account_number: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(formData.purchase_type === 'charge' ? CHARGE_ACCOUNTS : IMMO_ACCOUNTS).map((acc) => (
+                      <SelectItem key={acc.value} value={acc.value}>{acc.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Taux TVA (%)</Label>
+                <Input 
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.tva_rate}
+                  onChange={(e) => setFormData({ ...formData, tva_rate: parseFloat(e.target.value) || 0 })}
+                />
+              </div>
+            </div>
+          </div>
           {/* Sélection Phase et Catégorie budgétaire */}
           <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
             <h4 className="font-medium flex items-center gap-2">
@@ -430,10 +538,30 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
                   ))}
                   <TableRow className="bg-muted/50">
                     <TableCell colSpan={4} className="text-right font-medium">
-                      Sous-total
+                      Sous-total HT
+                    </TableCell>
+                    <TableCell className="text-right font-bold">
+                      {subtotal.toLocaleString()} FCFA
+                    </TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                  {tvaAmount > 0 && (
+                    <TableRow className="bg-muted/50">
+                      <TableCell colSpan={4} className="text-right font-medium">
+                        TVA ({formData.tva_rate}%)
+                      </TableCell>
+                      <TableCell className="text-right font-bold">
+                        {tvaAmount.toLocaleString()} FCFA
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  )}
+                  <TableRow className="bg-muted/50">
+                    <TableCell colSpan={4} className="text-right font-bold">
+                      Total TTC
                     </TableCell>
                     <TableCell className="text-right font-bold text-primary">
-                      {subtotal.toLocaleString()} FCFA
+                      {totalTTC.toLocaleString()} FCFA
                     </TableCell>
                     <TableCell></TableCell>
                   </TableRow>

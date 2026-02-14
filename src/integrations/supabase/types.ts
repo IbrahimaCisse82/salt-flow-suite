@@ -598,6 +598,73 @@ export type Database = {
           },
         ]
       }
+      depreciation_schedule: {
+        Row: {
+          created_at: string | null
+          cumulative_depreciation: number
+          depreciation_amount: number
+          fixed_asset_id: string
+          id: string
+          is_posted: boolean | null
+          net_book_value: number
+          period_end: string
+          period_start: string
+          posted_at: string | null
+          tenant_id: string
+          transaction_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cumulative_depreciation?: number
+          depreciation_amount?: number
+          fixed_asset_id: string
+          id?: string
+          is_posted?: boolean | null
+          net_book_value?: number
+          period_end: string
+          period_start: string
+          posted_at?: string | null
+          tenant_id: string
+          transaction_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cumulative_depreciation?: number
+          depreciation_amount?: number
+          fixed_asset_id?: string
+          id?: string
+          is_posted?: boolean | null
+          net_book_value?: number
+          period_end?: string
+          period_start?: string
+          posted_at?: string | null
+          tenant_id?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "depreciation_schedule_fixed_asset_id_fkey"
+            columns: ["fixed_asset_id"]
+            isOneToOne: false
+            referencedRelation: "fixed_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "depreciation_schedule_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "depreciation_schedule_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_templates: {
         Row: {
           body_html: string
@@ -855,6 +922,84 @@ export type Database = {
             columns: ["validated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fixed_assets: {
+        Row: {
+          account_number: string
+          acquisition_cost: number
+          acquisition_date: string
+          asset_category: string
+          asset_name: string
+          commissioning_date: string | null
+          created_at: string | null
+          depreciation_method: string
+          id: string
+          net_book_value: number | null
+          notes: string | null
+          purchase_order_id: string | null
+          residual_value: number | null
+          status: string | null
+          tenant_id: string
+          total_depreciated: number | null
+          updated_at: string | null
+          useful_life_years: number
+        }
+        Insert: {
+          account_number: string
+          acquisition_cost?: number
+          acquisition_date: string
+          asset_category: string
+          asset_name: string
+          commissioning_date?: string | null
+          created_at?: string | null
+          depreciation_method?: string
+          id?: string
+          net_book_value?: number | null
+          notes?: string | null
+          purchase_order_id?: string | null
+          residual_value?: number | null
+          status?: string | null
+          tenant_id: string
+          total_depreciated?: number | null
+          updated_at?: string | null
+          useful_life_years?: number
+        }
+        Update: {
+          account_number?: string
+          acquisition_cost?: number
+          acquisition_date?: string
+          asset_category?: string
+          asset_name?: string
+          commissioning_date?: string | null
+          created_at?: string | null
+          depreciation_method?: string
+          id?: string
+          net_book_value?: number | null
+          notes?: string | null
+          purchase_order_id?: string | null
+          residual_value?: number | null
+          status?: string | null
+          tenant_id?: string
+          total_depreciated?: number | null
+          updated_at?: string | null
+          useful_life_years?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixed_assets_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -1677,10 +1822,12 @@ export type Database = {
       purchase_orders: {
         Row: {
           actual_delivery_date: string | null
+          amount_ht: number | null
           approved_at: string | null
           approved_by: string | null
           campagne_id: string | null
           campagne_phase: string | null
+          charge_account_number: string | null
           created_at: string | null
           created_by: string | null
           deleted_at: string | null
@@ -1688,11 +1835,13 @@ export type Database = {
           expected_delivery_date: string | null
           expense_category: string | null
           id: string
+          invoice_number: string | null
           modification_reason: string | null
           notes: string | null
           order_date: string
           order_number: string
           previous_total: number | null
+          purchase_type: string
           received_at: string | null
           received_by: string | null
           rejected_at: string | null
@@ -1706,14 +1855,18 @@ export type Database = {
           tenant_id: string
           total_amount: number | null
           total_paid: number | null
+          tva_amount: number | null
+          tva_rate: number | null
           updated_at: string | null
         }
         Insert: {
           actual_delivery_date?: string | null
+          amount_ht?: number | null
           approved_at?: string | null
           approved_by?: string | null
           campagne_id?: string | null
           campagne_phase?: string | null
+          charge_account_number?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
@@ -1721,11 +1874,13 @@ export type Database = {
           expected_delivery_date?: string | null
           expense_category?: string | null
           id?: string
+          invoice_number?: string | null
           modification_reason?: string | null
           notes?: string | null
           order_date?: string
           order_number: string
           previous_total?: number | null
+          purchase_type?: string
           received_at?: string | null
           received_by?: string | null
           rejected_at?: string | null
@@ -1739,14 +1894,18 @@ export type Database = {
           tenant_id: string
           total_amount?: number | null
           total_paid?: number | null
+          tva_amount?: number | null
+          tva_rate?: number | null
           updated_at?: string | null
         }
         Update: {
           actual_delivery_date?: string | null
+          amount_ht?: number | null
           approved_at?: string | null
           approved_by?: string | null
           campagne_id?: string | null
           campagne_phase?: string | null
+          charge_account_number?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
@@ -1754,11 +1913,13 @@ export type Database = {
           expected_delivery_date?: string | null
           expense_category?: string | null
           id?: string
+          invoice_number?: string | null
           modification_reason?: string | null
           notes?: string | null
           order_date?: string
           order_number?: string
           previous_total?: number | null
+          purchase_type?: string
           received_at?: string | null
           received_by?: string | null
           rejected_at?: string | null
@@ -1772,6 +1933,8 @@ export type Database = {
           tenant_id?: string
           total_amount?: number | null
           total_paid?: number | null
+          tva_amount?: number | null
+          tva_rate?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -3144,6 +3307,10 @@ export type Database = {
         }
         Returns: Json
       }
+      generate_depreciation_schedule: {
+        Args: { p_asset_id: string }
+        Returns: undefined
+      }
       generate_income_statement: {
         Args: {
           p_campagne_id?: string
@@ -3261,6 +3428,7 @@ export type Database = {
         Returns: boolean
       }
       is_manager_or_admin: { Args: { _user_id: string }; Returns: boolean }
+      post_depreciation: { Args: { p_schedule_id: string }; Returns: undefined }
       send_attendance_validation_reminders: { Args: never; Returns: undefined }
       send_push_notification: {
         Args: {

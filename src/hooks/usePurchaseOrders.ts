@@ -32,6 +32,10 @@ export interface CreatePurchaseOrderInput {
   campagne_id?: string;
   campagne_phase?: string;
   expense_category?: string;
+  purchase_type?: "charge" | "immobilisation";
+  charge_account_number?: string;
+  tva_rate?: number;
+  invoice_number?: string;
 }
  
  const generateOrderNumber = (): string => {
@@ -82,7 +86,7 @@ export interface CreatePurchaseOrderInput {
          ? (input.submit_for_approval ? "approved" : "draft")
          : (input.submit_for_approval ? "pending_approval" : "draft");
  
-      const orderData: PurchaseOrderInsert = {
+      const orderData: any = {
         tenant_id,
         order_number: generateOrderNumber(),
         supplier_id: input.supplier_id,
@@ -96,13 +100,19 @@ export interface CreatePurchaseOrderInput {
         campagne_id: input.campagne_id || null,
         campagne_phase: input.campagne_phase || null,
         expense_category: input.expense_category || null,
+        purchase_type: input.purchase_type || 'charge',
+        charge_account_number: input.charge_account_number || null,
+        tva_rate: input.tva_rate ?? 18,
+        invoice_number: input.invoice_number || null,
       };
  
-       const { data, error } = await supabase
-         .from("purchase_orders")
-         .insert([orderData])
-         .select()
-         .single();
+        // Calculer les montants HT/TVA/TTC après insertion des items
+        // (sera mis à jour via updatePurchaseOrder quand les items sont ajoutés)
+        const { data, error } = await supabase
+          .from("purchase_orders")
+          .insert([orderData])
+          .select()
+          .single();
  
        if (error) throw error;
  
