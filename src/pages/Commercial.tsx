@@ -182,20 +182,39 @@ const Commercial = () => {
     }
   };
 
+  const TVA_RATE = 18; // Taux TVA standard SYSCOHADA
+
   const handleCreateOrder = async () => {
     if (!orderForm.client_id || !orderForm.quantity || !orderForm.unit_price || !orderForm.warehouse_id) {
       toast({ title: "Erreur", description: "Remplissez tous les champs obligatoires", variant: "destructive" });
       return;
     }
+
+    const selectedClient = clients.find((c: any) => c.id === orderForm.client_id);
+    if (!selectedClient?.client_type) {
+      toast({ title: "Erreur", description: "Le type de client (local/export) doit être renseigné avant de créer une commande", variant: "destructive" });
+      return;
+    }
+
+    const isExport = selectedClient.client_type.toLowerCase() === "export";
+    const qty = parseFloat(orderForm.quantity);
+    const price = parseFloat(orderForm.unit_price);
+    const amountHT = qty * price;
+    const tvaRate = isExport ? 0 : TVA_RATE;
+    const tvaAmount = Math.round(amountHT * tvaRate / 100);
+
     try {
       await createSale({
         client_id: orderForm.client_id,
         salt_type: orderForm.salt_type,
-        quantity: parseFloat(orderForm.quantity),
-        unit_price: parseFloat(orderForm.unit_price),
+        quantity: qty,
+        unit_price: price,
         notes: orderForm.notes,
         payment_status: "pending",
         warehouse_id: orderForm.warehouse_id,
+        tva_rate: tvaRate,
+        tva_amount: tvaAmount,
+        amount_ht: amountHT,
       });
       toast({ title: "Commande créée", description: "La commande a été enregistrée et le stock réservé" });
       setIsNewOrderDialogOpen(false);
@@ -303,6 +322,7 @@ const Commercial = () => {
             onFormChange={setOrderForm}
             onSubmit={handleCreateOrder}
             isCreating={isCreating}
+            tvaRate={TVA_RATE}
           />
 
           {/* KPI Widgets */}

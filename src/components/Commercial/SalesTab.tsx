@@ -211,6 +211,9 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
         totalAmount: sale.total_amount || 0,
         paymentStatus: sale.payment_status || "pending",
         notes: sale.notes,
+        tvaRate: sale.tva_rate || 0,
+        tvaAmount: sale.tva_amount || 0,
+        amountHT: sale.amount_ht || sale.total_amount || 0,
       },
       {
         name: tenant?.name || "Entreprise",
@@ -248,7 +251,10 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
                         {sale.invoice_number || `Facture #${sale.id.slice(0, 8)}`} · {formatDate(sale.sale_date)}
                       </p>
                       <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
-                      <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA</p>
+                      {sale.tva_amount > 0 && (
+                        <p className="text-xs text-muted-foreground">HT: {formatNumber(sale.amount_ht)} · TVA {sale.tva_rate}%: {formatNumber(sale.tva_amount)}</p>
+                      )}
+                      <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA {sale.tva_amount > 0 ? "TTC" : "HT"}</p>
                     </div>
                     <div className="flex flex-col gap-2 items-end">
                       <Badge variant={sale.payment_status === "paid" ? "default" : "secondary"}>

@@ -55,6 +55,9 @@ export const useSales = () => {
       order_number?: string;
       customer_name?: string;
       warehouse_id?: string;
+      tva_rate?: number;
+      tva_amount?: number;
+      amount_ht?: number;
     }) => {
       if (!profile?.tenant_id) {
         throw new Error("Tenant ID manquant");
@@ -62,7 +65,10 @@ export const useSales = () => {
 
       const subtotal = saleData.quantity * saleData.unit_price;
       const discount = saleData.discount || 0;
-      const totalAmount = subtotal - discount;
+      const amountHT = subtotal - discount;
+      const tvaRate = saleData.tva_rate || 0;
+      const tvaAmount = saleData.tva_amount || Math.round(amountHT * tvaRate / 100);
+      const totalAmount = amountHT + tvaAmount;
       
       const { data, error } = await supabase
         .from('sales')
@@ -72,6 +78,9 @@ export const useSales = () => {
           quantity: saleData.quantity,
           unit_price: saleData.unit_price,
           total_amount: totalAmount,
+          amount_ht: amountHT,
+          tva_rate: tvaRate,
+          tva_amount: tvaAmount,
           payment_status: saleData.payment_status,
           invoice_number: saleData.invoice_number,
           notes: saleData.notes,

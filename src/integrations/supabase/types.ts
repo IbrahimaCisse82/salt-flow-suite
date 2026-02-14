@@ -2147,6 +2147,7 @@ export type Database = {
       }
       sales: {
         Row: {
+          amount_ht: number | null
           amount_paid: number | null
           batch_number: string | null
           campagne_id: string | null
@@ -2176,11 +2177,14 @@ export type Database = {
           total_amount: number | null
           traceability_code: string | null
           transaction_id: string | null
+          tva_amount: number | null
+          tva_rate: number | null
           unit_price: number | null
           updated_at: string | null
           warehouse_id: string | null
         }
         Insert: {
+          amount_ht?: number | null
           amount_paid?: number | null
           batch_number?: string | null
           campagne_id?: string | null
@@ -2210,11 +2214,14 @@ export type Database = {
           total_amount?: number | null
           traceability_code?: string | null
           transaction_id?: string | null
+          tva_amount?: number | null
+          tva_rate?: number | null
           unit_price?: number | null
           updated_at?: string | null
           warehouse_id?: string | null
         }
         Update: {
+          amount_ht?: number | null
           amount_paid?: number | null
           batch_number?: string | null
           campagne_id?: string | null
@@ -2244,6 +2251,8 @@ export type Database = {
           total_amount?: number | null
           traceability_code?: string | null
           transaction_id?: string | null
+          tva_amount?: number | null
+          tva_rate?: number | null
           unit_price?: number | null
           updated_at?: string | null
           warehouse_id?: string | null

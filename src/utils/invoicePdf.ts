@@ -17,6 +17,9 @@ interface InvoiceData {
   totalAmount: number;
   paymentStatus: string;
   notes?: string;
+  tvaRate?: number;
+  tvaAmount?: number;
+  amountHT?: number;
 }
 
 interface CompanyInfo {
@@ -157,8 +160,11 @@ function renderClassic(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
   const tx = 130, tv = pw - 18;
   doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.setTextColor(...DARK);
   let ty = tey;
-  doc.text("Total HT", tx, ty); doc.text(`${fmt(subtotal)} FCFA`, tv, ty, { align: "right" }); ty += 7;
+  doc.text("Total HT", tx, ty); doc.text(`${fmt(subtotal - discount)} FCFA`, tv, ty, { align: "right" }); ty += 7;
   if (discount > 0) { doc.text("Remise", tx, ty); doc.text(`-${fmt(discount)} FCFA`, tv, ty, { align: "right" }); ty += 7; }
+  const tvaAmt = invoice.tvaAmount || 0;
+  const tvaRt = invoice.tvaRate || 0;
+  if (tvaAmt > 0) { doc.text(`TVA (${tvaRt}%)`, tx, ty); doc.text(`${fmt(tvaAmt)} FCFA`, tv, ty, { align: "right" }); ty += 7; }
   doc.setFillColor(...ACCENT);
   doc.roundedRect(tx - 3, ty - 5, pw - tx - 12, 14, 2, 2, "F");
   doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
@@ -276,11 +282,15 @@ function renderModern(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, lo
   // Totals in a blue sidebar box
   const boxW = 80, boxX = pw - 20 - boxW;
   doc.setFillColor(...LIGHT);
-  doc.roundedRect(boxX, tey, boxW, discount > 0 ? 40 : 30, 3, 3, "F");
+  const tvaAmt2 = invoice.tvaAmount || 0;
+  const tvaRt2 = invoice.tvaRate || 0;
+  const boxH2 = 30 + (discount > 0 ? 10 : 0) + (tvaAmt2 > 0 ? 10 : 0);
+  doc.roundedRect(boxX, tey, boxW, boxH2, 3, 3, "F");
   let ty = tey + 10;
   doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(...DARK);
   doc.text("Sous-total:", boxX + 5, ty); doc.text(`${fmt(subtotal)} FCFA`, boxX + boxW - 5, ty, { align: "right" });
   if (discount > 0) { ty += 8; doc.text("Remise:", boxX + 5, ty); doc.text(`-${fmt(discount)} FCFA`, boxX + boxW - 5, ty, { align: "right" }); }
+  if (tvaAmt2 > 0) { ty += 8; doc.text(`TVA (${tvaRt2}%):`, boxX + 5, ty); doc.text(`${fmt(tvaAmt2)} FCFA`, boxX + boxW - 5, ty, { align: "right" }); }
   ty += 10;
   doc.setFillColor(...ACCENT); doc.roundedRect(boxX, ty - 4, boxW, 14, 3, 3, "F");
   doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
@@ -385,6 +395,9 @@ function renderMinimal(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
   doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(...GRAY);
   doc.text("Sous-total", pw - 75, ty); doc.text(`${fmt(subtotal)} FCFA`, pw - 25, ty, { align: "right" });
   if (discount > 0) { ty += 7; doc.text("Remise", pw - 75, ty); doc.text(`-${fmt(discount)} FCFA`, pw - 25, ty, { align: "right" }); }
+  const tvaAmt3 = invoice.tvaAmount || 0;
+  const tvaRt3 = invoice.tvaRate || 0;
+  if (tvaAmt3 > 0) { ty += 7; doc.text(`TVA (${tvaRt3}%)`, pw - 75, ty); doc.text(`${fmt(tvaAmt3)} FCFA`, pw - 25, ty, { align: "right" }); }
   ty += 10;
   doc.setDrawColor(...BLACK); doc.setLineWidth(0.8);
   doc.line(pw / 2 + 20, ty - 4, pw - 25, ty - 4);
@@ -504,6 +517,9 @@ function renderElegant(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
   doc.setFontSize(9); doc.setFont("times", "normal"); doc.setTextColor(...DARK);
   doc.text("Sous-total HT:", boxX + 5, ty); doc.text(`${fmt(subtotal)} FCFA`, boxX + boxW - 5, ty, { align: "right" }); ty += 7;
   if (discount > 0) { doc.text("Remise:", boxX + 5, ty); doc.text(`-${fmt(discount)} FCFA`, boxX + boxW - 5, ty, { align: "right" }); ty += 7; }
+  const tvaAmt4 = invoice.tvaAmount || 0;
+  const tvaRt4 = invoice.tvaRate || 0;
+  if (tvaAmt4 > 0) { doc.text(`TVA (${tvaRt4}%):`, boxX + 5, ty); doc.text(`${fmt(tvaAmt4)} FCFA`, boxX + boxW - 5, ty, { align: "right" }); ty += 7; }
 
   doc.setFillColor(...DARK_GOLD);
   doc.roundedRect(boxX, ty - 3, boxW, 14, 2, 2, "F");
