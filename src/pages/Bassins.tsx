@@ -17,8 +17,8 @@ import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton
 import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
 
 const statusConfig: Record<BassinStatus, { label: string; className: string }> = {
-  active: { label: "En production", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:text-emerald-400" },
-  repos: { label: "Repos", className: "bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-400" },
+  active: { label: "En production", className: "bg-primary/10 text-primary border-primary/30" },
+  repos: { label: "Repos", className: "bg-accent/10 text-accent border-accent/30" },
   maintenance: { label: "Maintenance", className: "bg-destructive/10 text-destructive border-destructive/30" },
 };
 
@@ -129,18 +129,18 @@ const Bassins = () => {
                 <CardContent className="p-3 sm:p-6 flex items-center justify-between">
                   <div>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">Actifs</p>
-                    <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.actifs}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-primary">{stats.actifs}</p>
                   </div>
-                  <Droplets className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                  <Droplets className="h-6 w-6 text-primary" />
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-3 sm:p-6 flex items-center justify-between">
                   <div>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">Repos</p>
-                    <p className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.repos}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-accent">{stats.repos}</p>
                   </div>
-                  <Droplets className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                  <Droplets className="h-6 w-6 text-accent" />
                 </CardContent>
               </Card>
               <Card>
