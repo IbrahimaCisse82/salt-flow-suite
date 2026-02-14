@@ -50,6 +50,23 @@ export const useCreateProductionRecord = () => {
         throw new Error("Tenant ID manquant");
       }
 
+      // Backend validation: only active Table Salante bassins allowed
+      const { data: bassin, error: bassinError } = await supabase
+        .from('bassins')
+        .select('id, bassin_type, status, is_active')
+        .eq('id', input.bassin_id)
+        .single();
+
+      if (bassinError || !bassin) {
+        throw new Error("Bassin introuvable");
+      }
+      if (!bassin.is_active || bassin.status !== 'active') {
+        throw new Error("Ce bassin n'est pas actif");
+      }
+      if (bassin.bassin_type !== 'Table Salante') {
+        throw new Error("Seuls les bassins de type 'Table Salante' sont autorisés pour la récolte");
+      }
+
       const { data, error } = await supabase
         .from("production_records")
         .insert({
