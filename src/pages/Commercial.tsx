@@ -190,8 +190,11 @@ const Commercial = () => {
   const handleMarkDelivered = async (saleId: string) => {
     try {
       await updateSale({ id: saleId, sale_status: "completed" });
-      toast({ title: "Livraison confirmée", description: "La commande a été livrée" });
+      toast({ title: "Livraison confirmée", description: "Le stock a été déduit définitivement de l'entrepôt" });
       queryClient.invalidateQueries({ queryKey: ["sales"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+      queryClient.invalidateQueries({ queryKey: ["stock-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["stock-movements"] });
     } catch (error) {
       console.error("Erreur confirmation livraison:", error);
     }
