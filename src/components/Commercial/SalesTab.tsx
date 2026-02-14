@@ -1,102 +1,342 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, CheckCircle, Package } from "lucide-react";
+import { Plus, CheckCircle, Package, Pencil, XCircle, Download, History, ChevronDown, ChevronUp } from "lucide-react";
 import { ListSkeleton } from "@/components/LoadingSkeletons/ListSkeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { generateInvoicePdf } from "@/utils/invoicePdf";
 
 const formatNumber = (value?: number | null) =>
   typeof value === "number" && !isNaN(value) ? value.toLocaleString() : "0";
 
+const formatDate = (date?: string | null) => {
+  if (!date) return "-";
+  return new Date(date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+};
+
+const statusLabel = (status?: string | null) => {
+  switch (status) {
+    case "draft": return "Brouillon";
+    case "invoiced": return "Facturée";
+    case "confirmed": return "Confirmée";
+    case "delivered": return "Livrée";
+    case "completed": return "Terminée";
+    case "cancelled": return "Annulée";
+    default: return "Brouillon";
+  }
+};
+
+const paymentLabel = (status?: string | null) => {
+  switch (status) {
+    case "paid": return "Payé";
+    case "partial": return "Partiel";
+    default: return "En attente";
+  }
+};
+
+// ============================
+// ORDERS TAB
+// ============================
 interface SalesTabProps {
   sales: any[];
+  allSales: any[];
   isLoading: boolean;
   isUpdating: boolean;
   onValidate: (id: string) => void;
   onNewOrder: () => void;
+  onEditOrder?: (sale: any) => void;
+  onCancelOrder?: (id: string) => void;
 }
 
-export const OrdersTab = ({ sales, isLoading, isUpdating, onValidate, onNewOrder }: SalesTabProps) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between">
-      <CardTitle>Commandes en cours</CardTitle>
-      <Button onClick={onNewOrder}>
-        <Plus className="h-4 w-4 mr-2" />
-        Nouvelle commande
-      </Button>
-    </CardHeader>
-    <CardContent>
-      {isLoading ? (
-        <ListSkeleton items={4} showAvatar={false} />
-      ) : sales.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8">Aucune commande en attente</p>
-      ) : (
-        <div className="space-y-4">
-          {sales.map((sale: any) => (
-            <div key={sale.id} className="p-4 border rounded-lg">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-semibold">{sale.client?.name || 'Client inconnu'}</p>
-                  <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
-                  <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA</p>
-                </div>
-                <div className="flex flex-col gap-2 items-end">
-                  <Badge variant="secondary">Brouillon</Badge>
-                  <Button size="sm" onClick={() => onValidate(sale.id)} disabled={isUpdating}>
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Valider
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </CardContent>
-  </Card>
-);
+export const OrdersTab = ({ sales, allSales, isLoading, isUpdating, onValidate, onNewOrder, onEditOrder, onCancelOrder }: SalesTabProps) => {
+  const [showHistory, setShowHistory] = useState(false);
+  const [cancelId, setCancelId] = useState<string | null>(null);
 
+  const recentOrders = allSales
+    .filter((s) => s.sale_status !== "draft" && s.sale_status)
+    .slice(0, 10);
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Commandes en cours</CardTitle>
+          <Button onClick={onNewOrder}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle commande
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <ListSkeleton items={4} showAvatar={false} />
+          ) : sales.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">Aucune commande en attente</p>
+          ) : (
+            <div className="space-y-4">
+              {sales.map((sale: any) => (
+                <div key={sale.id} className="p-4 border rounded-lg">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold">{sale.client?.name || "Client inconnu"}</p>
+                      <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
+                      <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(sale.sale_date)}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 items-end">
+                      <Badge variant="secondary">Brouillon</Badge>
+                      <div className="flex gap-1">
+                        {onEditOrder && (
+                          <Button size="sm" variant="outline" onClick={() => onEditOrder(sale)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {onCancelOrder && (
+                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => setCancelId(sale.id)}>
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button size="sm" onClick={() => onValidate(sale.id)} disabled={isUpdating}>
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Valider
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Order History */}
+      {recentOrders.length > 0 && (
+        <Card className="mt-4">
+          <CardHeader className="cursor-pointer flex flex-row items-center justify-between" onClick={() => setShowHistory(!showHistory)}>
+            <CardTitle className="text-base flex items-center gap-2">
+              <History className="h-4 w-4" />
+              Historique des 10 dernières commandes
+            </CardTitle>
+            {showHistory ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </CardHeader>
+          {showHistory && (
+            <CardContent>
+              <div className="space-y-3">
+                {recentOrders.map((sale: any) => (
+                  <div key={sale.id} className="p-3 border rounded-lg flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">{sale.client?.name || "Client inconnu"}</p>
+                      <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type} · {formatDate(sale.sale_date)}</p>
+                      <p className="text-sm font-semibold text-primary">{formatNumber(sale.total_amount)} FCFA</p>
+                    </div>
+                    <Badge variant={sale.sale_status === "cancelled" ? "destructive" : "secondary"}>
+                      {statusLabel(sale.sale_status)}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+      {/* Cancel confirmation */}
+      <AlertDialog open={!!cancelId} onOpenChange={(open) => !open && setCancelId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Annuler cette commande ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action changera le statut de la commande en "Annulée". Le stock réservé sera libéré.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Non</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (cancelId && onCancelOrder) { onCancelOrder(cancelId); setCancelId(null); } }}>
+              Oui, annuler
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+// ============================
+// INVOICES TAB
+// ============================
 interface InvoicesTabProps {
   sales: any[];
+  allSales: any[];
   isLoading: boolean;
+  isUpdating?: boolean;
+  onEditInvoice?: (sale: any) => void;
+  onCancelInvoice?: (id: string) => void;
+  tenant?: any;
 }
 
-export const InvoicesTab = ({ sales, isLoading }: InvoicesTabProps) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Ventes facturées</CardTitle>
-    </CardHeader>
-    <CardContent>
-      {isLoading ? (
-        <ListSkeleton items={4} showAvatar={false} />
-      ) : sales.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8">Aucune facture en cours</p>
-      ) : (
-        <div className="space-y-4">
-          {sales.map((sale: any) => (
-            <div key={sale.id} className="p-4 border rounded-lg">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-semibold">{sale.client?.name || 'Client inconnu'}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {sale.invoice_number || `Facture #${sale.id.slice(0, 8)}`}
-                  </p>
-                  <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA</p>
-                </div>
-                <div className="flex flex-col gap-2 items-end">
-                  <Badge variant={sale.payment_status === 'paid' ? 'default' : 'secondary'}>
-                    {sale.payment_status === 'paid' ? 'Payée' : sale.payment_status === 'partial' ? 'Partiel' : 'En attente'}
-                  </Badge>
-                  {sale.can_be_delivered && <Badge variant="default">Livrable</Badge>}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </CardContent>
-  </Card>
-);
+export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvoice, onCancelInvoice, tenant }: InvoicesTabProps) => {
+  const [showHistory, setShowHistory] = useState(false);
+  const [cancelId, setCancelId] = useState<string | null>(null);
 
+  const recentInvoices = allSales
+    .filter((s) => ["invoiced", "confirmed", "delivered", "completed", "cancelled"].includes(s.sale_status || ""))
+    .slice(0, 10);
+
+  const handleDownload = (sale: any) => {
+    generateInvoicePdf(
+      {
+        invoiceNumber: sale.invoice_number || sale.id.slice(0, 8).toUpperCase(),
+        date: formatDate(sale.sale_date),
+        clientName: sale.client?.name || "Client inconnu",
+        clientAddress: sale.client?.address,
+        clientPhone: sale.client?.phone,
+        clientEmail: sale.client?.email,
+        clientType: sale.client?.client_type,
+        saltType: sale.salt_type || "sel",
+        quantity: sale.quantity || 0,
+        unitPrice: sale.unit_price || 0,
+        discount: sale.discount || 0,
+        totalAmount: sale.total_amount || 0,
+        paymentStatus: sale.payment_status || "pending",
+        notes: sale.notes,
+      },
+      {
+        name: tenant?.name || "Entreprise",
+        address: tenant?.address || undefined,
+        phone: tenant?.contact_phone || undefined,
+        email: tenant?.contact_email || undefined,
+        ninea: tenant?.ninea || undefined,
+        rccm: tenant?.rccm || undefined,
+        managerName: tenant?.manager_name || undefined,
+      }
+    );
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Ventes facturées</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <ListSkeleton items={4} showAvatar={false} />
+          ) : sales.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">Aucune facture en cours</p>
+          ) : (
+            <div className="space-y-4">
+              {sales.map((sale: any) => (
+                <div key={sale.id} className="p-4 border rounded-lg">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold">{sale.client?.name || "Client inconnu"}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {sale.invoice_number || `Facture #${sale.id.slice(0, 8)}`} · {formatDate(sale.sale_date)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
+                      <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA</p>
+                    </div>
+                    <div className="flex flex-col gap-2 items-end">
+                      <Badge variant={sale.payment_status === "paid" ? "default" : "secondary"}>
+                        {paymentLabel(sale.payment_status)}
+                      </Badge>
+                      {sale.can_be_delivered && <Badge variant="default">Livrable</Badge>}
+                      <div className="flex gap-1">
+                        {onEditInvoice && sale.sale_status !== "completed" && sale.sale_status !== "cancelled" && (
+                          <Button size="sm" variant="outline" onClick={() => onEditInvoice(sale)} disabled={isUpdating}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {onCancelInvoice && sale.sale_status !== "completed" && sale.sale_status !== "cancelled" && (
+                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => setCancelId(sale.id)} disabled={isUpdating}>
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button size="sm" variant="outline" onClick={() => handleDownload(sale)}>
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Invoice History */}
+      {recentInvoices.length > 0 && (
+        <Card className="mt-4">
+          <CardHeader className="cursor-pointer flex flex-row items-center justify-between" onClick={() => setShowHistory(!showHistory)}>
+            <CardTitle className="text-base flex items-center gap-2">
+              <History className="h-4 w-4" />
+              Historique des 10 dernières factures
+            </CardTitle>
+            {showHistory ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </CardHeader>
+          {showHistory && (
+            <CardContent>
+              <div className="space-y-3">
+                {recentInvoices.map((sale: any) => (
+                  <div key={sale.id} className="p-3 border rounded-lg flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">{sale.client?.name || "Client inconnu"}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {sale.invoice_number || `#${sale.id.slice(0, 8)}`} · {sale.quantity} kg · {formatDate(sale.sale_date)}
+                      </p>
+                      <p className="text-sm font-semibold text-primary">{formatNumber(sale.total_amount)} FCFA</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={sale.sale_status === "cancelled" ? "destructive" : "secondary"}>
+                        {statusLabel(sale.sale_status)}
+                      </Badge>
+                      <Button size="sm" variant="ghost" onClick={() => handleDownload(sale)}>
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+      {/* Cancel confirmation */}
+      <AlertDialog open={!!cancelId} onOpenChange={(open) => !open && setCancelId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Annuler cette facture ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action changera le statut en "Annulée".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Non</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (cancelId && onCancelInvoice) { onCancelInvoice(cancelId); setCancelId(null); } }}>
+              Oui, annuler
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+// ============================
+// DELIVERY TAB
+// ============================
 interface DeliveryTabProps {
   deliverableSales: any[];
   deliveredSales: any[];
@@ -123,11 +363,11 @@ export const DeliveryTab = ({ deliverableSales, deliveredSales, isLoading, isUpd
             <div key={sale.id} className="p-4 border rounded-lg bg-muted/30">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-semibold">{sale.client?.name || 'Client inconnu'}</p>
+                  <p className="font-semibold">{sale.client?.name || "Client inconnu"}</p>
                   <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
                   <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Paiement: {sale.payment_status === 'paid' ? 'Complet' : 'Partiel'}
+                    Paiement: {sale.payment_status === "paid" ? "Complet" : "Partiel"}
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 items-end">
@@ -151,7 +391,7 @@ export const DeliveryTab = ({ deliverableSales, deliveredSales, isLoading, isUpd
           {deliveredSales.slice(0, 5).map((sale: any) => (
             <div key={sale.id} className="p-3 border rounded-lg flex justify-between items-center">
               <div>
-                <p className="font-medium">{sale.client?.name || 'Client inconnu'}</p>
+                <p className="font-medium">{sale.client?.name || "Client inconnu"}</p>
                 <p className="text-sm text-muted-foreground">{sale.quantity} kg</p>
               </div>
               <Badge variant="default">

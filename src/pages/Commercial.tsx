@@ -1,6 +1,6 @@
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +10,7 @@ import { useClients } from "@/hooks/useClients";
 import { useSales } from "@/hooks/useSales";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInventoryItems } from "@/hooks/useInventoryItems";
+import { supabase } from "@/integrations/supabase/client";
 import { Users, ShoppingCart, Truck, FileText } from "lucide-react";
 import {
   AlertDialog,
@@ -31,9 +32,20 @@ const Commercial = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isOpen } = useSidebar();
-  const { profile } = useAuth();
+  const { profile, tenant } = useAuth();
   const { items: inventoryItems } = useInventoryItems();
   const warehouses = inventoryItems.filter(item => item.item_category === 'warehouse');
+
+  // Fetch full tenant details for invoice PDF
+  const { data: tenantFull } = useQuery({
+    queryKey: ['tenant-full', tenant?.id],
+    queryFn: async () => {
+      if (!tenant?.id) return null;
+      const { data } = await supabase.from('tenants').select('*').eq('id', tenant.id).single();
+      return data;
+    },
+    enabled: !!tenant?.id,
+  });
 
   // Dialogs state
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
@@ -200,6 +212,17 @@ const Commercial = () => {
     }
   };
 
+  const handleCancelSale = async (saleId: string) => {
+    try {
+      await updateSale({ id: saleId, sale_status: "cancelled" });
+      toast({ title: "Commande annulée", description: "La commande a été annulée et le stock réservé libéré" });
+      queryClient.invalidateQueries({ queryKey: ["sales"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
+    } catch (error) {
+      console.error("Erreur annulation:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -300,15 +323,24 @@ const Commercial = () => {
             <TabsContent value="commandes">
               <OrdersTab
                 sales={draftSales}
+                allSales={sales}
                 isLoading={salesLoading}
                 isUpdating={isUpdating}
                 onValidate={handleValidateOrder}
                 onNewOrder={() => setIsNewOrderDialogOpen(true)}
+                onCancelOrder={handleCancelSale}
               />
             </TabsContent>
 
             <TabsContent value="facturation">
-              <InvoicesTab sales={invoicedSales} isLoading={salesLoading} />
+              <InvoicesTab
+                sales={invoicedSales}
+                allSales={sales}
+                isLoading={salesLoading}
+                isUpdating={isUpdating}
+                onCancelInvoice={handleCancelSale}
+                tenant={tenantFull}
+              />
             </TabsContent>
 
             <TabsContent value="livraison">
