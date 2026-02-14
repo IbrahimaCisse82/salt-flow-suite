@@ -164,7 +164,7 @@ export const useCreatePayrollPayment = () => {
           : "Le paiement sera synchronisé quand vous serez en ligne",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erreur",
         description: error.message,

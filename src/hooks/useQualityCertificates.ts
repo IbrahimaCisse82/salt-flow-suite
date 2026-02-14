@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { QualityCertificateInsert, QualityCertificateUpdate } from "@/types/database.types";
 
 export const useQualityCertificates = () => {
   const { profile } = useAuth();
@@ -33,7 +34,7 @@ export const useQualityCertificates = () => {
   });
 
   const createCertificate = useMutation({
-    mutationFn: async (certificateData: any) => {
+    mutationFn: async (certificateData: Omit<QualityCertificateInsert, 'tenant_id' | 'issued_by'>) => {
       if (!profile?.tenant_id) throw new Error('No tenant');
 
       const { data, error } = await supabase
@@ -53,14 +54,14 @@ export const useQualityCertificates = () => {
       queryClient.invalidateQueries({ queryKey: ['quality-certificates'] });
       toast.success('Certificat qualité créé');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Erreur lors de la création du certificat');
       console.error('Error creating certificate:', error);
     }
   });
 
   const updateCertificate = useMutation({
-    mutationFn: async ({ id, ...updates }: any) => {
+    mutationFn: async ({ id, ...updates }: Partial<QualityCertificateUpdate> & { id: string }) => {
       const { data, error } = await supabase
         .from('quality_certificates')
         .update(updates)
@@ -75,7 +76,7 @@ export const useQualityCertificates = () => {
       queryClient.invalidateQueries({ queryKey: ['quality-certificates'] });
       toast.success('Certificat mis à jour');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Erreur lors de la mise à jour');
       console.error('Error updating certificate:', error);
     }
@@ -94,7 +95,7 @@ export const useQualityCertificates = () => {
       queryClient.invalidateQueries({ queryKey: ['quality-certificates'] });
       toast.success('Certificat supprimé');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('Erreur lors de la suppression');
       console.error('Error deleting certificate:', error);
     }

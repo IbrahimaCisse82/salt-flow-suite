@@ -2,11 +2,7 @@
  import { supabase } from "@/integrations/supabase/client";
  import { useTenantId } from "./useTenantId";
  import { useAuth } from "@/contexts/AuthContext";
- import type { Database } from "@/integrations/supabase/types";
- 
- type PurchaseOrderRow = Database["public"]["Tables"]["purchase_orders"]["Row"];
- type PurchaseOrderInsert = Database["public"]["Tables"]["purchase_orders"]["Insert"];
- type SupplierRow = Database["public"]["Tables"]["suppliers"]["Row"];
+ import { PurchaseOrderRow, PurchaseOrderInsert, SupplierRow } from "@/types/database.types";
  
  export const ORDER_STATUS = {
    draft: { label: "Brouillon", variant: "secondary" as const, color: "bg-gray-500" },

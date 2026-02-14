@@ -1,11 +1,8 @@
  import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
  import { supabase } from "@/integrations/supabase/client";
- import type { Database } from "@/integrations/supabase/types";
+ import { PurchaseOrderItemRow, PurchaseOrderItemInsert } from "@/types/database.types";
  
- type PurchaseOrderItemRow = Database["public"]["Tables"]["purchase_order_items"]["Row"];
- type PurchaseOrderItemInsert = Database["public"]["Tables"]["purchase_order_items"]["Insert"];
- 
- export interface PurchaseOrderItem extends PurchaseOrderItemRow {}
+ export type PurchaseOrderItem = PurchaseOrderItemRow;
  
  export interface CreateOrderItemInput {
    purchase_order_id: string;

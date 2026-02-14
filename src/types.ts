@@ -1,32 +1,11 @@
-// Employee utilisé dans les équipes
-export interface Employee {
-  id: string;
-  full_name: string;
-  employee_type: string;
-}
+// This file is intentionally kept minimal.
+// All DB-aligned types live in src/types/database.types.ts
+// UI-specific Team types live in src/hooks/useTeams.ts
 
-// Ce que Supabase renvoie pour une équipe
-export interface TeamRaw {
-  id: string;
-  name: string;
-  leader_id?: string | null;
-  supervisor?: Employee[]; // relation leader_id
-  sector?: string;
-  status?: string;
-  members?: Employee[]; // relation employees!team_id
-  production_target?: number;
-  efficiency_rate?: number;
-}
-
-// Interface finale que l'on utilisera dans le front
-export interface Team {
-  id: string;
-  name: string;
-  leader_id?: string | null;
-  supervisor: Employee[];
-  sector?: string;
-  status?: string;
-  members: Employee[];
-  production_target?: number;
-  efficiency_rate?: number;
-}
+// Re-export database types for convenience
+export type {
+  TeamRow,
+  TeamInsert,
+  TeamUpdate,
+  EmployeeRow,
+} from "@/types/database.types";

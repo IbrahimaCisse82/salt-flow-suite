@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { useOfflineMutation } from "@/hooks/useOfflineMutation";
+import { SaleInsert, SaleUpdate } from "@/types/database.types";
 
 export const useSales = () => {
   const { profile } = useAuth();
@@ -84,7 +85,7 @@ export const useSales = () => {
           stock_updated: false, // Sera mis à jour par trigger si confirmé
           tenant_id: profile.tenant_id,
           sale_date: new Date().toISOString().split('T')[0]
-        }] as any)
+        }])
         .select()
         .single();
       
@@ -100,7 +101,7 @@ export const useSales = () => {
           : "La commande sera synchronisée quand vous serez en ligne",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erreur",
         description: error.message || "Impossible de créer la commande",
@@ -112,8 +113,8 @@ export const useSales = () => {
   const updateSaleMutation = useOfflineMutation({
     tableName: 'sales',
     operation: 'update',
-    getRecordId: (data: { id: string; [key: string]: any }) => data.id,
-    mutationFn: async ({ id, ...updates }: any) => {
+    getRecordId: (data: SaleUpdate & { id: string }) => data.id,
+    mutationFn: async ({ id, ...updates }: SaleUpdate & { id: string }) => {
       const { data, error } = await supabase
         .from('sales')
         .update(updates)

@@ -75,7 +75,7 @@ export const useChartOfAccounts = () => {
       queryClient.invalidateQueries({ queryKey: ["chart-of-accounts"] });
       toast({ title: "Compte créé", description: "Le compte comptable a été ajouté avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     },
   });
@@ -93,7 +93,7 @@ export const useChartOfAccounts = () => {
       queryClient.invalidateQueries({ queryKey: ["chart-of-accounts"] });
       toast({ title: "Compte modifié", description: "Les modifications ont été enregistrées" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     },
   });
@@ -111,7 +111,7 @@ export const useChartOfAccounts = () => {
       queryClient.invalidateQueries({ queryKey: ["chart-of-accounts"] });
       toast({ title: "Statut mis à jour" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     },
   });

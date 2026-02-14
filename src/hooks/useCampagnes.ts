@@ -108,7 +108,7 @@ export const useCampagnes = () => {
           : "La campagne sera synchronisée quand vous serez en ligne",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erreur",
         description: error.message || "Impossible de créer la campagne",

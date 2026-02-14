@@ -49,7 +49,7 @@ export const useCampagneBudgets = (campagneId?: string) => {
         description: "Le budget de phase a été enregistré",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erreur",
         description: error.message || "Impossible de mettre à jour le budget",
