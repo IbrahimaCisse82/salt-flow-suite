@@ -59,7 +59,7 @@ const Campagne = () => {
   
   // État du formulaire de création de campagne
   const [formData, setFormData] = useState<CampagneFormData>({
-    name: '',
+    name: 'Plan de campagne',
     year: new Date().getFullYear(),
     startDate: '',
     endDate: '',
@@ -507,7 +507,7 @@ const Campagne = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-words">
-                {activeCampagne ? `${activeCampagne.name} ${activeCampagne.year}` : "Plan de campagne"}
+                {activeCampagne ? `${activeCampagne.name}${activeCampagne.year ? ` ${activeCampagne.year}` : ''}` : "Plan de campagne"}
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground break-words">
                 {activeCampagne 
@@ -830,18 +830,14 @@ const Campagne = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="campagne-name">
-                      Nom de la campagne <span className="text-destructive">*</span>
+                      Nom de la campagne
                     </Label>
                     <Input 
                       id="campagne-name" 
-                      placeholder="Ex: Campagne 2026" 
-                      value={formData.name}
-                      onChange={(e) => updateFormField('name', e.target.value)}
-                      className={formErrors.name ? "border-destructive" : ""}
+                      value="Plan de campagne"
+                      disabled
+                      className="bg-muted"
                     />
-                    {formErrors.name && (
-                      <p className="text-xs text-destructive">{formErrors.name}</p>
-                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="campagne-year">

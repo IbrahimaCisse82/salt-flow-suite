@@ -1,0 +1,1 @@
+UPDATE campagnes SET name = 'Plan de campagne' WHERE id = '4a30b9e0-4345-45c8-8049-fff894442363';
