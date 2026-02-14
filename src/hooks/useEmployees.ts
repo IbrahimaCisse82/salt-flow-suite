@@ -55,6 +55,23 @@ export const useEmployeeMutations = () => {
     mutationFn: async (formData: EmployeeFormData): Promise<EmployeeRow> => {
       if (!profile?.tenant_id) throw new Error("Tenant ID manquant");
 
+      // Auto-generate employee_number: EMP0001, EMP0002, ...
+      const { data: existing } = await supabase
+        .from('employees')
+        .select('employee_number')
+        .eq('tenant_id', profile.tenant_id)
+        .not('employee_number', 'is', null)
+        .ilike('employee_number', 'EMP%')
+        .order('employee_number', { ascending: false })
+        .limit(1);
+
+      let nextNumber = 1;
+      if (existing && existing.length > 0 && existing[0].employee_number) {
+        const match = existing[0].employee_number.match(/EMP(\d+)/);
+        if (match) nextNumber = parseInt(match[1], 10) + 1;
+      }
+      const employeeNumber = `EMP${String(nextNumber).padStart(4, '0')}`;
+
       const insertData: EmployeeInsert = {
         tenant_id: profile.tenant_id,
         full_name: formData.full_name.trim(),
@@ -62,7 +79,7 @@ export const useEmployeeMutations = () => {
         phone: cleanString(formData.phone),
         position: cleanString(formData.position),
         employee_type: formData.employee_type || 'permanent',
-        employee_number: cleanString(formData.employee_number),
+        employee_number: employeeNumber,
         hire_date: dateToYYYYMMDD(formData.hire_date),
         salary: ensureNumber(formData.salary),
         is_active: ensureBoolean(formData.is_active ?? true)
