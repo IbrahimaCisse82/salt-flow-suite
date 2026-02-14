@@ -149,7 +149,14 @@ const Auth = () => {
         }
       });
 
-      if (createErr) throw createErr;
+      if (createErr) {
+        // Extract the actual error message from the Edge Function response
+        const errorMessage = createData?.error || createErr.message || "Impossible de créer le compte";
+        throw new Error(errorMessage);
+      }
+      if (createData?.error) {
+        throw new Error(createData.error);
+      }
       if (!createData?.user?.id) throw new Error("Création utilisateur échouée");
 
       // 2) Se connecter pour obtenir une session (requis par RLS)
