@@ -228,6 +228,31 @@ export const useStockMovements = () => {
         if (error) throw error;
       }
 
+      // For transfers, also increase the warehouse stock
+      if (movement.movement_type === 'transfer' && movement.warehouse) {
+        const { data: warehouseItems } = await supabase
+          .from('inventory_items')
+          .select('id, quantity_on_hand')
+          .eq('tenant_id', profile.tenant_id)
+          .eq('item_name', movement.warehouse)
+          .eq('item_category', 'warehouse')
+          .eq('is_active', true)
+          .limit(1);
+
+        if (warehouseItems?.[0]) {
+          const warehouseQty = (warehouseItems[0].quantity_on_hand || 0) + movement.quantity;
+          const { error } = await supabase
+            .from('inventory_items')
+            .update({
+              quantity_on_hand: warehouseQty,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', warehouseItems[0].id);
+
+          if (error) throw error;
+        }
+      }
+
       return { success: true };
     },
     onSuccess: () => {
