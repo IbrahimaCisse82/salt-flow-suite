@@ -1828,9 +1828,11 @@ export type Database = {
           campagne_id: string | null
           campagne_phase: string | null
           charge_account_number: string | null
+          commissioning_date: string | null
           created_at: string | null
           created_by: string | null
           deleted_at: string | null
+          depreciation_method: string | null
           discount_amount: number | null
           expected_delivery_date: string | null
           expense_category: string | null
@@ -1840,6 +1842,7 @@ export type Database = {
           notes: string | null
           order_date: string
           order_number: string
+          payment_mode: string
           previous_total: number | null
           purchase_type: string
           received_at: string | null
@@ -1858,6 +1861,7 @@ export type Database = {
           tva_amount: number | null
           tva_rate: number | null
           updated_at: string | null
+          useful_life_years: number | null
         }
         Insert: {
           actual_delivery_date?: string | null
@@ -1867,9 +1871,11 @@ export type Database = {
           campagne_id?: string | null
           campagne_phase?: string | null
           charge_account_number?: string | null
+          commissioning_date?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
+          depreciation_method?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
           expense_category?: string | null
@@ -1879,6 +1885,7 @@ export type Database = {
           notes?: string | null
           order_date?: string
           order_number: string
+          payment_mode?: string
           previous_total?: number | null
           purchase_type?: string
           received_at?: string | null
@@ -1897,6 +1904,7 @@ export type Database = {
           tva_amount?: number | null
           tva_rate?: number | null
           updated_at?: string | null
+          useful_life_years?: number | null
         }
         Update: {
           actual_delivery_date?: string | null
@@ -1906,9 +1914,11 @@ export type Database = {
           campagne_id?: string | null
           campagne_phase?: string | null
           charge_account_number?: string | null
+          commissioning_date?: string | null
           created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
+          depreciation_method?: string | null
           discount_amount?: number | null
           expected_delivery_date?: string | null
           expense_category?: string | null
@@ -1918,6 +1928,7 @@ export type Database = {
           notes?: string | null
           order_date?: string
           order_number?: string
+          payment_mode?: string
           previous_total?: number | null
           purchase_type?: string
           received_at?: string | null
@@ -1936,6 +1947,7 @@ export type Database = {
           tva_amount?: number | null
           tva_rate?: number | null
           updated_at?: string | null
+          useful_life_years?: number | null
         }
         Relationships: [
           {
