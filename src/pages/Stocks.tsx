@@ -601,8 +601,12 @@ const Stocks = () => {
                               <TableCell className="text-sm">{new Date(m.created_at).toLocaleDateString('fr-FR')}</TableCell>
                               <TableCell className="font-medium">{m.item_name}</TableCell>
                               <TableCell>
-                                <Badge variant="outline" className={m.movement_type === 'entry' ? 'text-green-600 border-green-500/30' : 'text-red-600 border-red-500/30'}>
-                                  {m.movement_type === 'entry' ? '↑ Entrée' : '↓ Sortie'}
+                                <Badge variant="outline" className={
+                                  m.movement_type === 'entry' ? 'text-green-600 border-green-500/30' 
+                                  : m.movement_type === 'transfer' ? 'text-blue-600 border-blue-500/30'
+                                  : 'text-red-600 border-red-500/30'
+                                }>
+                                  {m.movement_type === 'entry' ? '↑ Entrée' : m.movement_type === 'transfer' ? '⇄ Transfert' : '↓ Sortie'}
                                 </Badge>
                               </TableCell>
                               <TableCell className="text-right font-medium">{Math.round(m.quantity)} {m.unit_of_measure}</TableCell>
