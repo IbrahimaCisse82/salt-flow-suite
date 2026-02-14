@@ -292,14 +292,27 @@ const Campagne = () => {
 
       // Regrouper les dépenses par phase et calculer le total par phase
       const phaseTotals: Record<string, number> = {};
+      const allBudgetLines: { campagne_id: string; phase: string; expense_category: string; budgeted_amount: number }[] = [];
+      
       Object.entries(phaseExpenses).forEach(([phase, expenses]) => {
         const phaseTotal = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
         if (phaseTotal > 0) {
           phaseTotals[phase] = phaseTotal;
         }
+        // Sauvegarder chaque ligne de dépense individuellement
+        expenses.forEach(expense => {
+          if (expense.description && expense.amount > 0) {
+            allBudgetLines.push({
+              campagne_id: campagne.id,
+              phase,
+              expense_category: expense.description,
+              budgeted_amount: expense.amount,
+            });
+          }
+        });
       });
 
-      // Sauvegarder les budgets par phase
+      // Sauvegarder les budgets par phase (totaux)
       const budgetEntries = Object.entries(phaseTotals).map(([phase, amount]) => ({
         campagne_id: campagne.id,
         phase: phase,
@@ -314,6 +327,18 @@ const Campagne = () => {
         if (budgetError) {
           console.error('Budget insert error:', budgetError);
           throw budgetError;
+        }
+      }
+
+      // Sauvegarder les lignes budgétaires détaillées par catégorie
+      if (allBudgetLines.length > 0) {
+        const { error: linesError } = await supabase
+          .from('campagne_budget_lines')
+          .insert(allBudgetLines);
+
+        if (linesError) {
+          console.error('Budget lines insert error:', linesError);
+          throw linesError;
         }
       }
 
