@@ -26,145 +26,230 @@ interface CompanyInfo {
   ninea?: string;
   rccm?: string;
   managerName?: string;
+  logoUrl?: string;
+  city?: string;
+  capital?: string;
 }
+
+const GREEN = [100, 160, 60] as const;
+const DARK = [50, 50, 50] as const;
+const GRAY = [120, 120, 120] as const;
 
 export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
-  // === HEADER ===
-  doc.setFillColor(0, 77, 77);
-  doc.rect(0, 0, pageWidth, 45, "F");
+  // ============================
+  // HEADER - Logo + Facture N°
+  // ============================
+  // Logo placeholder (top-left)
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...DARK);
+  doc.text(company.name || "LOGO", 15, 20);
 
-  doc.setTextColor(255, 255, 255);
+  // Facture N° (top-right, green)
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text(company.name || "Entreprise", 15, 20);
+  doc.setTextColor(...GREEN);
+  doc.text(`Facture N°`, pageWidth - 15, 20, { align: "right" });
 
-  doc.setFontSize(9);
+  doc.setFontSize(14);
+  doc.text(invoice.invoiceNumber, pageWidth - 15, 28, { align: "right" });
+
+  // City + date
+  doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  let headerY = 28;
-  if (company.address) { doc.text(company.address, 15, headerY); headerY += 5; }
-  if (company.phone) { doc.text(`Tél: ${company.phone}`, 15, headerY); headerY += 5; }
-  if (company.email) { doc.text(`Email: ${company.email}`, 15, headerY); }
+  doc.setTextColor(...GRAY);
+  const cityDate = company.city ? `${company.city}, le ${invoice.date}` : `Le ${invoice.date}`;
+  doc.text(cityDate, pageWidth - 15, 36, { align: "right" });
 
-  // Right side - NINEA / RCCM
-  let rightY = 28;
-  if (company.ninea) { doc.text(`NINEA: ${company.ninea}`, pageWidth - 15, rightY, { align: "right" }); rightY += 5; }
-  if (company.rccm) { doc.text(`RCCM: ${company.rccm}`, pageWidth - 15, rightY, { align: "right" }); rightY += 5; }
-
-  // === FACTURE TITLE ===
-  doc.setTextColor(0, 77, 77);
-  doc.setFontSize(28);
-  doc.setFont("helvetica", "bold");
-  doc.text("FACTURE", pageWidth - 15, 65, { align: "right" });
-
+  // ============================
+  // COMPANY INFO (left side)
+  // ============================
+  let leftY = 45;
   doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...DARK);
+  doc.text(company.name || "Mon entreprise", 15, leftY);
+  leftY += 6;
+
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 100, 100);
-  doc.text(`N° ${invoice.invoiceNumber}`, pageWidth - 15, 73, { align: "right" });
-  doc.text(`Date: ${invoice.date}`, pageWidth - 15, 80, { align: "right" });
+  doc.setFontSize(9);
+  doc.setTextColor(...GRAY);
+  if (company.address) { doc.text(company.address, 15, leftY); leftY += 5; }
+  if (company.phone) { doc.text(`Numéro de téléphone: ${company.phone}`, 15, leftY); leftY += 5; }
+  if (company.email) { doc.text(`Email: ${company.email}`, 15, leftY); leftY += 5; }
+  if (company.ninea) { doc.text(`NINEA: ${company.ninea}`, 15, leftY); leftY += 5; }
+  if (company.rccm) { doc.text(`RCCM: ${company.rccm}`, 15, leftY); leftY += 5; }
 
-  // === CLIENT INFO ===
-  doc.setFillColor(240, 245, 245);
-  doc.roundedRect(15, 90, pageWidth - 30, 35, 3, 3, "F");
+  // ============================
+  // CLIENT INFO (right side, boxed)
+  // ============================
+  const clientBoxX = 110;
+  const clientBoxY = 45;
+  const clientBoxW = pageWidth - clientBoxX - 15;
+  const clientBoxH = 35;
 
-  doc.setTextColor(0, 77, 77);
+  doc.setDrawColor(...GREEN);
+  doc.setLineWidth(0.5);
+  doc.rect(clientBoxX, clientBoxY, clientBoxW, clientBoxH);
+
+  let clientY = clientBoxY + 8;
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("FACTURÉ À:", 20, 100);
+  doc.setTextColor(...DARK);
+  doc.text(invoice.clientName, clientBoxX + 5, clientY);
+  clientY += 6;
 
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(50, 50, 50);
-  doc.setFontSize(11);
-  doc.text(invoice.clientName, 20, 108);
-  let clientY = 114;
-  if (invoice.clientAddress) { doc.setFontSize(9); doc.text(invoice.clientAddress, 20, clientY); clientY += 5; }
-  if (invoice.clientPhone) { doc.setFontSize(9); doc.text(`Tél: ${invoice.clientPhone}`, 20, clientY); }
+  doc.setFontSize(9);
+  doc.setTextColor(...GRAY);
+  if (invoice.clientAddress) { doc.text(invoice.clientAddress, clientBoxX + 5, clientY); clientY += 5; }
+  if (invoice.clientPhone) { doc.text(`Tél: ${invoice.clientPhone}`, clientBoxX + 5, clientY); clientY += 5; }
+  if (invoice.clientEmail) { doc.text(`Email: ${invoice.clientEmail}`, clientBoxX + 5, clientY); }
 
-  const statusLabel = invoice.paymentStatus === "paid" ? "PAYÉE" : invoice.paymentStatus === "partial" ? "PARTIEL" : "EN ATTENTE";
-  const statusColor: [number, number, number] = invoice.paymentStatus === "paid" ? [0, 150, 80] : invoice.paymentStatus === "partial" ? [200, 150, 0] : [200, 50, 50];
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...statusColor);
-  doc.text(statusLabel, pageWidth - 20, 108, { align: "right" });
+  // ============================
+  // TABLE
+  // ============================
+  const subtotal = invoice.quantity * invoice.unitPrice;
+  const discount = invoice.discount || 0;
 
-  // === TABLE ===
   autoTable(doc, {
-    startY: 135,
-    head: [["Description", "Quantité", "Prix unitaire", "Montant"]],
+    startY: 95,
+    head: [["Description", "Prix unitaire", "Unité", "Quantité", "Montant HT"]],
     body: [
       [
         `Sel - ${invoice.saltType}`,
-        `${invoice.quantity.toLocaleString()} kg`,
-        `${invoice.unitPrice.toLocaleString()} FCFA`,
-        `${(invoice.quantity * invoice.unitPrice).toLocaleString()} FCFA`,
+        `${invoice.unitPrice.toLocaleString("fr-FR")} FCFA`,
+        "kg",
+        `${invoice.quantity.toLocaleString("fr-FR")}`,
+        `${subtotal.toLocaleString("fr-FR")} FCFA`,
       ],
-      ...(invoice.discount && invoice.discount > 0
-        ? [["Remise", "", "", `-${invoice.discount.toLocaleString()} FCFA`]]
+      ...(discount > 0
+        ? [["Remise", "", "", "", `-${discount.toLocaleString("fr-FR")} FCFA`]]
         : []),
     ],
     headStyles: {
-      fillColor: [0, 77, 77],
+      fillColor: [...GREEN],
       textColor: [255, 255, 255],
       fontStyle: "bold",
-      fontSize: 10,
+      fontSize: 9,
+      halign: "center",
     },
     bodyStyles: {
-      fontSize: 10,
-      textColor: [50, 50, 50],
-    },
-    alternateRowStyles: {
-      fillColor: [245, 250, 250],
+      fontSize: 9,
+      textColor: [...DARK],
+      halign: "center",
     },
     columnStyles: {
-      0: { cellWidth: 70 },
-      3: { halign: "right", fontStyle: "bold" },
+      0: { halign: "left", cellWidth: 60 },
+      4: { halign: "right", fontStyle: "bold" },
+    },
+    alternateRowStyles: {
+      fillColor: [245, 250, 240],
     },
     margin: { left: 15, right: 15 },
+    styles: {
+      lineColor: [200, 200, 200],
+      lineWidth: 0.2,
+    },
   });
 
-  // === TOTAL ===
-  const finalY = (doc as any).lastAutoTable.finalY + 10;
+  const tableEndY = (doc as any).lastAutoTable.finalY + 8;
 
-  doc.setFillColor(0, 77, 77);
-  doc.roundedRect(pageWidth - 95, finalY, 80, 20, 3, 3, "F");
-  doc.setTextColor(255, 255, 255);
+  // ============================
+  // TOTALS (right-aligned)
+  // ============================
+  const totalsX = 130;
+  const totalsValX = pageWidth - 18;
+
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("TOTAL:", pageWidth - 90, finalY + 9);
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.text(`${invoice.totalAmount.toLocaleString()} FCFA`, pageWidth - 20, finalY + 14, { align: "right" });
+  doc.setTextColor(...DARK);
 
-  // === NOTES ===
-  if (invoice.notes) {
-    doc.setTextColor(100, 100, 100);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "italic");
-    doc.text(`Notes: ${invoice.notes}`, 15, finalY + 35);
+  let totalY = tableEndY;
+
+  // Total HT
+  doc.text("Total HT", totalsX, totalY);
+  doc.text(`${subtotal.toLocaleString("fr-FR")} FCFA`, totalsValX, totalY, { align: "right" });
+  totalY += 7;
+
+  // Remise line
+  if (discount > 0) {
+    doc.text("Remise", totalsX, totalY);
+    doc.text(`-${discount.toLocaleString("fr-FR")} FCFA`, totalsValX, totalY, { align: "right" });
+    totalY += 7;
   }
 
-  // === FOOTER ===
-  doc.setFillColor(0, 77, 77);
-  doc.rect(0, pageHeight - 25, pageWidth, 25, "F");
-
+  // Total TTC (bold, green background)
+  doc.setFillColor(...GREEN);
+  doc.roundedRect(totalsX - 3, totalY - 5, pageWidth - totalsX - 12, 10, 1, 1, "F");
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
+  doc.text("Total TTC", totalsX, totalY + 1);
+  doc.text(`${invoice.totalAmount.toLocaleString("fr-FR")} FCFA`, totalsValX, totalY + 1, { align: "right" });
+
+  // ============================
+  // PAYMENT CONDITIONS (left) + SIGNATURE (right)
+  // ============================
+  const condY = totalY + 25;
+
+  doc.setTextColor(...DARK);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text("Modalités et conditions de règlement :", 15, condY);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...GRAY);
+  const paymentText = invoice.paymentStatus === "paid"
+    ? "Paiement effectué - Merci"
+    : invoice.paymentStatus === "partial"
+      ? "Paiement partiel reçu - Solde à régler"
+      : "Paiement à réception de facture";
+  doc.text(paymentText, 15, condY + 7);
+
+  if (invoice.notes) {
+    doc.text(`Notes: ${invoice.notes}`, 15, condY + 14);
+  }
+
+  // Signature box (right)
+  doc.setTextColor(...DARK);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text("Signature :", totalsX, condY);
+
+  doc.setDrawColor(...GREEN);
+  doc.setLineWidth(0.3);
+  doc.rect(totalsX, condY + 4, pageWidth - totalsX - 15, 25);
+
+  // ============================
+  // FOOTER
+  // ============================
+  const footerY = pageHeight - 15;
+
+  // Green line separator
+  doc.setDrawColor(...GREEN);
+  doc.setLineWidth(1);
+  doc.line(15, footerY - 8, pageWidth - 15, footerY - 8);
+
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
+  doc.setTextColor(...GRAY);
+
   const footerParts: string[] = [];
   if (company.name) footerParts.push(company.name);
-  if (company.address) footerParts.push(company.address);
-  if (company.phone) footerParts.push(`Tél: ${company.phone}`);
-  doc.text(footerParts.join(" | "), pageWidth / 2, pageHeight - 15, { align: "center" });
+  if (company.capital) footerParts.push(`au capital de ${company.capital}`);
+  doc.text(footerParts.join(" – Société … "), pageWidth / 2, footerY - 2, { align: "center" });
 
   const legalParts: string[] = [];
   if (company.ninea) legalParts.push(`NINEA: ${company.ninea}`);
   if (company.rccm) legalParts.push(`RCCM: ${company.rccm}`);
   if (company.managerName) legalParts.push(`Gérant: ${company.managerName}`);
   if (legalParts.length > 0) {
-    doc.text(legalParts.join(" | "), pageWidth / 2, pageHeight - 8, { align: "center" });
+    doc.text(legalParts.join(" | "), pageWidth / 2, footerY + 3, { align: "center" });
   }
 
   doc.save(`Facture_${invoice.invoiceNumber}.pdf`);
