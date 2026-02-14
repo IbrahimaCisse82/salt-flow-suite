@@ -14,6 +14,7 @@ export interface CreateProductionRecordInput {
   campagne_id?: string | null;
   team_id?: string | null;
   status?: string | null;
+  warehouse_id?: string | null;
 }
 
 export const useProductionRecords = () => {
@@ -80,6 +81,7 @@ export const useCreateProductionRecord = () => {
           campagne_id: input.campagne_id ?? null,
           team_id: input.team_id ?? null,
           status: cleanString(input.status ?? undefined) || 'completed',
+          warehouse_id: input.warehouse_id ?? null,
         })
         .select()
         .single();

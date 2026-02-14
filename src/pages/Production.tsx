@@ -55,6 +55,7 @@ import {
 import { useProductionRecords, useCreateProductionRecord } from "@/hooks/useProductionRecords";
 import { useBassins } from "@/hooks/useBassins";
 import { useTeams } from "@/hooks/useTeams";
+import { useInventoryItems } from "@/hooks/useInventoryItems";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -72,13 +73,16 @@ const Production = () => {
     type: "",
     quality: "",
     team: "",
-    status: "completed"
+    status: "completed",
+    warehouse: ""
   });
 
   // Fetch data from database
   const { data: productionRecords = [], isLoading: productionLoading } = useProductionRecords();
   const { bassins, isLoading: bassinsLoading } = useBassins();
   const { teams } = useTeams();
+  const { items: inventoryItems } = useInventoryItems();
+  const warehouses = inventoryItems.filter(item => item.item_category === 'warehouse');
   const { qualityTests, isLoading: qualityLoading } = useQualityTests();
   const { certificates, isLoading: certificatesLoading } = useQualityCertificates();
 
@@ -158,6 +162,7 @@ const Production = () => {
         quality_grade: formData.quality,
         team_id: formData.team || null,
         status: formData.status || 'completed',
+        warehouse_id: formData.warehouse || null,
       });
 
       setIsDialogOpen(false);
@@ -169,6 +174,7 @@ const Production = () => {
         quality: "",
         team: "",
         status: "completed",
+        warehouse: "",
       });
     } catch (error: any) {
       // onError in the mutation already shows a toast, so we don't duplicate
@@ -220,6 +226,26 @@ const Production = () => {
                       {bassins?.filter(b => b.is_active && b.status === 'active' && b.bassin_type === 'Table Salante').map((bassin) => (
                         <SelectItem key={bassin.id} value={bassin.id}>
                           {bassin.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="warehouse">Entrepôt de destination *</Label>
+                  <Select 
+                    value={formData.warehouse} 
+                    onValueChange={(value) => setFormData({...formData, warehouse: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner l'entrepôt" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {warehouses.map((w) => (
+                        <SelectItem key={w.id} value={w.id}>
+                          {w.item_name}
                         </SelectItem>
                       ))}
                     </SelectContent>

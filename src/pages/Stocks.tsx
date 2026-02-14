@@ -83,15 +83,19 @@ const Stocks = () => {
   // Build stock by type from inventory_items (single source of truth)
   const stockByType = productionItems.reduce((acc, item) => {
     const type = item.item_name || 'Autre';
+    const warehouse = item.storage_location || 'Non assigné';
     const qty = Number(item.quantity_on_hand || 0);
     const reserved = Number((item as any).reserved_quantity || 0);
-    const existing = acc.find(s => s.type === type);
+    const key = `${type}__${warehouse}`;
+    const existing = acc.find(s => s.key === key);
     if (existing) {
       existing.quantity += qty;
       existing.reserved += reserved;
     } else {
       acc.push({
+        key,
         type,
+        warehouse,
         quantity: qty,
         reserved,
         available: qty - reserved,
@@ -102,24 +106,31 @@ const Stocks = () => {
       });
     }
     return acc;
-  }, [] as Array<{ type: string; quantity: number; reserved: number; available: number; unit: string; status: string; reorderLevel: number | null; lastUpdate: string }>);
+  }, [] as Array<{ key: string; type: string; warehouse: string; quantity: number; reserved: number; available: number; unit: string; status: string; reorderLevel: number | null; lastUpdate: string }>);
   
   // Recalculate available for aggregated items
   stockByType.forEach(s => { s.available = s.quantity - s.reserved; s.status = getStockStatus(s.available, s.reorderLevel); });
+
+  // Aggregate totals by type (for global stats)
+  const stockTotals = productionItems.reduce((acc, item) => {
+    const type = item.item_name || 'Autre';
+    acc[type] = (acc[type] || 0) + Number(item.quantity_on_hand || 0);
+    return acc;
+  }, {} as Record<string, number>);
 
   const totalStock = stockByType.reduce((sum, item) => sum + item.available, 0);
   const totalReserved = stockByType.reduce((sum, item) => sum + item.reserved, 0);
   const alertCount = stockByType.filter(s => s.status === 'faible').length;
   
-  // Chart data
-  const chartData = stockByType.map(s => ({
-    name: s.type,
-    stock: Math.round(s.quantity),
-    seuil: s.reorderLevel ?? 50,
+  // Chart data (aggregate by type for chart)
+  const chartData = Object.entries(stockTotals).map(([type, qty]) => ({
+    name: type,
+    stock: Math.round(qty),
+    seuil: 50,
   }));
 
   const [movementFormData, setMovementFormData] = useState({
-    movementType: "", date: "", saltType: "", warehouse: "", quantity: "", notes: ""
+    movementType: "", date: "", saltType: "", sourceWarehouse: "", destinationWarehouse: "", quantity: "", notes: ""
   });
   const [stockFormData, setStockFormData] = useState({
     saltType: "", quantity: "", warehouse: "", harvestDate: "", qualityGrade: "", unitCost: "", lotNumber: "", notes: ""
@@ -131,21 +142,17 @@ const Stocks = () => {
   const handleMovementSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const movementType = movementFormData.movementType === 'Transfert' ? 'transfer' 
-        : movementFormData.movementType === 'Entrée' ? 'entry' : 'exit';
-      
       await recordMovement.mutateAsync({
         item_name: movementFormData.saltType,
-        movement_type: movementType,
+        movement_type: 'transfer',
         quantity: parseFloat(movementFormData.quantity) || 0,
         date: movementFormData.date,
-        warehouse: movementFormData.warehouse,
-        notes: movementFormData.movementType === 'Transfert' 
-          ? `Transfert vers ${movementFormData.warehouse}${movementFormData.notes ? ' - ' + movementFormData.notes : ''}`
-          : movementFormData.notes
+        source_warehouse: movementFormData.sourceWarehouse,
+        destination_warehouse: movementFormData.destinationWarehouse,
+        notes: `Transfert de ${movementFormData.sourceWarehouse} vers ${movementFormData.destinationWarehouse}${movementFormData.notes ? ' - ' + movementFormData.notes : ''}`
       });
       setIsMovementDialogOpen(false);
-      setMovementFormData({ movementType: "", date: "", saltType: "", warehouse: "", quantity: "", notes: "" });
+      setMovementFormData({ movementType: "", date: "", saltType: "", sourceWarehouse: "", destinationWarehouse: "", quantity: "", notes: "" });
     } catch (error) {
       console.error("Movement error:", error);
     }
@@ -208,20 +215,9 @@ const Stocks = () => {
             <DialogContent className="sm:max-w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nouveau mouvement de stock</DialogTitle>
-                <DialogDescription>Enregistrer une entrée, sortie ou transfert de stock</DialogDescription>
+                <DialogDescription>Transférer du stock entre entrepôts</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleMovementSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Type de mouvement</Label>
-                  <Select value={movementFormData.movementType} onValueChange={(v) => setMovementFormData({...movementFormData, movementType: v})} required>
-                    <SelectTrigger><SelectValue placeholder="Sélectionner le type" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Entrée"><div className="flex items-center gap-2"><ArrowUpCircle className="h-4 w-4 text-green-600" /><span>Entrée</span></div></SelectItem>
-                      <SelectItem value="Sortie"><div className="flex items-center gap-2"><ArrowDownCircle className="h-4 w-4 text-red-600" /><span>Sortie</span></div></SelectItem>
-                      <SelectItem value="Transfert"><div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-primary" /><span>Transfert vers entrepôt</span></div></SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="space-y-2">
                   <Label>Date</Label>
                   <Input type="date" value={movementFormData.date} onChange={(e) => setMovementFormData({...movementFormData, date: e.target.value})} required />
@@ -240,20 +236,27 @@ const Stocks = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>{movementFormData.movementType === 'Transfert' ? 'Entrepôt de destination' : 'Entrepôt'}</Label>
-                  <Select value={movementFormData.warehouse} onValueChange={(v) => setMovementFormData({...movementFormData, warehouse: v})} required>
-                    <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                  <Label>Entrepôt source</Label>
+                  <Select value={movementFormData.sourceWarehouse} onValueChange={(v) => setMovementFormData({...movementFormData, sourceWarehouse: v})} required>
+                    <SelectTrigger><SelectValue placeholder="Sélectionner l'entrepôt source" /></SelectTrigger>
                     <SelectContent>
-                      {warehouses.length > 0 ? warehouses.map((w) => (
+                      {warehouses.map((w) => (
                         <SelectItem key={w.id} value={w.item_name}>{w.item_name}</SelectItem>
-                      )) : (
-                        <SelectItem value="Entrepôt principal">Entrepôt principal</SelectItem>
-                      )}
+                      ))}
                     </SelectContent>
                   </Select>
-                  {movementFormData.movementType === 'Transfert' && (
-                    <p className="text-xs text-muted-foreground">Le sel sera transféré du stock principal vers cet entrepôt</p>
-                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Entrepôt de destination</Label>
+                  <Select value={movementFormData.destinationWarehouse} onValueChange={(v) => setMovementFormData({...movementFormData, destinationWarehouse: v})} required>
+                    <SelectTrigger><SelectValue placeholder="Sélectionner l'entrepôt destination" /></SelectTrigger>
+                    <SelectContent>
+                      {warehouses.filter(w => w.item_name !== movementFormData.sourceWarehouse).map((w) => (
+                        <SelectItem key={w.id} value={w.item_name}>{w.item_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Le stock global ne change pas, seule la répartition entre entrepôts est modifiée</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Quantité (tonnes)</Label>
@@ -265,7 +268,7 @@ const Stocks = () => {
                 </div>
                 <div className="flex gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={() => setIsMovementDialogOpen(false)} className="flex-1">Annuler</Button>
-                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">Enregistrer</Button>
+                  <Button type="submit" className="flex-1 bg-gradient-to-r from-primary to-accent">Transférer</Button>
                 </div>
               </form>
             </DialogContent>
@@ -396,7 +399,7 @@ const Stocks = () => {
             </div>
             <Button onClick={() => setIsMovementDialogOpen(true)} className="gap-2 bg-gradient-to-r from-primary to-accent">
               <Plus className="h-4 w-4" />
-              Mouvement stock
+              Transfert stock
             </Button>
           </div>
 
@@ -494,10 +497,11 @@ const Stocks = () => {
                         const config = statusConfig[stock.status] || statusConfig.optimal;
                         const maxQty = Math.max(...stockByType.map(s => s.quantity), 1);
                         return (
-                          <div key={stock.type} className="p-4 rounded-lg border hover:bg-muted/30 transition-colors">
+                          <div key={stock.key} className="p-4 rounded-lg border hover:bg-muted/30 transition-colors">
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2">
                                 <h3 className="font-semibold">{stock.type}</h3>
+                                <Badge variant="secondary" className="text-xs">{stock.warehouse}</Badge>
                                 <Badge variant="outline" className={`${config.color} ${config.border} text-xs`}>{config.label}</Badge>
                               </div>
                               <div className="text-right">

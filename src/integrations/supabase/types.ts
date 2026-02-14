@@ -1268,6 +1268,7 @@ export type Database = {
           tenant_id: string
           traceability_code: string | null
           updated_at: string | null
+          warehouse_id: string | null
         }
         Insert: {
           bassin_id?: string | null
@@ -1286,6 +1287,7 @@ export type Database = {
           tenant_id: string
           traceability_code?: string | null
           updated_at?: string | null
+          warehouse_id?: string | null
         }
         Update: {
           bassin_id?: string | null
@@ -1304,6 +1306,7 @@ export type Database = {
           tenant_id?: string
           traceability_code?: string | null
           updated_at?: string | null
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -1332,6 +1335,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
             referencedColumns: ["id"]
           },
         ]
