@@ -14,9 +14,9 @@ Quand une production est enregistrée:
 1. ✅ Stock mis à jour automatiquement (+quantité)
 2. ✅ Écriture comptable créée (valorisation au coût de revient)
 
-**Comptes impactés**:
-- **Débit 35** - Stocks de produits finis
-- **Crédit 72** - Production stockée
+**Comptes impactés** (SYSCOHADA révisé):
+- **Débit 36** - Produits finis
+- **Crédit 73** - Variations des stocks de biens et services produits
 
 **Valorisation**: La production est valorisée au coût par tonne calculé dans le module Rapports (coût de revient incluant matières premières, main-d'œuvre, énergie, etc.)
 
@@ -31,7 +31,7 @@ Quand une vente est facturée (`sale_status = 'invoiced'` ou `'completed'`):
 
 **Comptes impactés**:
 - **Débit 411** - Clients | **Crédit 701** - Ventes de produits finis
-- **Débit 603** - Variation des stocks | **Crédit 35** - Stocks (pour le coût des marchandises vendues)
+- **Débit 73** - Variations des stocks de biens produits | **Crédit 36** - Produits finis (pour le coût des marchandises vendues)
 
 ### 3. Achat → Stock → Comptabilité
 
@@ -104,8 +104,8 @@ Nouvel onglet "Grand Livre" permettant de:
 ### Diagramme des flux
 
 Schéma visuel des automatisations:
-- Production → Stock (+) → Compta (35/72)
-- Vente → Stock (-) → Compta (411/701 + 603/35)
+- Production → Stock (+) → Compta (36/73)
+- Vente → Stock (-) → Compta (411/701 + 73/36)
 - Achat → Stock (+) → Compta (601/521)
 - Salaire → Compta (661/521)
 

@@ -31,12 +31,12 @@ export const AccountingFlowDiagram = () => {
             </div>
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
             <div className="flex items-center gap-1">
-              <Badge className="bg-purple-500">Débit 35</Badge>
-              <span className="text-xs text-muted-foreground">Stocks produits finis</span>
+              <Badge className="bg-purple-500">Débit 36</Badge>
+              <span className="text-xs text-muted-foreground">Produits finis</span>
             </div>
             <div className="flex items-center gap-1">
-              <Badge className="bg-emerald-500">Crédit 72</Badge>
-              <span className="text-xs text-muted-foreground">Production stockée</span>
+              <Badge className="bg-emerald-500">Crédit 73</Badge>
+              <span className="text-xs text-muted-foreground">Variations stocks produits</span>
             </div>
           </div>
 
