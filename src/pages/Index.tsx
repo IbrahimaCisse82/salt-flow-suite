@@ -162,11 +162,13 @@ const Index = () => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Effectif du personnel</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-l-4 border-l-primary">
+                <Card className="border-l-4 border-l-primary hover:shadow-md transition-shadow duration-200">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm font-medium">Personnel Permanent</p>
-                      <Users className="h-5 w-5 text-primary" />
+                      <div className="rounded-lg bg-primary/10 p-2">
+                        <Users className="h-5 w-5 text-primary" />
+                      </div>
                     </div>
                     <div className="text-3xl font-bold text-primary">{permanentCount}</div>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -175,11 +177,13 @@ const Index = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="border-l-4 border-l-accent">
+                <Card className="border-l-4 border-l-accent hover:shadow-md transition-shadow duration-200">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm font-medium">Personnel Saisonnier</p>
-                      <Users className="h-5 w-5 text-accent" />
+                      <div className="rounded-lg bg-accent/10 p-2">
+                        <Users className="h-5 w-5 text-accent" />
+                      </div>
                     </div>
                     <div className="text-3xl font-bold text-accent">{seasonalCount}</div>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -188,13 +192,15 @@ const Index = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="border-l-4 border-l-secondary">
+                <Card className="border-l-4 border-l-secondary hover:shadow-md transition-shadow duration-200">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm font-medium">Équipes Terrain</p>
-                      <Users className="h-5 w-5 text-secondary" />
+                      <div className="rounded-lg bg-secondary/50 p-2">
+                        <Users className="h-5 w-5 text-secondary-foreground" />
+                      </div>
                     </div>
-                    <div className="text-3xl font-bold text-secondary">{activeTeamsCount}</div>
+                    <div className="text-3xl font-bold text-secondary-foreground">{activeTeamsCount}</div>
                     <p className="text-xs text-muted-foreground mt-1">
                       Équipes actives avec {dailyWorkers.length} journaliers
                     </p>

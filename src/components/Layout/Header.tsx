@@ -235,7 +235,7 @@ const HeaderComponent = () => {
                       onClick={() => handleNotificationClick(notification.id, notification.is_read)}
                     >
                       <div className="flex-shrink-0">
-                        <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                        <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                       </div>
                       <div className="flex-1 space-y-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
@@ -256,8 +256,10 @@ const HeaderComponent = () => {
                     </DropdownMenuItem>
                   ))
                 ) : (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    Aucune notification
+                  <div className="p-6 text-center">
+                    <Bell className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Aucune notification</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">Vous êtes à jour !</p>
                   </div>
                 )}
               </div>

@@ -36,9 +36,9 @@ export const StatsCard = memo(({
             {change && (
               <p className={cn(
                 "text-xs sm:text-sm font-medium flex items-center gap-1 break-words",
-                trend === "up" ? "text-green-600" : "text-red-600"
+                trend === "up" ? "text-accent" : "text-destructive"
               )}>
-                {change}
+                {trend === "up" ? "↑" : trend === "down" ? "↓" : ""} {change}
               </p>
             )}
           </div>

@@ -112,10 +112,10 @@ const SidebarComponent = () => {
 
   return (
     <aside className={cn(
-      "hidden md:flex flex-col border-r bg-card fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-40 transition-all duration-300",
+      "hidden md:flex flex-col border-r bg-card fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-40 transition-all duration-300 shadow-sm",
       isOpen ? "w-64" : "w-16"
     )}>
-      <nav className="flex-1 space-y-1 p-2">
+      <nav className="flex-1 space-y-0.5 p-2">
         {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.href;
           const hasChildren = item.children && item.children.length > 0;
@@ -126,8 +126,9 @@ const SidebarComponent = () => {
               <Button
                 variant={isActive || isChildActive(item) ? "secondary" : "ghost"}
                 className={cn(
-                  "w-full gap-3",
-                  (isActive || isChildActive(item)) && "bg-secondary/80",
+                  "w-full gap-3 transition-all duration-200",
+                  (isActive || isChildActive(item)) && "bg-secondary/80 font-semibold border-l-2 border-l-primary rounded-l-none",
+                  !(isActive || isChildActive(item)) && "hover:translate-x-0.5",
                   isOpen ? "justify-start" : "justify-center px-0"
                 )}
                 onClick={() => {
@@ -150,7 +151,7 @@ const SidebarComponent = () => {
 
               {/* Sub-items */}
               {isOpen && hasChildren && expanded && (
-                <div className="ml-4 mt-1 space-y-1 border-l border-border pl-2">
+                <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-primary/20 pl-2 animate-fade-in">
                   {item.children!.map((child) => {
                     const isChildRouteActive = location.pathname === child.href;
                     return (
@@ -159,8 +160,9 @@ const SidebarComponent = () => {
                         variant={isChildRouteActive ? "secondary" : "ghost"}
                         size="sm"
                         className={cn(
-                          "w-full justify-start gap-2 text-sm",
-                          isChildRouteActive && "bg-secondary/80"
+                          "w-full justify-start gap-2 text-sm transition-all duration-200",
+                          isChildRouteActive && "bg-secondary/80 font-medium",
+                          !isChildRouteActive && "hover:translate-x-0.5"
                         )}
                         onClick={() => navigate(child.href)}
                       >
