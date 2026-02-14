@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { Breadcrumbs } from "@/components/Layout/Breadcrumbs";
@@ -67,6 +68,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const Comptabilite = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { isOpen } = useSidebar();
   const { profile } = useAuth();
   const { purchaseOrders, isLoading: purchaseOrdersLoading } = usePurchaseOrders();
@@ -1110,25 +1112,26 @@ const Comptabilite = () => {
             </CardContent>
           </Card>
 
-          <Tabs defaultValue="grand-livre" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-7">
-              <TabsTrigger value="grand-livre" className="flex items-center gap-1">
-                <BookOpen className="h-3 w-3" />
-                Grand Livre
-              </TabsTrigger>
+          {/* Liens vers sous-pages */}
+          <div className="flex gap-3 mb-4">
+            <Button variant="outline" className="flex items-center gap-2" onClick={() => navigate('/comptabilite/grand-livre')}>
+              <BookOpen className="h-4 w-4" />
+              Grand Livre & Balance
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2" onClick={() => navigate('/comptabilite/rapprochement')}>
+              <CreditCard className="h-4 w-4" />
+              Rapprochement bancaire
+            </Button>
+          </div>
+
+          <Tabs defaultValue="achats" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="achats">Achats</TabsTrigger>
               <TabsTrigger value="salaires">Salaires</TabsTrigger>
               <TabsTrigger value="vente">Vente</TabsTrigger>
               <TabsTrigger value="virement">Virement</TabsTrigger>
               <TabsTrigger value="divers">Divers</TabsTrigger>
-              <TabsTrigger value="rapprochement">Rapprochement</TabsTrigger>
             </TabsList>
-
-            {/* Onglet Grand Livre et Balance */}
-            <TabsContent value="grand-livre" className="space-y-4">
-              <AccountingFlowDiagram />
-              <GeneralLedger />
-            </TabsContent>
 
             {/* Onglet Achats (anciennement Dépenses) */}
             <TabsContent value="achats" className="space-y-4">
@@ -1415,10 +1418,7 @@ const Comptabilite = () => {
             </TabsContent>
 
 
-            {/* Onglet Rapprochement bancaire */}
-            <TabsContent value="rapprochement" className="space-y-4">
-              <BankReconciliation />
-            </TabsContent>
+
           </Tabs>
 
           {/* Dialog Nouveau Compte */}

@@ -19,6 +19,8 @@ const Equipes = lazy(() => import('@/pages/Equipes'));
 const Achats = lazy(() => import('@/pages/Achats'));
 const Stocks = lazy(() => import('@/pages/Stocks'));
 const Comptabilite = lazy(() => import('@/pages/Comptabilite'));
+const ComptaGrandLivre = lazy(() => import('@/pages/comptabilite/GrandLivre'));
+const ComptaRapprochement = lazy(() => import('@/pages/comptabilite/Rapprochement'));
 const Rapports = lazy(() => import('@/pages/Rapports'));
 const Parametres = lazy(() => import('@/pages/Parametres'));
 const CGU = lazy(() => import('@/pages/CGU'));
@@ -143,6 +145,26 @@ export const AppRoutes = () => {
             <ProtectedRoute>
               <RoleProtectedRoute>
                 <Comptabilite />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/comptabilite/grand-livre"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute>
+                <ComptaGrandLivre />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/comptabilite/rapprochement"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute>
+                <ComptaRapprochement />
               </RoleProtectedRoute>
             </ProtectedRoute>
           }
