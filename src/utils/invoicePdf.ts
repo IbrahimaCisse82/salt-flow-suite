@@ -35,6 +35,9 @@ const GREEN = [100, 160, 60] as const;
 const DARK = [50, 50, 50] as const;
 const GRAY = [120, 120, 120] as const;
 
+// Format numbers with regular spaces (not non-breaking spaces that jsPDF renders badly)
+const fmt = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
 export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -122,13 +125,13 @@ export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) =
     body: [
       [
         `Sel - ${invoice.saltType}`,
-        `${invoice.unitPrice.toLocaleString("fr-FR")} FCFA`,
+        `${fmt(invoice.unitPrice)} FCFA`,
         "kg",
-        `${invoice.quantity.toLocaleString("fr-FR")}`,
-        `${subtotal.toLocaleString("fr-FR")} FCFA`,
+        `${fmt(invoice.quantity)}`,
+        `${fmt(subtotal)} FCFA`,
       ],
       ...(discount > 0
-        ? [["Remise", "", "", "", `-${discount.toLocaleString("fr-FR")} FCFA`]]
+        ? [["Remise", "", "", "", `-${fmt(discount)} FCFA`]]
         : []),
     ],
     headStyles: {
@@ -173,23 +176,24 @@ export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) =
 
   // Total HT
   doc.text("Total HT", totalsX, totalY);
-  doc.text(`${subtotal.toLocaleString("fr-FR")} FCFA`, totalsValX, totalY, { align: "right" });
+  doc.text(`${fmt(subtotal)} FCFA`, totalsValX, totalY, { align: "right" });
   totalY += 7;
 
   // Remise line
   if (discount > 0) {
     doc.text("Remise", totalsX, totalY);
-    doc.text(`-${discount.toLocaleString("fr-FR")} FCFA`, totalsValX, totalY, { align: "right" });
+    doc.text(`-${fmt(discount)} FCFA`, totalsValX, totalY, { align: "right" });
     totalY += 7;
   }
 
   // Total TTC (bold, green background)
   doc.setFillColor(...GREEN);
-  doc.roundedRect(totalsX - 3, totalY - 5, pageWidth - totalsX - 12, 10, 1, 1, "F");
+  doc.roundedRect(totalsX - 3, totalY - 5, pageWidth - totalsX - 12, 12, 2, 2, "F");
   doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
   doc.setTextColor(255, 255, 255);
-  doc.text("Total TTC", totalsX, totalY + 1);
-  doc.text(`${invoice.totalAmount.toLocaleString("fr-FR")} FCFA`, totalsValX, totalY + 1, { align: "right" });
+  doc.text("Total TTC", totalsX, totalY + 2);
+  doc.text(`${fmt(invoice.totalAmount)} FCFA`, totalsValX, totalY + 2, { align: "right" });
 
   // ============================
   // PAYMENT CONDITIONS (left) + SIGNATURE (right)
