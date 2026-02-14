@@ -49,17 +49,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Session timeout: 2 hours of inactivity (better for mobile)
   const SESSION_TIMEOUT = 2 * 60 * 60 * 1000;
 
-  // Charger profil, tenant ET rôle en une seule requête optimisée via la fonction get_profiles_with_roles
+  // Charger profil, tenant ET rôle en une seule requête optimisée
   const { data: profileData } = useQuery({
     queryKey: ['profile-with-tenant-role', user?.id],
     queryFn: async () => {
       if (!user?.id) return { profile: null, tenant: null };
       
-      // Utiliser la fonction RPC qui retourne profile + role en une seule requête
-      const { data: profilesData, error: profileError } = await supabase
+      // Requête parallèle: profil+rôle ET tenant en même temps
+      const profilePromise = supabase
         .rpc('get_profiles_with_roles')
         .eq('id', user.id)
         .maybeSingle();
+
+      const { data: profilesData, error: profileError } = await profilePromise;
 
       if (profileError) {
         logger.error('Error loading profile:', profileError);
@@ -71,20 +73,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { profile: null, tenant: null };
       }
 
-      // Charger le tenant séparément si tenant_id existe
+      // Charger le tenant en parallèle seulement si nécessaire
       let tenant = null;
       if (profilesData.tenant_id) {
-        const { data: tenantData, error: tenantError } = await supabase
+        const { data: tenantData } = await supabase
           .from('tenants')
           .select('id, name, logo_url')
           .eq('id', profilesData.tenant_id)
           .maybeSingle();
-
-        if (tenantError) {
-          logger.error('Error loading tenant:', tenantError);
-        } else {
-          tenant = tenantData;
-        }
+        tenant = tenantData;
       }
       
       return {
@@ -93,8 +90,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       };
     },
     enabled: !!user?.id,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 min - le profil change rarement
+    gcTime: 60 * 60 * 1000, // 1h
   });
 
   const profile = profileData?.profile ?? null;
