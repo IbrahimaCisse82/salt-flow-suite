@@ -117,6 +117,10 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-smooth: always;
@@ -141,10 +145,15 @@ All colors MUST be HSL.
     transition: var(--transition-smooth);
   }
 
-  /* Optimize rendering performance */
-  * {
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+  /* Focus ring polish */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background rounded-sm;
+  }
+
+  /* Selection color */
+  ::selection {
+    background: hsl(var(--primary) / 0.2);
+    color: hsl(var(--foreground));
   }
 
   /* Smooth page transitions */
@@ -159,6 +168,25 @@ All colors MUST be HSL.
     to {
       opacity: 1;
     }
+  }
+
+  /* Scrollbar polish */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
   }
 
   /* Responsive table wrapper */
