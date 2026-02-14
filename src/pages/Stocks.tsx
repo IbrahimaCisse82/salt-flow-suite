@@ -85,7 +85,7 @@ const Stocks = () => {
     const type = item.item_name || 'Autre';
     const warehouse = item.storage_location || 'Non assigné';
     const qty = Number(item.quantity_on_hand || 0);
-    const reserved = Number((item as any).reserved_quantity || 0);
+    const reserved = Number(item.reserved_quantity || 0);
     const key = `${type}__${warehouse}`;
     const existing = acc.find(s => s.key === key);
     if (existing) {

@@ -10,39 +10,37 @@ export const useStockStats = () => {
     queryFn: async () => {
       if (!profile?.tenant_id) return null;
 
-      // Calculer le stock = production - ventes
-      const [productionResult, salesResult] = await Promise.all([
-        supabase
-          .from('production_records')
-          .select('quantity'),
-        supabase
-          .from('sales')
-          .select('quantity')
-      ]);
+      // Use inventory_items as the single source of truth
+      const { data: items, error } = await supabase
+        .from('inventory_items')
+        .select('quantity_on_hand, reserved_quantity, item_category')
+        .eq('item_category', 'production')
+        .eq('is_active', true);
 
-      if (productionResult.error) {
-        console.error('Error loading production:', productionResult.error);
-      }
-      if (salesResult.error) {
-        console.error('Error loading sales:', salesResult.error);
+      if (error) {
+        console.error('Error loading stock stats:', error);
+        return null;
       }
 
-      const totalProduction = productionResult.data?.reduce(
-        (sum, record) => sum + (Number(record.quantity) || 0), 
+      const totalStock = items?.reduce(
+        (sum, item) => sum + (Number(item.quantity_on_hand) || 0),
         0
       ) || 0;
 
-      const totalSales = salesResult.data?.reduce(
-        (sum, sale) => sum + (Number(sale.quantity) || 0), 
+      const totalReserved = items?.reduce(
+        (sum, item) => sum + (Number(item.reserved_quantity) || 0),
         0
       ) || 0;
 
-      const availableStock = totalProduction - totalSales;
+      const availableStock = totalStock - totalReserved;
 
       return {
         available: availableStock,
-        production: totalProduction,
-        sales: totalSales
+        total: totalStock,
+        reserved: totalReserved,
+        // Backward compatibility
+        production: totalStock,
+        sales: totalReserved
       };
     },
     enabled: !!profile?.tenant_id,
