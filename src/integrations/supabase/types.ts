@@ -3450,6 +3450,10 @@ export type Database = {
         Returns: string
       }
       post_depreciation: { Args: { p_schedule_id: string }; Returns: undefined }
+      seed_chart_of_accounts_for_tenant: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       send_attendance_validation_reminders: { Args: never; Returns: undefined }
       send_push_notification: {
         Args: {
