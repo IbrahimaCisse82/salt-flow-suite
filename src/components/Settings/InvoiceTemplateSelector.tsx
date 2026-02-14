@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, FileText } from "lucide-react";
+import { Check, Eye, FileText } from "lucide-react";
+import { generateInvoicePdf } from "@/utils/invoicePdf";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -293,6 +294,37 @@ export const InvoiceTemplateSelector = () => {
     saveMutation.mutate(style);
   };
 
+  const handlePreview = (e: React.MouseEvent, styleId: InvoiceStyle) => {
+    e.stopPropagation();
+    const sampleInvoice = {
+      invoiceNumber: "PREV-001",
+      date: new Date().toLocaleDateString("fr-FR"),
+      clientName: "Client Exemple",
+      clientAddress: "123 Rue du Commerce, Dakar",
+      clientPhone: "+221 77 123 45 67",
+      clientEmail: "client@exemple.com",
+      saltType: "Gros sel",
+      quantity: 5000,
+      unitPrice: 150,
+      discount: 25000,
+      totalAmount: 725000,
+      paymentStatus: "pending",
+      notes: "Livraison sous 48h",
+    };
+    const sampleCompany = {
+      name: tenant?.name || "Mon Entreprise",
+      address: "Zone Industrielle, Kaolack",
+      phone: "+221 33 941 00 00",
+      email: "contact@entreprise.sn",
+      ninea: "123456789",
+      rccm: "SN-DKR-2024-B-1234",
+      managerName: "Modou Seck",
+      city: "Kaolack",
+      capital: "10 000 000 FCFA",
+    };
+    generateInvoicePdf(sampleInvoice, sampleCompany, styleId);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -332,15 +364,26 @@ export const InvoiceTemplateSelector = () => {
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed">{style.description}</p>
                   </div>
-                  {/* Color swatches */}
-                  <div className="flex gap-1.5 mt-2">
-                    {Object.values(style.colors).map((color, i) => (
-                      <div
-                        key={i}
-                        className="h-4 w-4 rounded-full border border-border/50"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
+                  {/* Color swatches + Preview button */}
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex gap-1.5">
+                      {Object.values(style.colors).map((color, i) => (
+                        <div
+                          key={i}
+                          className="h-4 w-4 rounded-full border border-border/50"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => handlePreview(e, style.id)}
+                    >
+                      <Eye className="h-3 w-3" />
+                      Aperçu
+                    </Button>
                   </div>
                 </button>
               );
