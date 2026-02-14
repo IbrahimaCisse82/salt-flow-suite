@@ -57,12 +57,25 @@
        return;
      }
  
-     if (paymentType !== "refund" && amount > balance) {
-       toast({ title: "Erreur", description: "Le montant dépasse le solde restant", variant: "destructive" });
-       return;
-     }
- 
-     try {
+    if (paymentType !== "refund" && amount > balance) {
+        toast({ title: "Erreur", description: "Le montant dépasse le solde restant", variant: "destructive" });
+        return;
+      }
+
+      // Vérifier le solde du compte de trésorerie sélectionné
+      if (formData.account_id && paymentType !== "refund") {
+        const selectedAccount = accounts.find((acc: any) => acc.id === formData.account_id);
+        if (selectedAccount && (selectedAccount.balance || 0) < amount) {
+          toast({ 
+            title: "Solde insuffisant", 
+            description: `Le compte "${selectedAccount.account_name}" a un solde de ${(selectedAccount.balance || 0).toLocaleString()} FCFA, insuffisant pour un décaissement de ${amount.toLocaleString()} FCFA.`,
+            variant: "destructive" 
+          });
+          return;
+        }
+      }
+
+      try {
        await createPayment.mutateAsync({
          purchase_order_id: order.id,
          payment_type: paymentType,
