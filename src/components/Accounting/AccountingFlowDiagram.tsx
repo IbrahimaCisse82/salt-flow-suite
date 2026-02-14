@@ -1,17 +1,28 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Factory, Package, ShoppingCart, CreditCard, Users, BookOpen } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ArrowRight, Factory, Package, ShoppingCart, CreditCard, Users, BookOpen, ChevronDown } from "lucide-react";
 
 export const AccountingFlowDiagram = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5" />
-          Flux comptables automatisés
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Flux comptables automatisés
+              </span>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            </CardTitle>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent>
         <div className="grid gap-6">
           {/* Production → Stock → Comptabilité */}
           <div className="flex flex-wrap items-center gap-2 p-4 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
@@ -122,7 +133,9 @@ export const AccountingFlowDiagram = () => {
             de gestion et permet le calcul automatique des marges commerciales.
           </p>
         </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 };
