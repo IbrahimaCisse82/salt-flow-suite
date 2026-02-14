@@ -1,0 +1,1 @@
+UPDATE accounts SET balance = balance + 30000, updated_at = now() WHERE id = 'c1ce9ef5-3db1-4f3a-83c4-985d1af3d817';
