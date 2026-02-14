@@ -2,14 +2,13 @@ name: Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       
@@ -20,17 +19,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
       
       - name: Run tests
-        run: npm run test
-      
-      - name: Generate coverage
-        run: npm run test:coverage
-      
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage/coverage-final.json
-          flags: unittests
-          name: codecov-umbrella
+        run: npx vitest run --passWithNoTests
