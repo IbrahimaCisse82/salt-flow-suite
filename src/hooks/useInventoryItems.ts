@@ -174,7 +174,7 @@ export const useStockMovements = () => {
   const recordMovement = useMutation({
     mutationFn: async (movement: {
       item_name: string;
-      movement_type: 'entry' | 'exit';
+      movement_type: 'entry' | 'exit' | 'transfer';
       quantity: number;
       date: string;
       warehouse?: string;
@@ -192,9 +192,12 @@ export const useStockMovements = () => {
         .limit(1);
 
       const currentQty = existingItems?.[0]?.quantity_on_hand || 0;
-      const newQty = movement.movement_type === 'entry' 
-        ? currentQty + movement.quantity 
-        : Math.max(0, currentQty - movement.quantity);
+      
+      // Transfer = exit from main stock (same as exit for stock calculation)
+      const isDeduction = movement.movement_type === 'exit' || movement.movement_type === 'transfer';
+      const newQty = isDeduction
+        ? Math.max(0, currentQty - movement.quantity) 
+        : currentQty + movement.quantity;
 
       if (existingItems?.[0]) {
         // Update existing
