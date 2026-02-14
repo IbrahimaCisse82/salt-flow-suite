@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +11,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { TrendingDown, TrendingUp, AlertTriangle } from "lucide-react";
+import { useCampagnes } from "@/hooks/useCampagnes";
+import { useCampagneBudgetLines } from "@/hooks/useCampagneBudgetLines";
 
 const phaseLabels: Record<string, string> = {
   'preparation-bassins': 'Préparation des bassins',
@@ -24,63 +24,15 @@ const phaseLabels: Record<string, string> = {
 
 export const BudgetTrackingTab = () => {
   const [selectedCampagneId, setSelectedCampagneId] = useState<string>("");
+  const { campagnes } = useCampagnes();
+  const { budgetLines, phasesWithBudget } = useCampagneBudgetLines(selectedCampagneId || undefined);
 
-  // Récupérer les campagnes
-  const { data: campagnes = [] } = useQuery({
-    queryKey: ['campagnes'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('campagnes')
-        .select('*')
-        .order('year', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
-  // Récupérer les budgets prévisionnels
-  const { data: budgets = [] } = useQuery({
-    queryKey: ['phase-budgets', selectedCampagneId],
-    queryFn: async () => {
-      if (!selectedCampagneId) return [];
-      
-      const { data, error } = await supabase
-        .from('campagne_phase_budgets')
-        .select('*')
-        .eq('campagne_id', selectedCampagneId);
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!selectedCampagneId
-  });
-
-  // Récupérer les dépenses réelles
-  const { data: actualExpenses = [] } = useQuery({
-    queryKey: ['phase-expenses', selectedCampagneId],
-    queryFn: async () => {
-      if (!selectedCampagneId) return [];
-      
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('campagne_id', selectedCampagneId)
-        .eq('transaction_type', 'depense');
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!selectedCampagneId
-  });
-
-  // Grouper les données par phase
+  // Grouper les données par phase à partir des budget lines (avec spent déjà calculé)
   const phaseData = Object.keys(phaseLabels).map(phase => {
-    const phaseBudgets = budgets.filter(b => b.phase === phase);
-    const phaseExpenses = actualExpenses.filter(e => e.campagne_phase === phase);
+    const phaseLines = budgetLines.filter(l => l.phase === phase);
     
-    const totalBudget = phaseBudgets.reduce((sum, b) => sum + Number(b.budgeted_amount || 0), 0);
-    const totalActual = phaseExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    const totalBudget = phaseLines.reduce((sum, l) => sum + l.budgeted_amount, 0);
+    const totalActual = phaseLines.reduce((sum, l) => sum + l.spent_amount, 0);
     const difference = totalBudget - totalActual;
     const percentage = totalBudget > 0 ? (totalActual / totalBudget) * 100 : 0;
     
@@ -91,10 +43,9 @@ export const BudgetTrackingTab = () => {
       totalActual,
       difference,
       percentage,
-      budgets: phaseBudgets,
-      expenses: phaseExpenses
+      categories: phaseLines,
     };
-  });
+  }).filter(p => p.totalBudget > 0 || p.totalActual > 0);
 
   const overallBudget = phaseData.reduce((sum, p) => sum + p.totalBudget, 0);
   const overallActual = phaseData.reduce((sum, p) => sum + p.totalActual, 0);
@@ -110,7 +61,7 @@ export const BudgetTrackingTab = () => {
             <SelectValue placeholder="Sélectionnez une campagne" />
           </SelectTrigger>
           <SelectContent className="bg-background z-50">
-            {campagnes.map((campagne) => (
+            {(campagnes || []).map((campagne) => (
               <SelectItem key={campagne.id} value={campagne.id}>
                 {campagne.name}
               </SelectItem>
@@ -133,17 +84,17 @@ export const BudgetTrackingTab = () => {
                   <p className="text-2xl font-bold">{overallBudget.toLocaleString()} FCFA</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Dépenses réelles</p>
-                  <p className="text-2xl font-bold text-red-600">{overallActual.toLocaleString()} FCFA</p>
+                  <p className="text-sm text-muted-foreground mb-1">Engagé (commandes)</p>
+                  <p className="text-2xl font-bold text-destructive">{overallActual.toLocaleString()} FCFA</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Écart</p>
-                  <p className={`text-2xl font-bold ${overallDifference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className="text-sm text-muted-foreground mb-1">Disponible</p>
+                  <p className={`text-2xl font-bold ${overallDifference >= 0 ? 'text-green-600' : 'text-destructive'}`}>
                     {overallDifference >= 0 ? '+' : ''}{overallDifference.toLocaleString()} FCFA
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Taux d'utilisation</p>
+                  <p className="text-sm text-muted-foreground mb-1">Taux d'engagement</p>
                   <p className="text-2xl font-bold">{overallPercentage.toFixed(1)}%</p>
                   <Progress value={Math.min(overallPercentage, 100)} className="mt-2" />
                 </div>
@@ -154,8 +105,18 @@ export const BudgetTrackingTab = () => {
           {/* Détail par phase */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Suivi par phase</h3>
+            {phaseData.length === 0 && (
+              <Card>
+                <CardContent className="py-8">
+                  <p className="text-center text-muted-foreground">
+                    Aucune ligne budgétaire définie pour cette campagne. 
+                    Allez dans l'onglet "Budget" pour créer des lignes budgétaires par phase et catégorie.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
             {phaseData.map((phase) => (
-              <Card key={phase.phase} className={phase.percentage > 100 ? 'border-l-4 border-l-red-500' : ''}>
+              <Card key={phase.phase} className={phase.percentage > 100 ? 'border-l-4 border-l-destructive' : ''}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">{phase.label}</CardTitle>
@@ -184,26 +145,49 @@ export const BudgetTrackingTab = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <TrendingDown className="h-4 w-4 text-red-600" />
-                        <p className="text-sm text-muted-foreground">Dépenses réelles</p>
+                        <TrendingDown className="h-4 w-4 text-destructive" />
+                        <p className="text-sm text-muted-foreground">Engagé (commandes)</p>
                       </div>
-                      <p className="text-xl font-semibold text-red-600">{phase.totalActual.toLocaleString()} FCFA</p>
+                      <p className="text-xl font-semibold text-destructive">{phase.totalActual.toLocaleString()} FCFA</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Écart</p>
-                      <p className={`text-xl font-semibold ${phase.difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className="text-sm text-muted-foreground mb-1">Disponible</p>
+                      <p className={`text-xl font-semibold ${phase.difference >= 0 ? 'text-green-600' : 'text-destructive'}`}>
                         {phase.difference >= 0 ? '+' : ''}{phase.difference.toLocaleString()} FCFA
                       </p>
                     </div>
                   </div>
+
+                  {/* Détail par catégorie */}
+                  {phase.categories.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t">
+                      <p className="text-sm font-medium text-muted-foreground">Détail par catégorie</p>
+                      {phase.categories.map((cat) => {
+                        const catPercentage = cat.budgeted_amount > 0 ? (cat.spent_amount / cat.budgeted_amount) * 100 : 0;
+                        return (
+                          <div key={cat.id} className="flex items-center gap-3">
+                            <span className="text-sm min-w-[140px]">{cat.expense_category}</span>
+                            <Progress 
+                              value={Math.min(catPercentage, 100)} 
+                              className={`flex-1 ${catPercentage > 100 ? "[&>div]:bg-destructive" : catPercentage > 80 ? "[&>div]:bg-yellow-600" : ""}`}
+                            />
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {cat.spent_amount.toLocaleString()} / {cat.budgeted_amount.toLocaleString()} F
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Taux d'utilisation</span>
+                      <span className="text-muted-foreground">Taux d'engagement</span>
                       <span className="font-medium">{phase.percentage.toFixed(1)}%</span>
                     </div>
                     <Progress 
                       value={Math.min(phase.percentage, 100)} 
-                      className={phase.percentage > 100 ? "[&>div]:bg-red-600" : phase.percentage > 80 ? "[&>div]:bg-yellow-600" : ""}
+                      className={phase.percentage > 100 ? "[&>div]:bg-destructive" : phase.percentage > 80 ? "[&>div]:bg-yellow-600" : ""}
                     />
                   </div>
                 </CardContent>
