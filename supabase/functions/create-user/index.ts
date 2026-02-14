@@ -150,9 +150,7 @@ Deno.serve(async (req) => {
     if (error) {
       logger.error('create-user error:', error)
       // SECURITY: Sanitize error message - don't expose database details
-      const sanitizedError = error.message?.includes('duplicate') 
-        ? 'Un compte avec cet email existe déjà'
-        : 'Impossible de créer le compte utilisateur'
+      const sanitizedError = 'Impossible de créer le compte utilisateur'
       return new Response(
         JSON.stringify({ error: sanitizedError }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
