@@ -1112,21 +1112,6 @@ const Comptabilite = () => {
             </CardContent>
           </Card>
 
-          {/* Liens vers sous-pages */}
-          <div className="flex gap-3 mb-4">
-            <Button variant="outline" className="flex items-center gap-2" onClick={() => navigate('/comptabilite/grand-livre')}>
-              <BookOpen className="h-4 w-4" />
-              Grand Livre & Balance
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2" onClick={() => navigate('/comptabilite/rapprochement')}>
-              <CreditCard className="h-4 w-4" />
-              Rapprochement bancaire
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2" onClick={() => navigate('/comptabilite/operations-diverses')}>
-              <FileText className="h-4 w-4" />
-              Opérations Diverses
-            </Button>
-          </div>
 
           <Tabs defaultValue="achats" className="space-y-4">
             <TabsList className="grid w-full grid-cols-4">
