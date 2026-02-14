@@ -294,7 +294,7 @@ export const InvoiceTemplateSelector = () => {
     saveMutation.mutate(style);
   };
 
-  const handlePreview = (e: React.MouseEvent, styleId: InvoiceStyle) => {
+  const handlePreview = async (e: React.MouseEvent, styleId: InvoiceStyle) => {
     e.stopPropagation();
     const sampleInvoice = {
       invoiceNumber: "PREV-001",
@@ -321,8 +321,9 @@ export const InvoiceTemplateSelector = () => {
       managerName: "Modou Seck",
       city: "Kaolack",
       capital: "10 000 000 FCFA",
+      logoUrl: tenant?.logo_url || undefined,
     };
-    generateInvoicePdf(sampleInvoice, sampleCompany, styleId);
+    await generateInvoicePdf(sampleInvoice, sampleCompany, styleId);
   };
 
   return (

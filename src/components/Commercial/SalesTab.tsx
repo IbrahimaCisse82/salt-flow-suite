@@ -194,8 +194,8 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
     .filter((s) => ["invoiced", "confirmed", "delivered", "completed", "cancelled"].includes(s.sale_status || ""))
     .slice(0, 10);
 
-  const handleDownload = (sale: any) => {
-    generateInvoicePdf(
+  const handleDownload = async (sale: any) => {
+    await generateInvoicePdf(
       {
         invoiceNumber: sale.invoice_number || sale.id.slice(0, 8).toUpperCase(),
         date: formatDate(sale.sale_date),
@@ -220,6 +220,7 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
         ninea: tenant?.ninea || undefined,
         rccm: tenant?.rccm || undefined,
         managerName: tenant?.manager_name || undefined,
+        logoUrl: tenant?.logo_url || undefined,
       },
       invoiceStyle
     );

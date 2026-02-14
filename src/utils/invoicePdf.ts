@@ -41,6 +41,37 @@ const hexToRgb = (hex: string): [number, number, number] => {
   return [r, g, b];
 };
 
+/** Fetch an image URL and return a base64 data URL, or null on failure */
+const loadImageAsBase64 = async (url: string): Promise<string | null> => {
+  try {
+    const resp = await fetch(url, { mode: "cors" });
+    if (!resp.ok) return null;
+    const blob = await resp.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+};
+
+/** Add company logo to the PDF at specified position */
+const addLogo = (doc: jsPDF, logoBase64: string, x: number, y: number, maxH: number) => {
+  try {
+    const img = new Image();
+    img.src = logoBase64;
+    const ratio = img.width / img.height;
+    const h = maxH;
+    const w = h * ratio;
+    doc.addImage(logoBase64, "PNG", x, y, Math.min(w, 40), h);
+  } catch {
+    // silently skip if image fails
+  }
+};
+
 const paymentLabel = (status: string) =>
   status === "paid"
     ? "Paiement effectué - Merci"
@@ -51,7 +82,7 @@ const paymentLabel = (status: string) =>
 // ═══════════════════════════════════════
 // CLASSIC – Traditional layout with boxed client
 // ═══════════════════════════════════════
-function renderClassic(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
+function renderClassic(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, logoBase64: string | null) {
   const PRIMARY: [number, number, number] = [100, 160, 60];
   const ACCENT: [number, number, number] = [74, 122, 46];
   const SECONDARY: [number, number, number] = [245, 250, 240];
@@ -60,9 +91,15 @@ function renderClassic(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 
-  // Header
-  doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK);
-  doc.text(company.name || "LOGO", 15, 20);
+  // Header with logo
+  if (logoBase64) {
+    addLogo(doc, logoBase64, 15, 12, 14);
+    doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK);
+    doc.text(company.name || "", 58, 20);
+  } else {
+    doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK);
+    doc.text(company.name || "Mon entreprise", 15, 20);
+  }
   doc.setFontSize(22); doc.setTextColor(...PRIMARY);
   doc.text("Facture N°", pw - 15, 20, { align: "right" });
   doc.setFontSize(14);
@@ -149,7 +186,7 @@ function renderClassic(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
 // ═══════════════════════════════════════
 // MODERN – Full-width colored banner, rounded elements, two-column header
 // ═══════════════════════════════════════
-function renderModern(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
+function renderModern(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, logoBase64: string | null) {
   const PRIMARY: [number, number, number] = [37, 99, 235];
   const LIGHT: [number, number, number] = [239, 246, 255];
   const ACCENT: [number, number, number] = [29, 78, 216];
@@ -162,9 +199,15 @@ function renderModern(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
   doc.setFillColor(...PRIMARY);
   doc.rect(0, 0, pw, 45, "F");
 
-  // Company name in banner
-  doc.setFontSize(20); doc.setFont("helvetica", "bold"); doc.setTextColor(255, 255, 255);
-  doc.text(company.name || "Mon Entreprise", 20, 20);
+  // Company name in banner (with optional logo)
+  if (logoBase64) {
+    addLogo(doc, logoBase64, 20, 10, 12);
+    doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.setTextColor(255, 255, 255);
+    doc.text(company.name || "Mon Entreprise", 65, 20);
+  } else {
+    doc.setFontSize(20); doc.setFont("helvetica", "bold"); doc.setTextColor(255, 255, 255);
+    doc.text(company.name || "Mon Entreprise", 20, 20);
+  }
   doc.setFontSize(9); doc.setFont("helvetica", "normal");
   const infoParts: string[] = [];
   if (company.phone) infoParts.push(company.phone);
@@ -259,16 +302,22 @@ function renderModern(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
 // ═══════════════════════════════════════
 // MINIMAL – Clean, monochrome, lots of whitespace, no boxes
 // ═══════════════════════════════════════
-function renderMinimal(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
+function renderMinimal(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, logoBase64: string | null) {
   const BLACK: [number, number, number] = [24, 24, 27];
   const GRAY: [number, number, number] = [113, 113, 122];
   const LIGHT: [number, number, number] = [244, 244, 245];
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 
-  // Centered title
-  doc.setFontSize(32); doc.setFont("helvetica", "bold"); doc.setTextColor(...BLACK);
-  doc.text("FACTURE", pw / 2, 30, { align: "center" });
+  // Logo + Centered title
+  if (logoBase64) {
+    addLogo(doc, logoBase64, pw / 2 - 7, 14, 12);
+    doc.setFontSize(32); doc.setFont("helvetica", "bold"); doc.setTextColor(...BLACK);
+    doc.text("FACTURE", pw / 2, 38, { align: "center" });
+  } else {
+    doc.setFontSize(32); doc.setFont("helvetica", "bold"); doc.setTextColor(...BLACK);
+    doc.text("FACTURE", pw / 2, 30, { align: "center" });
+  }
 
   // Thin line
   doc.setDrawColor(...BLACK); doc.setLineWidth(0.8);
@@ -353,7 +402,7 @@ function renderMinimal(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
 // ═══════════════════════════════════════
 // ELEGANT – Gold accents, decorative borders, centered composition
 // ═══════════════════════════════════════
-function renderElegant(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
+function renderElegant(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, logoBase64: string | null) {
   const GOLD: [number, number, number] = [184, 134, 11];
   const DARK_GOLD: [number, number, number] = [139, 105, 20];
   const CREAM: [number, number, number] = [255, 248, 231];
@@ -373,9 +422,15 @@ function renderElegant(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
   doc.line(30, 35, pw - 30, 35);
   doc.line(30, 37, pw - 30, 37);
 
-  // Company name centered
-  doc.setFontSize(16); doc.setFont("times", "bold"); doc.setTextColor(...DARK);
-  doc.text(company.name || "Mon Entreprise", pw / 2, 28, { align: "center" });
+  // Logo + Company name centered
+  if (logoBase64) {
+    addLogo(doc, logoBase64, pw / 2 - 7, 18, 10);
+    doc.setFontSize(14); doc.setFont("times", "bold"); doc.setTextColor(...DARK);
+    doc.text(company.name || "Mon Entreprise", pw / 2, 33, { align: "center" });
+  } else {
+    doc.setFontSize(16); doc.setFont("times", "bold"); doc.setTextColor(...DARK);
+    doc.text(company.name || "Mon Entreprise", pw / 2, 28, { align: "center" });
+  }
 
   // "FACTURE" + number
   doc.setFontSize(22); doc.setFont("times", "bolditalic"); doc.setTextColor(...GOLD);
@@ -469,13 +524,17 @@ function renderElegant(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo) {
 // ═══════════════════════════════════════
 // MAIN EXPORT
 // ═══════════════════════════════════════
-export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo, style: InvoiceStyle = "classic") => {
+export const generateInvoicePdf = async (invoice: InvoiceData, company: CompanyInfo, style: InvoiceStyle = "classic") => {
   const doc = new jsPDF();
+
+  // Load logo if available
+  const logoBase64 = company.logoUrl ? await loadImageAsBase64(company.logoUrl) : null;
+
   switch (style) {
-    case "modern": renderModern(doc, invoice, company); break;
-    case "minimal": renderMinimal(doc, invoice, company); break;
-    case "elegant": renderElegant(doc, invoice, company); break;
-    default: renderClassic(doc, invoice, company); break;
+    case "modern": renderModern(doc, invoice, company, logoBase64); break;
+    case "minimal": renderMinimal(doc, invoice, company, logoBase64); break;
+    case "elegant": renderElegant(doc, invoice, company, logoBase64); break;
+    default: renderClassic(doc, invoice, company, logoBase64); break;
   }
   doc.save(`Facture_${invoice.invoiceNumber}.pdf`);
 };
