@@ -3440,6 +3440,15 @@ export type Database = {
         Returns: boolean
       }
       is_manager_or_admin: { Args: { _user_id: string }; Returns: boolean }
+      liquidate_tva: {
+        Args: {
+          p_description?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
       post_depreciation: { Args: { p_schedule_id: string }; Returns: undefined }
       send_attendance_validation_reminders: { Args: never; Returns: undefined }
       send_push_notification: {
