@@ -68,7 +68,7 @@ export const OrderFormDialog = ({
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label>Quantité (kg) *</Label>
+            <Label>Quantité (tonnes) *</Label>
             <Input type="number" value={form.quantity} onChange={(e) => onFormChange({ ...form, quantity: e.target.value })} />
           </div>
           <div>
