@@ -478,9 +478,9 @@ const Stocks = () => {
             <TabsContent value="stocks" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" />Stocks par catégorie</CardTitle>
-                    <CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" />Stocks par catégorie</CardTitle>
+                <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" />Stocks par catégorie & entrepôt</CardTitle>
+                    <Button onClick={() => setIsStockDialogOpen(true)} size="sm" className="gap-2"><Plus className="h-4 w-4" />Ajouter stock</Button>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -506,14 +506,26 @@ const Stocks = () => {
                               </div>
                               <div className="text-right">
                                 <p className="text-xl font-bold">{Math.round(stock.available)} {stock.unit}</p>
+                                <p className="text-xs text-muted-foreground">Total: {Math.round(stock.quantity)} {stock.unit}</p>
                                 {stock.reserved > 0 && (
-                                  <p className="text-xs text-amber-600">({Math.round(stock.reserved)} réservées)</p>
+                                  <p className="text-xs font-medium text-amber-600">🔒 {Math.round(stock.reserved)} {stock.unit} sous commande</p>
                                 )}
                               </div>
                             </div>
                             <Progress value={(stock.available / maxQty) * 100} className="h-2" />
+                            {stock.reserved > 0 && (
+                              <div className="mt-1 flex items-center gap-2">
+                                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                                  <div 
+                                    className="h-full bg-amber-500 rounded-full" 
+                                    style={{ width: `${Math.min((stock.reserved / stock.quantity) * 100, 100)}%` }} 
+                                  />
+                                </div>
+                                <span className="text-xs text-amber-600 whitespace-nowrap">{Math.round((stock.reserved / stock.quantity) * 100)}% réservé</span>
+                              </div>
+                            )}
                             <div className="flex justify-between mt-1">
-                              <p className="text-xs text-muted-foreground">Seuil: {stock.reorderLevel ?? 50} {stock.unit} | Total: {Math.round(stock.quantity)} {stock.unit}</p>
+                              <p className="text-xs text-muted-foreground">Seuil: {stock.reorderLevel ?? 50} {stock.unit}</p>
                               <p className="text-xs text-muted-foreground">MAJ: {new Date(stock.lastUpdate).toLocaleDateString('fr-FR')}</p>
                             </div>
                           </div>
@@ -630,6 +642,10 @@ const Stocks = () => {
                       {warehouses.map((w) => {
                         // Extract GPS from notes if available
                         const gpsMatch = w.notes?.match(/Lat:\s*([\d.-]+),\s*Long:\s*([\d.-]+)/);
+                        // Get stock items for this warehouse
+                        const warehouseStock = stockByType.filter(s => s.warehouse === w.item_name);
+                        const warehouseTotalStock = warehouseStock.reduce((sum, s) => sum + s.quantity, 0);
+                        const warehouseTotalReserved = warehouseStock.reduce((sum, s) => sum + s.reserved, 0);
                         return (
                           <Card key={w.id} className="border">
                             <CardContent className="p-4">
@@ -645,6 +661,29 @@ const Stocks = () => {
                                   <span className="text-muted-foreground">Capacité</span>
                                   <span className="font-medium">{w.quantity_on_hand ?? 0} tonnes</span>
                                 </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Stock actuel</span>
+                                  <span className="font-medium">{Math.round(warehouseTotalStock)} tonnes</span>
+                                </div>
+                                {warehouseTotalReserved > 0 && (
+                                  <div className="flex justify-between">
+                                    <span className="text-amber-600">🔒 Sous commande</span>
+                                    <span className="font-medium text-amber-600">{Math.round(warehouseTotalReserved)} tonnes</span>
+                                  </div>
+                                )}
+                                {warehouseStock.length > 0 && (
+                                  <div className="pt-2 border-t space-y-1">
+                                    {warehouseStock.map(s => (
+                                      <div key={s.key} className="flex justify-between text-xs">
+                                        <span>{s.type}</span>
+                                        <span>
+                                          {Math.round(s.available)} dispo
+                                          {s.reserved > 0 && <span className="text-amber-600 ml-1">/ {Math.round(s.reserved)} réservé</span>}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                                 {w.storage_location && (
                                   <div className="flex items-center gap-1 text-muted-foreground">
                                     <MapPin className="h-3 w-3" />
