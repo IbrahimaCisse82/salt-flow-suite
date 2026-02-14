@@ -126,9 +126,10 @@ const Production = () => {
         }
         
         const quantity = Number(record.quantity || 0);
-        if (record.salt_type === 'sel_gros') acc[bassinName].selGros += quantity;
-        else if (record.salt_type === 'sel_fin') acc[bassinName].selFin += quantity;
-        else if (record.salt_type === 'sel_iode') acc[bassinName].selIode += quantity;
+        const type = (record.salt_type || '').toLowerCase();
+        if (type.includes('gros')) acc[bassinName].selGros += quantity;
+        else if (type.includes('fin')) acc[bassinName].selFin += quantity;
+        else if (type.includes('iod')) acc[bassinName].selIode += quantity;
         
         return acc;
       }, {});
