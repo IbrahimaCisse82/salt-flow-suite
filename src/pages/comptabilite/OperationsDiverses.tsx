@@ -126,7 +126,7 @@ const OperationsDiverses = () => {
           </Card>
 
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
-            <DialogContent className="sm:max-w-[700px]">
+            <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nouvelle écriture diverse</DialogTitle>
                 <DialogDescription>
