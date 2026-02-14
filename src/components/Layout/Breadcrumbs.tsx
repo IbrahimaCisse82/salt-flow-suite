@@ -31,6 +31,8 @@ const routeLabels: Record<string, string> = {
   "/admin/audit-logs": "Logs d'Audit",
   "/admin/settings": "Configuration",
   "/admin/email-templates": "Templates Emails",
+  "/comptabilite/grand-livre": "Grand Livre",
+  "/comptabilite/rapprochement": "Rapprochement",
 };
 
 export const Breadcrumbs = () => {
