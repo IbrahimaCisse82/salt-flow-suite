@@ -456,11 +456,9 @@ export const EmployeeManagement = ({ isManager }: EmployeeManagementProps) => {
                 <Label htmlFor="employee_number">Matricule</Label>
                 <Input
                   id="employee_number"
-                  value={formData.employee_number}
-                  onChange={(e) =>
-                    setFormData({ ...formData, employee_number: e.target.value })
-                  }
-                  placeholder="EMP001"
+                  value="Auto-généré (EMP####)"
+                  disabled
+                  className="bg-muted"
                 />
               </div>
             </div>
@@ -585,9 +583,8 @@ export const EmployeeManagement = ({ isManager }: EmployeeManagementProps) => {
                 <Input
                   id="edit_employee_number"
                   value={formData.employee_number}
-                  onChange={(e) =>
-                    setFormData({ ...formData, employee_number: e.target.value })
-                  }
+                  disabled
+                  className="bg-muted"
                 />
               </div>
             </div>
