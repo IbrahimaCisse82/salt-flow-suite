@@ -72,8 +72,9 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization')
     let tenantId: string | null = null
     let isAdmin = false
+    let isAuthenticatedUser = false
 
-    // If there's an authorization header, get the tenant_id and role from the creating user
+    // If there's an authorization header, try to get the actual authenticated user
     if (authHeader) {
       const userClient = createClient(supabaseUrl, serviceKey, {
         global: { headers: { Authorization: authHeader } }
@@ -81,6 +82,8 @@ Deno.serve(async (req) => {
       
       const { data: { user: creatingUser }, error: userError } = await userClient.auth.getUser()
       if (!userError && creatingUser) {
+        isAuthenticatedUser = true
+        
         // Get tenant_id from the creating user's profile
         const { data: profile } = await admin
           .from('profiles')
@@ -107,7 +110,8 @@ Deno.serve(async (req) => {
     }
 
     // Determine final role based on auth context
-    const isSelfSignup = !authHeader
+    // Self-signup = no authenticated user (anon key doesn't count)
+    const isSelfSignup = !isAuthenticatedUser
     let finalRole: string
     
     if (isSelfSignup) {
