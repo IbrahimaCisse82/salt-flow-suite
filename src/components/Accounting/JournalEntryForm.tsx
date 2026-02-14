@@ -167,13 +167,13 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
         .insert({
           tenant_id: profile.tenant_id,
           account_id: firstAccount.accountId,
-          transaction_type: 'divers' as const,
+          transaction_type: 'divers',
           journal_code: journalCode,
-          date,
+          transaction_date: date,
           amount: totalDebit,
           description: notes || 'Écriture diverse',
           reference: documentNumber,
-        } as any)
+        })
         .select()
         .single();
 
@@ -183,13 +183,14 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
       const journalEntries = lines
         .filter(line => line.accountId && (parseFloat(line.debit) > 0 || parseFloat(line.credit) > 0))
         .map(line => ({
-          tenant_id: profile.tenant_id,
           transaction_id: transaction.id,
           account_id: line.accountId,
+          account_number: line.accountNumber || null,
+          account_name: line.accountName || null,
           debit: parseFloat(line.debit) || 0,
           credit: parseFloat(line.credit) || 0,
           description: line.description || notes
-        } as any));
+        }));
 
       if (journalEntries.length === 0) {
         throw new Error('Au moins une ligne d\'écriture est requise');

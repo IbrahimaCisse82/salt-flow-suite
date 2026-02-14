@@ -114,21 +114,31 @@ export const useSales = () => {
     operation: 'update',
     getRecordId: (data: { id: string; [key: string]: any }) => data.id,
     mutationFn: async ({ id, ...updates }: any) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('sales')
         .update(updates)
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
       
       if (error) throw error;
-      return { success: true };
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
       toast({
         title: "Commande mise à jour",
         description: navigator.onLine
           ? "La commande a été mise à jour avec succès"
           : "La mise à jour sera synchronisée quand vous serez en ligne",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de mettre à jour la commande",
+        variant: "destructive"
       });
     }
   });
