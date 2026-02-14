@@ -174,45 +174,67 @@ export const useStockMovements = () => {
   const recordMovement = useMutation({
     mutationFn: async (movement: {
       item_name: string;
-      movement_type: 'entry' | 'exit' | 'transfer';
+      movement_type: 'transfer';
       quantity: number;
       date: string;
-      warehouse?: string;
+      source_warehouse: string;
+      destination_warehouse: string;
       notes?: string;
     }) => {
       if (!profile?.tenant_id) throw new Error("Tenant ID manquant");
 
-      // Find existing item or create new
-      const { data: existingItems } = await supabase
+      // Find source inventory item (salt type in source warehouse)
+      const { data: sourceItems } = await supabase
         .from('inventory_items')
         .select('id, quantity_on_hand')
         .eq('tenant_id', profile.tenant_id)
         .eq('item_name', movement.item_name)
+        .eq('item_category', 'production')
+        .eq('storage_location', movement.source_warehouse)
         .eq('is_active', true)
         .limit(1);
 
-      const currentQty = existingItems?.[0]?.quantity_on_hand || 0;
-      
-      // Transfer = exit from main stock (same as exit for stock calculation)
-      const isDeduction = movement.movement_type === 'exit' || movement.movement_type === 'transfer';
-      const newQty = isDeduction
-        ? Math.max(0, currentQty - movement.quantity) 
-        : currentQty + movement.quantity;
+      if (!sourceItems?.[0]) {
+        throw new Error(`Aucun stock de ${movement.item_name} dans ${movement.source_warehouse}`);
+      }
 
-      if (existingItems?.[0]) {
-        // Update existing
+      const sourceQty = sourceItems[0].quantity_on_hand || 0;
+      if (sourceQty < movement.quantity) {
+        throw new Error(`Stock insuffisant dans ${movement.source_warehouse}: ${sourceQty} tonnes disponibles`);
+      }
+
+      // Deduct from source
+      const { error: sourceError } = await supabase
+        .from('inventory_items')
+        .update({
+          quantity_on_hand: sourceQty - movement.quantity,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', sourceItems[0].id);
+
+      if (sourceError) throw sourceError;
+
+      // Find or create destination inventory item
+      const { data: destItems } = await supabase
+        .from('inventory_items')
+        .select('id, quantity_on_hand')
+        .eq('tenant_id', profile.tenant_id)
+        .eq('item_name', movement.item_name)
+        .eq('item_category', 'production')
+        .eq('storage_location', movement.destination_warehouse)
+        .eq('is_active', true)
+        .limit(1);
+
+      if (destItems?.[0]) {
         const { error } = await supabase
           .from('inventory_items')
           .update({
-            quantity_on_hand: newQty,
-            updated_at: new Date().toISOString(),
-            notes: movement.notes
+            quantity_on_hand: (destItems[0].quantity_on_hand || 0) + movement.quantity,
+            updated_at: new Date().toISOString()
           })
-          .eq('id', existingItems[0].id);
-
+          .eq('id', destItems[0].id);
         if (error) throw error;
       } else {
-        // Create new item
         const { error } = await supabase
           .from('inventory_items')
           .insert({
@@ -220,37 +242,11 @@ export const useStockMovements = () => {
             item_name: movement.item_name,
             item_category: 'production',
             quantity_on_hand: movement.quantity,
-            storage_location: movement.warehouse,
-            notes: movement.notes,
-            unit_of_measure: 'tonnes'
+            storage_location: movement.destination_warehouse,
+            unit_of_measure: 'tonnes',
+            notes: movement.notes
           });
-
         if (error) throw error;
-      }
-
-      // For transfers, also increase the warehouse stock
-      if (movement.movement_type === 'transfer' && movement.warehouse) {
-        const { data: warehouseItems } = await supabase
-          .from('inventory_items')
-          .select('id, quantity_on_hand')
-          .eq('tenant_id', profile.tenant_id)
-          .eq('item_name', movement.warehouse)
-          .eq('item_category', 'warehouse')
-          .eq('is_active', true)
-          .limit(1);
-
-        if (warehouseItems?.[0]) {
-          const warehouseQty = (warehouseItems[0].quantity_on_hand || 0) + movement.quantity;
-          const { error } = await supabase
-            .from('inventory_items')
-            .update({
-              quantity_on_hand: warehouseQty,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', warehouseItems[0].id);
-
-          if (error) throw error;
-        }
       }
 
       return { success: true };
@@ -258,8 +254,8 @@ export const useStockMovements = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
       queryClient.invalidateQueries({ queryKey: ['stock-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['stock-by-type'] });
-      toast.success("Mouvement de stock enregistré");
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
+      toast.success("Transfert de stock enregistré");
     },
     onError: (error: Error) => {
       toast.error(`Erreur: ${error.message}`);
