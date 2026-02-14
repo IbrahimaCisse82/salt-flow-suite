@@ -54,6 +54,7 @@ export const useSales = () => {
       delivery_date?: string;
       order_number?: string;
       customer_name?: string;
+      warehouse_id?: string;
     }) => {
       if (!profile?.tenant_id) {
         throw new Error("Tenant ID manquant");
@@ -79,10 +80,11 @@ export const useSales = () => {
           delivery_date: saleData.delivery_date,
           order_number: saleData.order_number,
           customer_name: saleData.customer_name,
+          warehouse_id: saleData.warehouse_id || null,
           can_be_delivered: false,
           delivered: false,
-          sale_status: 'draft', // Nouvelle vente = brouillon
-          stock_updated: false, // Sera mis à jour par trigger si confirmé
+          sale_status: 'draft',
+          stock_updated: false,
           tenant_id: profile.tenant_id,
           sale_date: new Date().toISOString().split('T')[0]
         }])

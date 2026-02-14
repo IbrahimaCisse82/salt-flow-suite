@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useClients } from "@/hooks/useClients";
 import { useSales } from "@/hooks/useSales";
 import { useAuth } from "@/contexts/AuthContext";
+import { useInventoryItems } from "@/hooks/useInventoryItems";
 import { Users, ShoppingCart, Truck, FileText } from "lucide-react";
 import {
   AlertDialog,
@@ -31,6 +32,8 @@ const Commercial = () => {
   const queryClient = useQueryClient();
   const { isOpen } = useSidebar();
   const { profile } = useAuth();
+  const { items: inventoryItems } = useInventoryItems();
+  const warehouses = inventoryItems.filter(item => item.item_category === 'warehouse');
 
   // Dialogs state
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
@@ -60,6 +63,7 @@ const Commercial = () => {
     quantity: "",
     unit_price: "",
     notes: "",
+    warehouse_id: "",
   });
 
   const [clientForm, setClientForm] = useState({
@@ -150,7 +154,7 @@ const Commercial = () => {
   };
 
   const handleCreateOrder = async () => {
-    if (!orderForm.client_id || !orderForm.quantity || !orderForm.unit_price) {
+    if (!orderForm.client_id || !orderForm.quantity || !orderForm.unit_price || !orderForm.warehouse_id) {
       toast({ title: "Erreur", description: "Remplissez tous les champs obligatoires", variant: "destructive" });
       return;
     }
@@ -162,10 +166,11 @@ const Commercial = () => {
         unit_price: parseFloat(orderForm.unit_price),
         notes: orderForm.notes,
         payment_status: "pending",
+        warehouse_id: orderForm.warehouse_id,
       });
-      toast({ title: "Commande créée", description: "La commande a été enregistrée" });
+      toast({ title: "Commande créée", description: "La commande a été enregistrée et le stock réservé" });
       setIsNewOrderDialogOpen(false);
-      setOrderForm({ client_id: "", salt_type: "gros", quantity: "", unit_price: "", notes: "" });
+      setOrderForm({ client_id: "", salt_type: "gros", quantity: "", unit_price: "", notes: "", warehouse_id: "" });
     } catch (error) {
       console.error("Erreur création commande:", error);
     }
@@ -250,6 +255,7 @@ const Commercial = () => {
             isOpen={isNewOrderDialogOpen}
             onOpenChange={setIsNewOrderDialogOpen}
             clients={clients}
+            warehouses={warehouses}
             form={orderForm}
             onFormChange={setOrderForm}
             onSubmit={handleCreateOrder}
