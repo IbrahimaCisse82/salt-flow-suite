@@ -945,9 +945,9 @@ const Rapports = () => {
                       
                       const amount = Number(transaction.amount || 0);
                       
-                      if (['vente_locale', 'vente_export'].includes(transaction.transaction_type)) {
+                      if (['vente_locale', 'vente_export', 'recette'].includes(transaction.transaction_type)) {
                         acc[monthKey].entrees += amount;
-                      } else if (transaction.transaction_type === 'depense') {
+                      } else if (['depense', 'achat', 'salaire'].includes(transaction.transaction_type)) {
                         acc[monthKey].sorties += amount;
                       }
                       
