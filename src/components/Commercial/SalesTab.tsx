@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { generateInvoicePdf } from "@/utils/invoicePdf";
+import type { InvoiceStyle } from "@/components/Settings/InvoiceTemplateSelector";
 
 const formatNumber = (value?: number | null) =>
   typeof value === "number" && !isNaN(value) ? value.toLocaleString() : "0";
@@ -182,9 +183,10 @@ interface InvoicesTabProps {
   onEditInvoice?: (sale: any) => void;
   onCancelInvoice?: (id: string) => void;
   tenant?: any;
+  invoiceStyle?: InvoiceStyle;
 }
 
-export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvoice, onCancelInvoice, tenant }: InvoicesTabProps) => {
+export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvoice, onCancelInvoice, tenant, invoiceStyle = "classic" }: InvoicesTabProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const [cancelId, setCancelId] = useState<string | null>(null);
 
@@ -218,7 +220,8 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
         ninea: tenant?.ninea || undefined,
         rccm: tenant?.rccm || undefined,
         managerName: tenant?.manager_name || undefined,
-      }
+      },
+      invoiceStyle
     );
   };
 

@@ -31,14 +31,33 @@ interface CompanyInfo {
   capital?: string;
 }
 
-const GREEN = [100, 160, 60] as const;
+import type { InvoiceStyle } from "@/components/Settings/InvoiceTemplateSelector";
+
 const DARK = [50, 50, 50] as const;
 const GRAY = [120, 120, 120] as const;
 
 // Format numbers with regular spaces (not non-breaking spaces that jsPDF renders badly)
 const fmt = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
-export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) => {
+const hexToRgb = (hex: string): [number, number, number] => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return [r, g, b];
+};
+
+const STYLE_COLORS: Record<InvoiceStyle, { primary: string; secondary: string; accent: string }> = {
+  classic: { primary: "#64A03C", secondary: "#F5FAF0", accent: "#4A7A2E" },
+  modern: { primary: "#2563EB", secondary: "#EFF6FF", accent: "#1D4ED8" },
+  minimal: { primary: "#18181B", secondary: "#F4F4F5", accent: "#3F3F46" },
+  elegant: { primary: "#B8860B", secondary: "#FFF8E7", accent: "#8B6914" },
+};
+
+export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo, style: InvoiceStyle = "classic") => {
+  const colors = STYLE_COLORS[style] || STYLE_COLORS.classic;
+  const PRIMARY: [number, number, number] = hexToRgb(colors.primary);
+  const SECONDARY: [number, number, number] = hexToRgb(colors.secondary);
+  const ACCENT: [number, number, number] = hexToRgb(colors.accent);
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -46,22 +65,19 @@ export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) =
   // ============================
   // HEADER - Logo + Facture N°
   // ============================
-  // Logo placeholder (top-left)
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...DARK);
   doc.text(company.name || "LOGO", 15, 20);
 
-  // Facture N° (top-right, green)
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(...GREEN);
+  doc.setTextColor(...PRIMARY);
   doc.text(`Facture N°`, pageWidth - 15, 20, { align: "right" });
 
   doc.setFontSize(14);
   doc.text(invoice.invoiceNumber, pageWidth - 15, 28, { align: "right" });
 
-  // City + date
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRAY);
@@ -95,7 +111,7 @@ export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) =
   const clientBoxW = pageWidth - clientBoxX - 15;
   const clientBoxH = 35;
 
-  doc.setDrawColor(...GREEN);
+  doc.setDrawColor(...PRIMARY);
   doc.setLineWidth(0.5);
   doc.rect(clientBoxX, clientBoxY, clientBoxW, clientBoxH);
 
@@ -135,7 +151,7 @@ export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) =
         : []),
     ],
     headStyles: {
-      fillColor: [...GREEN],
+      fillColor: PRIMARY,
       textColor: [255, 255, 255],
       fontStyle: "bold",
       fontSize: 9,
@@ -151,7 +167,7 @@ export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) =
       4: { halign: "right", fontStyle: "bold" },
     },
     alternateRowStyles: {
-      fillColor: [245, 250, 240],
+      fillColor: SECONDARY,
     },
     margin: { left: 15, right: 15 },
     styles: {
@@ -174,20 +190,18 @@ export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) =
 
   let totalY = tableEndY;
 
-  // Total HT
   doc.text("Total HT", totalsX, totalY);
   doc.text(`${fmt(subtotal)} FCFA`, totalsValX, totalY, { align: "right" });
   totalY += 7;
 
-  // Remise line
   if (discount > 0) {
     doc.text("Remise", totalsX, totalY);
     doc.text(`-${fmt(discount)} FCFA`, totalsValX, totalY, { align: "right" });
     totalY += 7;
   }
 
-  // Total TTC (bold, green background)
-  doc.setFillColor(...GREEN);
+  // Total TTC
+  doc.setFillColor(...ACCENT);
   doc.roundedRect(totalsX - 3, totalY - 5, pageWidth - totalsX - 12, 12, 2, 2, "F");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
@@ -196,7 +210,7 @@ export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) =
   doc.text(`${fmt(invoice.totalAmount)} FCFA`, totalsValX, totalY + 2, { align: "right" });
 
   // ============================
-  // PAYMENT CONDITIONS (left) + SIGNATURE (right)
+  // PAYMENT CONDITIONS + SIGNATURE
   // ============================
   const condY = totalY + 25;
 
@@ -219,13 +233,12 @@ export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) =
     doc.text(`Notes: ${invoice.notes}`, 15, condY + 14);
   }
 
-  // Signature box (right)
   doc.setTextColor(...DARK);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.text("Signature :", totalsX, condY);
 
-  doc.setDrawColor(...GREEN);
+  doc.setDrawColor(...PRIMARY);
   doc.setLineWidth(0.3);
   doc.rect(totalsX, condY + 4, pageWidth - totalsX - 15, 25);
 
@@ -234,8 +247,7 @@ export const generateInvoicePdf = (invoice: InvoiceData, company: CompanyInfo) =
   // ============================
   const footerY = pageHeight - 15;
 
-  // Green line separator
-  doc.setDrawColor(...GREEN);
+  doc.setDrawColor(...PRIMARY);
   doc.setLineWidth(1);
   doc.line(15, footerY - 8, pageWidth - 15, footerY - 8);
 

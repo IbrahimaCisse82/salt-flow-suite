@@ -47,6 +47,22 @@ const Commercial = () => {
     enabled: !!tenant?.id,
   });
 
+  // Fetch tenant invoice style preference
+  const { data: invoiceStyleSetting } = useQuery({
+    queryKey: ['tenant-invoice-style', tenant?.id],
+    queryFn: async () => {
+      if (!tenant?.id) return null;
+      const { data } = await supabase
+        .from('admin_settings')
+        .select('setting_value')
+        .eq('setting_key', `invoice_style_${tenant.id}`)
+        .maybeSingle();
+      return data?.setting_value as string | null;
+    },
+    enabled: !!tenant?.id,
+  });
+  const invoiceStyle = (invoiceStyleSetting as any) || "classic";
+
   // Dialogs state
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
   const [isClientDetailsDialogOpen, setIsClientDetailsDialogOpen] = useState(false);
@@ -340,6 +356,7 @@ const Commercial = () => {
                 isUpdating={isUpdating}
                 onCancelInvoice={handleCancelSale}
                 tenant={tenantFull}
+                invoiceStyle={invoiceStyle}
               />
             </TabsContent>
 

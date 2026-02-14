@@ -18,6 +18,7 @@ import { PushNotificationSettings } from "@/components/Settings/PushNotification
 import { NotificationHistoryWidget } from "@/components/Settings/NotificationHistoryWidget";
 import { ChartOfAccountsTable } from "@/components/Accounting/ChartOfAccountsTable";
 import { ExpenseTypesReadOnly } from "@/components/Accounting/ExpenseTypesReadOnly";
+import { InvoiceTemplateSelector } from "@/components/Settings/InvoiceTemplateSelector";
 import { FormSkeleton } from "@/components/LoadingSkeletons/FormSkeleton";
 import { 
   Settings,
@@ -29,7 +30,8 @@ import {
   Loader2,
   Download,
   Receipt,
-  BookOpen
+  BookOpen,
+  FileText
 } from "lucide-react";
 
 const Parametres = () => {
@@ -474,14 +476,18 @@ const Parametres = () => {
 
           {/* Onglets principaux */}
           <Tabs defaultValue="general" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="general" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
                 Général
               </TabsTrigger>
+              <TabsTrigger value="modele" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Modèle
+              </TabsTrigger>
               <TabsTrigger value="expense-types" className="flex items-center gap-2">
                 <Receipt className="h-4 w-4" />
-                Types de dépenses
+                Dépenses
               </TabsTrigger>
               <TabsTrigger value="chart-of-accounts" className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4" />
@@ -905,6 +911,11 @@ const Parametres = () => {
               </CardContent>
             </Card>
           )}
+            </TabsContent>
+
+            {/* Onglet Modèle de facture */}
+            <TabsContent value="modele" className="space-y-4">
+              <InvoiceTemplateSelector />
             </TabsContent>
 
             {/* Onglet Types de dépenses */}
