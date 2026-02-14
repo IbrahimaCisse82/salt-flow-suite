@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   LayoutDashboard,
   Droplets,
@@ -20,6 +20,10 @@ import {
   PanelLeftClose,
   Activity,
   Mail,
+  ChevronDown,
+  BookOpenCheck,
+  Landmark,
+  FilePlus2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -33,6 +37,7 @@ interface NavItem {
   icon: React.ElementType;
   label: string;
   href: string;
+  children?: NavItem[];
 }
 
 const adminNavItems: NavItem[] = [
@@ -57,7 +62,11 @@ const salinesNavItems: NavItem[] = [
   { icon: Users, label: "Équipes", href: "/equipes" },
   
   { icon: TrendingUp, label: "Commercial", href: "/commercial" },
-  { icon: Wallet, label: "Comptabilité", href: "/comptabilite" },
+  { icon: Wallet, label: "Comptabilité", href: "/comptabilite", children: [
+    { icon: BookOpenCheck, label: "Grand Livre", href: "/comptabilite/grand-livre" },
+    { icon: Landmark, label: "Rapprochement", href: "/comptabilite/rapprochement" },
+    { icon: FilePlus2, label: "Opérations Diverses", href: "/comptabilite/operations-diverses" },
+  ]},
   { icon: ShoppingCart, label: "Achats", href: "/achats" },
   { icon: FileText, label: "Rapports", href: "/rapports" },
   { icon: UserCog, label: "Utilisateurs", href: "/utilisateurs" },
@@ -70,6 +79,7 @@ const SidebarComponent = () => {
   const { isOpen, toggle } = useSidebar();
   const { profile } = useAuth();
   const { activeCampagne } = useCampagnes();
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   // OPTIMIZATION: Memoize computed values to avoid recalculation
   const userRole = useMemo(() => 
@@ -87,6 +97,19 @@ const SidebarComponent = () => {
     [navItems, userRole]
   );
 
+  // Auto-expand parent if a child route is active
+  const isChildActive = (item: NavItem) => 
+    item.children?.some(child => location.pathname === child.href) ?? false;
+
+  const toggleExpand = (href: string) => {
+    setExpandedItems(prev => 
+      prev.includes(href) ? prev.filter(h => h !== href) : [...prev, href]
+    );
+  };
+
+  const isExpanded = (item: NavItem) => 
+    expandedItems.includes(item.href) || isChildActive(item);
+
   return (
     <aside className={cn(
       "hidden md:flex flex-col border-r bg-card fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-40 transition-all duration-300",
@@ -95,21 +118,60 @@ const SidebarComponent = () => {
       <nav className="flex-1 space-y-1 p-2">
         {visibleNavItems.map((item) => {
           const isActive = location.pathname === item.href;
+          const hasChildren = item.children && item.children.length > 0;
+          const expanded = hasChildren && isExpanded(item);
+
           return (
-            <Button
-              key={item.href}
-              variant={isActive ? "secondary" : "ghost"}
-              className={cn(
-                "w-full gap-3",
-                isActive && "bg-secondary/80",
-                isOpen ? "justify-start" : "justify-center px-0"
+            <div key={item.href}>
+              <Button
+                variant={isActive || isChildActive(item) ? "secondary" : "ghost"}
+                className={cn(
+                  "w-full gap-3",
+                  (isActive || isChildActive(item)) && "bg-secondary/80",
+                  isOpen ? "justify-start" : "justify-center px-0"
+                )}
+                onClick={() => {
+                  if (hasChildren && isOpen) {
+                    toggleExpand(item.href);
+                  }
+                  navigate(item.href);
+                }}
+                title={!isOpen ? item.label : undefined}
+              >
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                {isOpen && <span className="flex-1 text-left">{item.label}</span>}
+                {isOpen && hasChildren && (
+                  <ChevronDown className={cn(
+                    "h-4 w-4 transition-transform",
+                    expanded && "rotate-180"
+                  )} />
+                )}
+              </Button>
+
+              {/* Sub-items */}
+              {isOpen && hasChildren && expanded && (
+                <div className="ml-4 mt-1 space-y-1 border-l border-border pl-2">
+                  {item.children!.map((child) => {
+                    const isChildRouteActive = location.pathname === child.href;
+                    return (
+                      <Button
+                        key={child.href}
+                        variant={isChildRouteActive ? "secondary" : "ghost"}
+                        size="sm"
+                        className={cn(
+                          "w-full justify-start gap-2 text-sm",
+                          isChildRouteActive && "bg-secondary/80"
+                        )}
+                        onClick={() => navigate(child.href)}
+                      >
+                        <child.icon className="h-4 w-4 flex-shrink-0" />
+                        <span>{child.label}</span>
+                      </Button>
+                    );
+                  })}
+                </div>
               )}
-              onClick={() => navigate(item.href)}
-              title={!isOpen ? item.label : undefined}
-            >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              {isOpen && <span>{item.label}</span>}
-            </Button>
+            </div>
           );
         })}
       </nav>
