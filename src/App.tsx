@@ -24,6 +24,9 @@ const Commercial = lazy(() => import("./pages/Commercial"));
 const Rapports = lazy(() => import("./pages/Rapports"));
 const Parametres = lazy(() => import("./pages/Parametres"));
 const Comptabilite = lazy(() => import("./pages/Comptabilite"));
+const ComptaGrandLivre = lazy(() => import("./pages/comptabilite/GrandLivre"));
+const ComptaRapprochement = lazy(() => import("./pages/comptabilite/Rapprochement"));
+const ComptaOperationsDiverses = lazy(() => import("./pages/comptabilite/OperationsDiverses"));
 const Achats = lazy(() => import("./pages/Achats"));
 const GestionUtilisateurs = lazy(() => import("./pages/GestionUtilisateurs"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
@@ -90,6 +93,9 @@ const App = () => (
               <Route path="/rapports" element={<RoleProtectedRoute><Rapports /></RoleProtectedRoute>} />
               <Route path="/parametres" element={<RoleProtectedRoute><Parametres /></RoleProtectedRoute>} />
               <Route path="/comptabilite" element={<RoleProtectedRoute><Comptabilite /></RoleProtectedRoute>} />
+              <Route path="/comptabilite/grand-livre" element={<RoleProtectedRoute><ComptaGrandLivre /></RoleProtectedRoute>} />
+              <Route path="/comptabilite/rapprochement" element={<RoleProtectedRoute><ComptaRapprochement /></RoleProtectedRoute>} />
+              <Route path="/comptabilite/operations-diverses" element={<RoleProtectedRoute><ComptaOperationsDiverses /></RoleProtectedRoute>} />
               <Route path="/achats" element={<RoleProtectedRoute><Achats /></RoleProtectedRoute>} />
               <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
               <Route path="/gestion-utilisateurs" element={<Navigate to="/utilisateurs" replace />} />
