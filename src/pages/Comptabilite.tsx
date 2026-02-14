@@ -403,6 +403,23 @@ const Comptabilite = () => {
 
       if (txError) throw txError;
 
+      // 4b. Mettre à jour le solde du compte (banque/caisse)
+      const { data: currentAccount } = await supabase
+        .from('accounts')
+        .select('balance')
+        .eq('id', account_id)
+        .single();
+      
+      const { error: balanceError } = await supabase
+        .from('accounts')
+        .update({ 
+          balance: (Number(currentAccount?.balance) || 0) + Number(amount), 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', account_id);
+      
+      if (balanceError) console.warn('Erreur mise à jour solde:', balanceError);
+
       // 5. Trouver le compte de produits approprié (701 pour local, 702 pour export)
       // Utiliser ilike avec % pour trouver un compte commençant par 701 ou 702
       const productAccountNumber = clientType === 'local' ? '701' : '702';
