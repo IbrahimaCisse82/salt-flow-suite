@@ -1,11 +1,19 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { MapPin, Locate, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Fix default marker icons for Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
 interface MapPickerProps {
   onLocationChange: (lat: number, lng: number, address?: string) => void;
@@ -13,15 +21,14 @@ interface MapPickerProps {
   initialLng?: number;
 }
 
-const MapPicker: React.FC<MapPickerProps> = ({ 
-  onLocationChange, 
-  initialLat = 14.7167, 
-  initialLng = -17.4677 
+const MapPicker: React.FC<MapPickerProps> = ({
+  onLocationChange,
+  initialLat = 14.7167,
+  initialLng = -17.4677,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
   const [coordinates, setCoordinates] = useState({ lat: initialLat, lng: initialLng });
   const [manualLat, setManualLat] = useState(initialLat.toFixed(6));
   const [manualLng, setManualLng] = useState(initialLng.toFixed(6));
@@ -30,45 +37,46 @@ const MapPicker: React.FC<MapPickerProps> = ({
   const [geoError, setGeoError] = useState<string | null>(null);
 
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
-    if (!mapboxToken) return;
     try {
       const res = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}&language=fr&limit=1`
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=fr`
       );
       const data = await res.json();
-      if (data.features?.length > 0) {
-        const addr = data.features[0].place_name;
-        setAddress(addr);
-        return addr;
+      if (data.display_name) {
+        setAddress(data.display_name);
+        return data.display_name;
       }
     } catch {
-      // Silently fail reverse geocoding
+      // Silently fail
     }
     return undefined;
-  }, [mapboxToken]);
+  }, []);
 
-  const updatePosition = useCallback((lat: number, lng: number) => {
-    setCoordinates({ lat, lng });
-    setManualLat(lat.toFixed(6));
-    setManualLng(lng.toFixed(6));
-    setGeoError(null);
+  const updatePosition = useCallback(
+    (lat: number, lng: number) => {
+      setCoordinates({ lat, lng });
+      setManualLat(lat.toFixed(6));
+      setManualLng(lng.toFixed(6));
+      setGeoError(null);
 
-    if (marker.current) {
-      marker.current.setLngLat([lng, lat]);
-    }
-    if (map.current) {
-      map.current.flyTo({ center: [lng, lat], zoom: 14 });
-    }
+      if (markerRef.current) {
+        markerRef.current.setLatLng([lat, lng]);
+      }
+      if (mapRef.current) {
+        mapRef.current.flyTo([lat, lng], 15);
+      }
 
-    reverseGeocode(lat, lng).then((addr) => {
-      onLocationChange(lat, lng, addr);
-    });
-  }, [onLocationChange, reverseGeocode]);
+      reverseGeocode(lat, lng).then((addr) => {
+        onLocationChange(lat, lng, addr);
+      });
+    },
+    [onLocationChange, reverseGeocode]
+  );
 
   const handleDetectPosition = useCallback(() => {
     if (!navigator.geolocation) {
-      setGeoError('La géolocalisation n\'est pas supportée par votre navigateur.');
-      toast.error('Géolocalisation non supportée par votre navigateur.');
+      setGeoError("La géolocalisation n'est pas supportée par votre navigateur.");
+      toast.error('Géolocalisation non supportée.');
       return;
     }
 
@@ -86,7 +94,7 @@ const MapPicker: React.FC<MapPickerProps> = ({
         let msg: string;
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            msg = 'Accès à la localisation refusé. Veuillez autoriser l\'accès dans les paramètres de votre navigateur.';
+            msg = "Accès à la localisation refusé. Veuillez autoriser l'accès dans les paramètres.";
             break;
           case error.POSITION_UNAVAILABLE:
             msg = 'Position GPS indisponible. Vérifiez que votre GPS est activé.';
@@ -108,8 +116,7 @@ const MapPicker: React.FC<MapPickerProps> = ({
     setManualLat(value);
     const num = parseFloat(value);
     if (!isNaN(num) && num >= -90 && num <= 90) {
-      const lng = coordinates.lng;
-      updatePosition(num, lng);
+      updatePosition(num, coordinates.lng);
     }
   };
 
@@ -117,61 +124,55 @@ const MapPicker: React.FC<MapPickerProps> = ({
     setManualLng(value);
     const num = parseFloat(value);
     if (!isNaN(num) && num >= -180 && num <= 180) {
-      const lat = coordinates.lat;
-      updatePosition(lat, num);
+      updatePosition(coordinates.lat, num);
     }
   };
 
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken) return;
+    if (!mapContainer.current || mapRef.current) return;
 
-    mapboxgl.accessToken = mapboxToken;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/satellite-streets-v12',
-      center: [initialLng, initialLat],
-      zoom: 12,
+    const map = L.map(mapContainer.current).setView([initialLat, initialLng], 12);
+    mapRef.current = map;
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(map);
+
+    const marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(map);
+    markerRef.current = marker;
+
+    marker.on('dragend', () => {
+      const pos = marker.getLatLng();
+      setCoordinates({ lat: pos.lat, lng: pos.lng });
+      setManualLat(pos.lat.toFixed(6));
+      setManualLng(pos.lng.toFixed(6));
+      reverseGeocode(pos.lat, pos.lng).then((addr) => {
+        onLocationChange(pos.lat, pos.lng, addr);
+      });
     });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    marker.current = new mapboxgl.Marker({ draggable: true, color: '#0ea5e9' })
-      .setLngLat([initialLng, initialLat])
-      .addTo(map.current);
-
-    marker.current.on('dragend', () => {
-      if (marker.current) {
-        const lngLat = marker.current.getLngLat();
-        setCoordinates({ lat: lngLat.lat, lng: lngLat.lng });
-        setManualLat(lngLat.lat.toFixed(6));
-        setManualLng(lngLat.lng.toFixed(6));
-        reverseGeocode(lngLat.lat, lngLat.lng).then((addr) => {
-          onLocationChange(lngLat.lat, lngLat.lng, addr);
-        });
-      }
+    map.on('click', (e: L.LeafletMouseEvent) => {
+      marker.setLatLng(e.latlng);
+      setCoordinates({ lat: e.latlng.lat, lng: e.latlng.lng });
+      setManualLat(e.latlng.lat.toFixed(6));
+      setManualLng(e.latlng.lng.toFixed(6));
+      reverseGeocode(e.latlng.lat, e.latlng.lng).then((addr) => {
+        onLocationChange(e.latlng.lat, e.latlng.lng, addr);
+      });
     });
 
-    map.current.on('click', (e) => {
-      if (marker.current) {
-        marker.current.setLngLat(e.lngLat);
-        setCoordinates({ lat: e.lngLat.lat, lng: e.lngLat.lng });
-        setManualLat(e.lngLat.lat.toFixed(6));
-        setManualLng(e.lngLat.lng.toFixed(6));
-        reverseGeocode(e.lngLat.lat, e.lngLat.lng).then((addr) => {
-          onLocationChange(e.lngLat.lat, e.lngLat.lng, addr);
-        });
-      }
-    });
+    // Force a resize after render to fix grey tiles
+    setTimeout(() => map.invalidateSize(), 200);
 
     return () => {
-      map.current?.remove();
+      map.remove();
+      mapRef.current = null;
     };
-  }, [mapboxToken, initialLat, initialLng]);
+  }, [initialLat, initialLng]);
 
   return (
     <div className="space-y-3">
-      {/* Detect position button */}
       <Button
         type="button"
         variant="outline"
@@ -187,7 +188,6 @@ const MapPicker: React.FC<MapPickerProps> = ({
         {isLocating ? 'Détection en cours...' : 'Détecter ma position'}
       </Button>
 
-      {/* Error message */}
       {geoError && (
         <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-2.5">
           <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
@@ -195,10 +195,9 @@ const MapPicker: React.FC<MapPickerProps> = ({
         </div>
       )}
 
-      {/* Map */}
       <div className="relative h-[300px] w-full rounded-lg overflow-hidden border">
-        <div ref={mapContainer} className="absolute inset-0" />
-        <div className="absolute top-3 left-3 bg-background/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg border">
+        <div ref={mapContainer} className="absolute inset-0 z-0" />
+        <div className="absolute top-3 left-3 z-[1000] bg-background/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg border">
           <p className="text-xs font-medium flex items-center gap-2">
             <MapPin className="h-3 w-3 text-primary" />
             Cliquez ou glissez le marqueur
@@ -206,23 +205,22 @@ const MapPicker: React.FC<MapPickerProps> = ({
         </div>
       </div>
 
-      {/* Address display */}
       {address && (
         <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-2.5 border">
-          <span className="font-medium">Adresse : </span>{address}
+          <span className="font-medium">Adresse : </span>
+          {address}
         </div>
       )}
 
-      {/* Manual coordinate inputs */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label className="text-xs">Latitude</Label>
-          <Input 
-            type="number" 
+          <Input
+            type="number"
             step="0.000001"
             min="-90"
             max="90"
-            value={manualLat} 
+            value={manualLat}
             onChange={(e) => handleManualLatChange(e.target.value)}
             className="text-sm"
             placeholder="Ex: 14.716700"
@@ -230,12 +228,12 @@ const MapPicker: React.FC<MapPickerProps> = ({
         </div>
         <div className="space-y-1">
           <Label className="text-xs">Longitude</Label>
-          <Input 
-            type="number" 
+          <Input
+            type="number"
             step="0.000001"
             min="-180"
             max="180"
-            value={manualLng} 
+            value={manualLng}
             onChange={(e) => handleManualLngChange(e.target.value)}
             className="text-sm"
             placeholder="Ex: -17.467700"
