@@ -36,72 +36,52 @@ export const useAccountingLedger = (startDate?: string, endDate?: string) => {
     queryFn: async () => {
       if (!tenant_id) return [];
 
-      let query = supabase
-        .from("journal_entries")
-        .select(`
-          id,
-          transaction_id,
-          account_number,
-          account_name,
-          debit,
-          credit,
-          description,
-          transactions!inner (
-            transaction_date,
-            transaction_type,
-            reference,
-            tenant_id
-          )
-        `)
-        .order("created_at", { ascending: false });
+      // Fetch transactions for the tenant first, then get their journal entries
+      let txQuery = supabase
+        .from("transactions")
+        .select("id, transaction_date, transaction_type, reference, tenant_id")
+        .eq("tenant_id", tenant_id);
 
-      const { data, error } = await query;
+      if (startDate) txQuery = txQuery.gte("transaction_date", startDate);
+      if (endDate) txQuery = txQuery.lte("transaction_date", endDate);
 
-      if (error) {
-        console.error("Error loading journal entries:", error);
+      const { data: transactions, error: txError } = await txQuery;
+      if (txError || !transactions?.length) {
+        if (txError) console.error("Error loading transactions:", txError);
         return [];
       }
 
-      // Transformer les données avec type assertion
-      type JournalEntryRaw = {
-        id: string;
-        transaction_id: string | null;
-        account_number: string | null;
-        account_name: string | null;
-        debit: number | null;
-        credit: number | null;
-        description: string | null;
-        transactions: {
-          transaction_date: string | null;
-          transaction_type: string | null;
-          reference: string | null;
-          tenant_id: string;
-        } | null;
-      };
+      const txIds = transactions.map((t) => t.id);
+      const txMap = new Map(transactions.map((t) => [t.id, t]));
 
-      return ((data || []) as JournalEntryRaw[])
-        .filter((entry) => entry.transactions?.tenant_id === tenant_id)
-        .filter((entry) => {
-          if (!startDate && !endDate) return true;
-          const txDate = entry.transactions?.transaction_date;
-          if (!txDate) return true;
-          if (startDate && txDate < startDate) return false;
-          if (endDate && txDate > endDate) return false;
-          return true;
-        })
-        .map((entry) => ({
+      // Fetch journal entries for those transactions
+      const { data: entries, error: jeError } = await supabase
+        .from("journal_entries")
+        .select("id, transaction_id, account_number, account_name, debit, credit, description")
+        .in("transaction_id", txIds)
+        .order("created_at", { ascending: false });
+
+      if (jeError) {
+        console.error("Error loading journal entries:", jeError);
+        return [];
+      }
+
+      return (entries || []).map((entry) => {
+        const tx = txMap.get(entry.transaction_id!);
+        return {
           id: entry.id,
           transaction_id: entry.transaction_id,
-          transaction_date: entry.transactions?.transaction_date,
-          transaction_type: entry.transactions?.transaction_type,
+          transaction_date: tx?.transaction_date,
+          transaction_type: tx?.transaction_type,
           account_number: entry.account_number,
           account_name: entry.account_name,
           debit: entry.debit || 0,
           credit: entry.credit || 0,
           description: entry.description,
-          reference: entry.transactions?.reference,
-          tenant_id: entry.transactions?.tenant_id,
-        })) as JournalEntryWithTransaction[];
+          reference: tx?.reference,
+          tenant_id: tx?.tenant_id,
+        };
+      }) as JournalEntryWithTransaction[];
     },
     enabled: !!tenant_id,
   });
