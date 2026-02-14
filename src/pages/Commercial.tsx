@@ -27,6 +27,7 @@ import { ClientDetailsDialog } from "@/components/Commercial/ClientDetailsDialog
 import { ClientFormDialog } from "@/components/Commercial/ClientFormDialog";
 import { OrderFormDialog } from "@/components/Commercial/OrderFormDialog";
 import { OrdersTab, InvoicesTab, DeliveryTab } from "@/components/Commercial/SalesTab";
+import { CommercialStats } from "@/components/Commercial/CommercialStats";
 
 const Commercial = () => {
   const { toast } = useToast();
@@ -302,6 +303,13 @@ const Commercial = () => {
             onFormChange={setOrderForm}
             onSubmit={handleCreateOrder}
             isCreating={isCreating}
+          />
+
+          {/* KPI Widgets */}
+          <CommercialStats
+            clients={clients}
+            sales={sales}
+            isLoading={clientsLoading || salesLoading}
           />
 
           {/* Tabs */}
