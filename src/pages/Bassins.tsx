@@ -72,8 +72,8 @@ const Bassins = () => {
       toast({ title: "Bassin créé", description: "Bassin créé avec succès !" });
       setShowAddDialog(false);
       setNewBassinData({ name: "", code: "", area: undefined, location: "", status: "repos", bassin_type: undefined });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
+    } catch (error: any) {
+      const message = error?.message || (typeof error === 'string' ? error : "Impossible de créer le bassin");
       toast({ title: "Erreur", description: message, variant: "destructive" });
     }
   };
