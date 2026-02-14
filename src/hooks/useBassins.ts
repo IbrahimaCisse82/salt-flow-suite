@@ -31,6 +31,7 @@ export const useBassins = () => {
       const { data, error } = await supabase
         .from('bassins')
         .select('*')
+        .eq('tenant_id', profile.tenant_id)
         .is('deleted_at', null)
         .order('name');
       

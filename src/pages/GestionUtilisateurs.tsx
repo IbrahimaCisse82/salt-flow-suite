@@ -42,22 +42,22 @@ const roleLabels: Record<string, { label: string; description: string; color: st
   gerant: {
     label: "Gérant",
     description: "Accès complet à toutes les fonctionnalités",
-    color: "bg-purple-500"
+    color: "bg-primary"
   },
   commercial: {
     label: "Commercial",
     description: "Gestion des ventes, clients et commandes",
-    color: "bg-blue-500"
+    color: "bg-accent"
   },
   production: {
     label: "Production",
     description: "Gestion des bassins, récoltes et production",
-    color: "bg-green-500"
+    color: "bg-secondary"
   },
   comptable: {
     label: "Comptable",
     description: "Gestion financière et comptabilité",
-    color: "bg-orange-500"
+    color: "bg-muted-foreground"
   }
 };
 
