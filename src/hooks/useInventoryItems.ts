@@ -249,6 +249,21 @@ export const useStockMovements = () => {
         if (error) throw error;
       }
 
+      // Log the transfer in stock_movements
+      await supabase.from('stock_movements').insert({
+        tenant_id: profile.tenant_id,
+        inventory_item_id: sourceItems[0].id,
+        item_name: movement.item_name,
+        movement_type: 'transfer',
+        quantity: movement.quantity,
+        previous_quantity: sourceQty,
+        new_quantity: sourceQty - movement.quantity,
+        unit_of_measure: 'tonnes',
+        reference_type: 'transfer',
+        warehouse: `${movement.source_warehouse} → ${movement.destination_warehouse}`,
+        notes: movement.notes || null,
+      });
+
       return { success: true };
     },
     onSuccess: () => {
