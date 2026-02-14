@@ -3072,6 +3072,17 @@ export type Database = {
       }
     }
     Functions: {
+      allocate_result: {
+        Args: {
+          p_autres_reserves?: number
+          p_dividendes?: number
+          p_fiscal_year_end: string
+          p_report_nouveau?: number
+          p_reserve_legale?: number
+          p_tenant_id: string
+        }
+        Returns: string
+      }
       calculate_cost_per_ton: {
         Args: {
           p_campagne_id?: string
@@ -3086,6 +3097,14 @@ export type Database = {
           p_current_run?: string
           p_frequency: string
           p_schedule_time: string
+        }
+        Returns: string
+      }
+      close_fiscal_year: {
+        Args: {
+          p_description?: string
+          p_fiscal_year_end: string
+          p_tenant_id: string
         }
         Returns: string
       }
