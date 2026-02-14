@@ -40,7 +40,7 @@ export const WelcomeNewTenant = ({ onDismiss }: WelcomeNewTenantProps) => {
     {
       title: "Paramétrer la comptabilité",
       description: "Configurez votre plan comptable et types de dépenses",
-      link: "/admin/chart-of-accounts",
+      link: "/comptabilite",
       completed: false,
     },
   ];
