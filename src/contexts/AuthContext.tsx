@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -96,6 +96,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const profile = profileData?.profile ?? null;
   const tenant = profileData?.tenant ?? null;
+
+  // Check if user or tenant is deactivated and force sign out
+  useEffect(() => {
+    if (!user?.id || !profile) return;
+
+    const checkActiveStatus = async () => {
+      const { data, error } = await supabase.rpc('check_user_active', { p_user_id: user.id });
+      
+      if (error || !data || data.length === 0) return;
+
+      const status = data[0];
+      
+      if (!status.user_active) {
+        logger.warn('User account is deactivated, signing out');
+        toast.error('Compte désactivé', {
+          description: 'Votre compte utilisateur a été désactivé. Contactez votre administrateur.',
+          duration: 8000,
+        });
+        await supabase.auth.signOut();
+        return;
+      }
+
+      if (!status.tenant_active) {
+        logger.warn('Tenant is deactivated, signing out');
+        toast.error('Entreprise désactivée', {
+          description: `L'entreprise "${status.tenant_name}" a été désactivée. Contactez l'administrateur.`,
+          duration: 8000,
+        });
+        await supabase.auth.signOut();
+        return;
+      }
+    };
+
+    checkActiveStatus();
+  }, [user?.id, profile]);
 
   // Reset inactivity timer on user activity
   const resetInactivityTimer = () => {
