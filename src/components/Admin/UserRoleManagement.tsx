@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -23,7 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Users, Edit2, AlertTriangle } from "lucide-react";
+import { Shield, Users, AlertTriangle, UserX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 type UserRole = 'admin' | 'gerant' | 'commercial' | 'comptable' | 'production';
@@ -34,6 +35,7 @@ interface UserWithRole {
   full_name: string | null;
   tenant_id: string | null;
   role: UserRole;
+  is_active?: boolean;
   tenant_name?: string;
 }
 
@@ -72,12 +74,12 @@ export const UserRoleManagement = () => {
 
       // Fetch tenant names
       const usersWithTenants = await Promise.all(
-        (data || []).map(async (user) => {
+        (data || []).map(async (user: Record<string, unknown>) => {
           if (user.tenant_id) {
             const { data: tenant } = await supabase
               .from('tenants')
               .select('name')
-              .eq('id', user.tenant_id)
+              .eq('id', user.tenant_id as string)
               .single();
             
             return { ...user, tenant_name: tenant?.name };
@@ -86,7 +88,7 @@ export const UserRoleManagement = () => {
         })
       );
 
-      return usersWithTenants as UserWithRole[];
+      return usersWithTenants as unknown as UserWithRole[];
     }
   });
 
@@ -110,10 +112,39 @@ export const UserRoleManagement = () => {
       setSelectedUser(null);
       setNewRole(null);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erreur",
         description: error.message || "Impossible de mettre à jour le rôle",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Toggle user active status
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: isActive })
+        .eq('id', userId);
+
+      if (error) throw error;
+      return { userId, isActive };
+    },
+    onSuccess: ({ isActive }) => {
+      toast({
+        title: isActive ? "Utilisateur activé" : "Utilisateur désactivé",
+        description: isActive 
+          ? "L'utilisateur peut à nouveau se connecter" 
+          : "L'utilisateur ne pourra plus se connecter",
+      });
+      queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de modifier le statut",
         variant: "destructive",
       });
     }
@@ -160,12 +191,18 @@ export const UserRoleManagement = () => {
                 Gestion des Utilisateurs et Rôles
               </CardTitle>
               <CardDescription>
-                Modifier les rôles des utilisateurs (les changements sont appliqués immédiatement)
+                Modifier les rôles et activer/désactiver les comptes utilisateurs
               </CardDescription>
             </div>
-            <Badge variant="outline" className="text-lg">
-              {users?.length || 0} utilisateurs
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="gap-1">
+                <UserX className="h-3 w-3" />
+                {users?.filter(u => u.is_active === false).length || 0} désactivé(s)
+              </Badge>
+              <Badge variant="outline" className="text-lg">
+                {users?.length || 0} utilisateurs
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -186,12 +223,13 @@ export const UserRoleManagement = () => {
                   <TableHead>Nom complet</TableHead>
                   <TableHead>Entreprise</TableHead>
                   <TableHead>Rôle actuel</TableHead>
+                  <TableHead>Actif</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers?.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.id} className={user.is_active === false ? 'opacity-50' : ''}>
                     <TableCell className="font-medium">{user.email}</TableCell>
                     <TableCell>{user.full_name || '-'}</TableCell>
                     <TableCell>{user.tenant_name || '-'}</TableCell>
@@ -199,6 +237,24 @@ export const UserRoleManagement = () => {
                       <Badge className={roleColors[user.role]}>
                         {roleLabels[user.role]}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={user.is_active !== false}
+                        onCheckedChange={(checked) => {
+                          // Don't allow deactivating admin users
+                          if (user.role === 'admin' && !checked) {
+                            toast({
+                              title: "Action interdite",
+                              description: "Impossible de désactiver un administrateur",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          toggleActiveMutation.mutate({ userId: user.id, isActive: checked });
+                        }}
+                        disabled={toggleActiveMutation.isPending}
+                      />
                     </TableCell>
                     <TableCell>
                       <Select

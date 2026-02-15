@@ -1536,6 +1536,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          is_active: boolean
           notification_preferences: Json | null
           phone: string | null
           security_preferences: Json | null
@@ -1548,6 +1549,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          is_active?: boolean
           notification_preferences?: Json | null
           phone?: string | null
           security_preferences?: Json | null
@@ -1560,6 +1562,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean
           notification_preferences?: Json | null
           phone?: string | null
           security_preferences?: Json | null
@@ -3284,6 +3287,14 @@ export type Database = {
         }
         Returns: string
       }
+      check_user_active: {
+        Args: { p_user_id: string }
+        Returns: {
+          tenant_active: boolean
+          tenant_name: string
+          user_active: boolean
+        }[]
+      }
       close_fiscal_year: {
         Args: {
           p_description?: string
@@ -3407,8 +3418,9 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          is_active: boolean
           phone: string
-          role: Database["public"]["Enums"]["app_role"]
+          role: string
           tenant_id: string
           updated_at: string
         }[]
