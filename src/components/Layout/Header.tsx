@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { Waves, Menu, Bell, User, LogOut, Building2, PanelLeft, PanelLeftClose } from "lucide-react";
+import { Waves, Menu, Bell, User, LogOut, Building2, PanelLeft, PanelLeftClose, ChevronDown } from "lucide-react";
 import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,11 @@ import {
   UserCog,
   Building2 as BuildingIcon,
   BookOpen,
+  BookOpenCheck,
+  Landmark,
+  FilePlus2,
+  Lock,
+  ShoppingCart,
   X
 } from "lucide-react";
 import saltLogo from "@/assets/salt-logo.png";
@@ -50,14 +55,21 @@ import {
   useMarkNotificationAsRead 
 } from "@/hooks/useAccountantNotifications";
 
-const adminNavItems = [
+const adminNavItems: MobileNavItem[] = [
   { icon: LayoutDashboard, label: "Tableau de bord", href: "/admin" },
   { icon: BuildingIcon, label: "Entreprises", href: "/admin/tenants" },
   { icon: BookOpen, label: "Plan comptable", href: "/admin/chart-of-accounts" },
   { icon: Settings, label: "Paramètres", href: "/parametres" },
 ];
 
-const salinesNavItems = [
+interface MobileNavItem {
+  icon: React.ElementType;
+  label: string;
+  href: string;
+  children?: MobileNavItem[];
+}
+
+const salinesNavItems: MobileNavItem[] = [
   { icon: LayoutDashboard, label: "Tableau de bord", href: "/" },
   { icon: Droplets, label: "Bassins salants", href: "/bassins" },
   { icon: Calendar, label: "Plan de campagne", href: "/campagne" },
@@ -65,7 +77,13 @@ const salinesNavItems = [
   { icon: Package, label: "Stocks", href: "/stocks" },
   { icon: Users, label: "Équipes", href: "/equipes" },
   { icon: TrendingUp, label: "Commercial", href: "/commercial" },
-  { icon: Wallet, label: "Comptabilité", href: "/comptabilite" },
+  { icon: Wallet, label: "Comptabilité", href: "/comptabilite", children: [
+    { icon: BookOpenCheck, label: "Grand Livre", href: "/comptabilite/grand-livre" },
+    { icon: Landmark, label: "Rapprochement", href: "/comptabilite/rapprochement" },
+    { icon: FilePlus2, label: "Opérations Diverses", href: "/comptabilite/operations-diverses" },
+    { icon: Lock, label: "Clôture exercice", href: "/comptabilite/cloture" },
+  ]},
+  { icon: ShoppingCart, label: "Achats", href: "/achats" },
   { icon: FileText, label: "Rapports", href: "/rapports" },
   { icon: UserCog, label: "Utilisateurs", href: "/utilisateurs" },
   { icon: Settings, label: "Paramètres", href: "/parametres" },
@@ -76,6 +94,7 @@ const HeaderComponent = () => {
   const { toast } = useToast();
   const { profile, tenant } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [expandedMobileItems, setExpandedMobileItems] = useState<string[]>([]);
   const { toggle: toggleSidebar, isOpen: sidebarOpen } = useSidebar();
   
   // Utiliser les vraies notifications de la base de données
@@ -314,21 +333,53 @@ const HeaderComponent = () => {
               </DrawerClose>
             </div>
           </DrawerHeader>
-          <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto">
-            {visibleNavItems.map((item) => (
-              <Button
-                key={item.href}
-                variant="ghost"
-                className="w-full justify-start gap-3"
-                onClick={() => {
-                  navigate(item.href);
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.label}</span>
-              </Button>
-            ))}
+          <div className="p-4 space-y-1 max-h-[70vh] overflow-y-auto">
+            {visibleNavItems.map((item) => {
+              const hasChildren = item.children && item.children.length > 0;
+              const isExpanded = expandedMobileItems.includes(item.href);
+              return (
+                <div key={item.href}>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3"
+                    onClick={() => {
+                      if (hasChildren) {
+                        setExpandedMobileItems(prev =>
+                          prev.includes(item.href) ? prev.filter(h => h !== item.href) : [...prev, item.href]
+                        );
+                      }
+                      navigate(item.href);
+                      if (!hasChildren) setMobileMenuOpen(false);
+                    }}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {hasChildren && (
+                      <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                    )}
+                  </Button>
+                  {hasChildren && isExpanded && (
+                    <div className="ml-6 mt-1 space-y-1 border-l-2 border-primary/20 pl-2">
+                      {item.children!.map((child) => (
+                        <Button
+                          key={child.href}
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start gap-2 text-sm"
+                          onClick={() => {
+                            navigate(child.href);
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          <child.icon className="h-4 w-4" />
+                          <span>{child.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </DrawerContent>
       </Drawer>
