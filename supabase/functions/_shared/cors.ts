@@ -8,6 +8,8 @@ const ALLOWED_ORIGINS = [
   'https://g-suitesel.lovable.app', // Lovable Published
   'https://sel.g-suiteapp.com', // Custom domain
   'https://www.sel.g-suiteapp.com', // Custom domain with www
+  'https://g-suiteapp.com', // Custom domain root
+  'https://www.g-suiteapp.com', // Custom domain root with www
 ];
 
 // SECURITY: Get proper CORS headers based on origin
