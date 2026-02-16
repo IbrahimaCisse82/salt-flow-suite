@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton";
 import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Footer } from "@/components/Layout/FooterRapport";
+
 import {
   Dialog,
   DialogContent,
@@ -192,20 +194,33 @@ const Rapports = () => {
   });
 
   const generateCampaignReport = () => {
+
     setGeneratingReport("campagne");
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
-      
+      //barre entete
+      doc.setFillColor(30, 30, 40); // vert moderne 
+      doc.rect(0, 0, pageWidth, 30, "F");
+              // Crée l'image logo sur le pdf
+        const img = new Image();
+        img.src = "/logoGHp.png"; 
+
+        // Quand l'image est chargée, l'ajouter au PDF
+        img.onload = () => {
+          doc.addImage(img, "PNG", 10, 5, 15, 15); // x=10, y=5, largeur=30, hauteur=30
+        
       // En-tête
-      doc.setFontSize(20);
-      doc.setTextColor(40, 40, 40);
-      doc.text("Rapport de Campagne Saline", pageWidth / 2, 20, { align: "center" });
-      
+
+      // AJOUT 
+      doc.setFontSize(16);
+      doc.setTextColor(255, 255,255);
+      doc.text("GrowHub Sénégal", pageWidth / 2, 15, { align: "center" });
+
       doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, 28, { align: "center" });
-      
+      doc.setTextColor(255, 255, 255);
+      doc.text("contact@growhubsenegal.com | +221 78 475 28 58", pageWidth / 2, 22, { align: "center" });
+      doc.text("Sacré Cœur 2 N#8613f - BP 11837 Dakar - SN", pageWidth / 2, 27, { align: "center" });
       let yPos = 40;
       
       // Statistiques générales
@@ -244,12 +259,42 @@ const Rapports = () => {
             `${Number(c.actual_production || 0).toFixed(2)} t`
           ]),
           theme: 'striped',
-          headStyles: { fillColor: [59, 130, 246] },
+          headStyles: { fillColor: [34, 197, 94] },
         });
       }
-      
+      // Footer GrowHub Sénégal
+      const pageCount = doc.getNumberOfPages();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+
+        //Dessiner la barre EN PREMIER
+        doc.setFillColor(30, 30, 40);
+        doc.rect(0, pageHeight - 18, pageWidth, 18, "F");
+        // Puis définir le texte
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.text("© 2026 GrowHub Sénégal", 15, pageHeight - 6);
+        
+        doc.text(
+        "NINEA : 006485181 2V2 I RCCM: SN DKR 2017 B 20723", // NINEA
+        pageWidth / 2,
+        pageHeight - 6,
+        { align: "center" }
+      );
+
+        doc.text(
+          `Page ${i} / ${pageCount}`,
+          pageWidth - 15,
+          pageHeight - 6,
+          { align: "right" }
+        );
+      }
+
+
       doc.save(`rapport-campagne-${new Date().toISOString().split('T')[0]}.pdf`);
-      
+      };
       toast({
         title: "Rapport généré",
         description: "Le rapport de campagne a été téléchargé",
@@ -945,9 +990,9 @@ const Rapports = () => {
                       
                       const amount = Number(transaction.amount || 0);
                       
-                      if (['vente_locale', 'vente_export', 'recette'].includes(transaction.transaction_type)) {
+                      if (['vente_locale', 'vente_export'].includes(transaction.transaction_type)) {
                         acc[monthKey].entrees += amount;
-                      } else if (['depense', 'achat', 'salaire'].includes(transaction.transaction_type)) {
+                      } else if (transaction.transaction_type === 'depense') {
                         acc[monthKey].sorties += amount;
                       }
                       
@@ -1045,6 +1090,7 @@ const Rapports = () => {
           </Tabs>
         </main>
       </div>
+      <Footer />
     </div>
   );
 };
