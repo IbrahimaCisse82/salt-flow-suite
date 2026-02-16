@@ -92,28 +92,12 @@ const Auth = () => {
       }
 
       if (data.session) {
-        // Check if user or tenant is deactivated
-        const { data: statusData } = await supabase.rpc('check_user_active', { p_user_id: data.session.user.id });
-        
-        if (statusData && statusData.length > 0) {
-          const status = statusData[0];
-          if (!status.user_active) {
-            await supabase.auth.signOut();
-            throw new Error("Votre compte a été désactivé. Contactez votre administrateur.");
-          }
-          if (!status.tenant_active) {
-            await supabase.auth.signOut();
-            throw new Error(`L'entreprise "${status.tenant_name}" a été désactivée. Contactez l'administrateur.`);
-          }
-        }
-
+        // La vérification utilisateur/tenant désactivé est gérée par AuthContext
         toast({
           title: "Connexion réussie",
           description: "Bienvenue !",
         });
-        setTimeout(() => {
-          navigate("/", { replace: true });
-        }, 100);
+        navigate("/", { replace: true });
       }
     } catch (error: any) {
       logger.error("Login error:", error);
