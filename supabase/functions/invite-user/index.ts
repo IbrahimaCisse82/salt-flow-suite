@@ -19,7 +19,13 @@ Deno.serve(async (req) => {
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
     
     // Créer un client pour vérifier l'utilisateur authentifié
-    const authHeader = req.headers.get('Authorization')!
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Non authentifié - token manquant' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
     const token = authHeader.replace('Bearer ', '')
     const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: { headers: { Authorization: authHeader } }
@@ -157,10 +163,10 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
-    logger.error('Erreur:', error)
+    logger.error('Erreur invite-user:', error?.message || error)
     // SECURITY: Return generic error message to client, log details server-side
     return new Response(
-      JSON.stringify({ error: 'Une erreur est survenue lors de l\'invitation' }),
+      JSON.stringify({ error: error?.message || 'Une erreur est survenue lors de l\'invitation' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

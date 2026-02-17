@@ -424,7 +424,7 @@ const GestionUtilisateurs = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(roleLabels).map(([role, info]) => (
+                  {Object.entries(roleLabels).filter(([role]) => role !== 'gerant').map(([role, info]) => (
                     <SelectItem key={role} value={role}>
                       <div className="flex flex-col">
                         <span className="font-medium">{info.label}</span>
