@@ -897,6 +897,11 @@ const Comptabilite = () => {
       const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
       const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
 
+      // Resolve account details from accounts table
+      const fromAccount = accounts.find(a => a.id === formData.fromAccountId);
+      const toAccount = accounts.find(a => a.id === formData.toAccountId);
+      if (!fromAccount || !toAccount) throw new Error('Comptes introuvables');
+
       // 2. Créer la transaction
       const { data: transaction, error: txError } = await supabase
         .from('transactions')
@@ -916,18 +921,20 @@ const Comptabilite = () => {
 
       if (txError) throw txError;
 
-      // 3. Créer les écritures comptables (double entrée)
+      // 3. Créer les écritures comptables (using account_number/account_name, NOT account_id which references chart_of_accounts)
       const journalEntries = [
         {
           transaction_id: transaction.id,
-          account_id: formData.toAccountId,
+          account_number: toAccount.account_number,
+          account_name: toAccount.account_name,
           debit: amount,
           credit: 0,
           description: 'Virement reçu'
         },
         {
           transaction_id: transaction.id,
-          account_id: formData.fromAccountId,
+          account_number: fromAccount.account_number,
+          account_name: fromAccount.account_name,
           debit: 0,
           credit: amount,
           description: 'Virement envoyé'
@@ -939,6 +946,19 @@ const Comptabilite = () => {
         .insert(journalEntries as any);
 
       if (entriesError) throw entriesError;
+
+      // 4. Mettre à jour les soldes des comptes
+      const { error: fromBalanceError } = await supabase
+        .from('accounts')
+        .update({ balance: (fromAccount.balance || 0) - amount, updated_at: new Date().toISOString() })
+        .eq('id', fromAccount.id);
+      if (fromBalanceError) throw fromBalanceError;
+
+      const { error: toBalanceError } = await supabase
+        .from('accounts')
+        .update({ balance: (toAccount.balance || 0) + amount, updated_at: new Date().toISOString() })
+        .eq('id', toAccount.id);
+      if (toBalanceError) throw toBalanceError;
 
       return transaction;
     },
