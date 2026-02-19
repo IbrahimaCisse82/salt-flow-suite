@@ -13,11 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useTeamAttendance } from "@/hooks/useTeamAttendance";
-import { useCreatePayrollPayment } from "@/hooks/usePayrollPayments";
+import { useCreatePayrollPayment, usePayrollPayments } from "@/hooks/usePayrollPayments";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   attendance_id: z.string().min(1, "Sélectionnez un pointage validé"),
@@ -32,6 +34,7 @@ const formSchema = z.object({
 export function PayrollPaymentForm() {
   const { data: employees } = useEmployees();
   const { data: validatedAttendances } = useTeamAttendance({ status: 'validated' });
+  const { data: allPayments = [] } = usePayrollPayments();
   const createPayment = useCreatePayrollPayment();
 
   // Récupérer les comptes de trésorerie (supporte majuscules et minuscules)
@@ -49,6 +52,13 @@ export function PayrollPaymentForm() {
     }
   });
 
+  // Calculer le montant déjà payé par pointage
+  const getPaidAmountForAttendance = (attendanceId: string) => {
+    return allPayments
+      .filter(p => p.attendance_id === attendanceId)
+      .reduce((sum, p) => sum + (p.paid_amount || 0), 0);
+  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -61,15 +71,29 @@ export function PayrollPaymentForm() {
     a => a.id === form.watch('attendance_id')
   );
 
-  const paidAmount = parseFloat(form.watch('paid_amount') || '0');
   const totalAmount = selectedAttendance?.calculated_amount || 0;
-  const balanceDue = totalAmount - paidAmount;
+  const alreadyPaid = selectedAttendance ? getPaidAmountForAttendance(selectedAttendance.id) : 0;
+  const remainingDue = totalAmount - alreadyPaid;
+  const paidAmount = parseFloat(form.watch('paid_amount') || '0');
+  const balanceDue = remainingDue - paidAmount;
+
+  // Auto-fill paid_amount with remaining due when attendance changes
+  useEffect(() => {
+    if (selectedAttendance && remainingDue > 0) {
+      form.setValue('paid_amount', remainingDue.toString());
+    }
+  }, [selectedAttendance?.id, remainingDue]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const payAmount = parseFloat(values.paid_amount);
+    if (remainingDue > 0 && payAmount > remainingDue) {
+      toast({ title: "Erreur", description: `Le montant ne peut pas dépasser le reliquat de ${remainingDue.toLocaleString()} FCFA`, variant: "destructive" });
+      return;
+    }
     await createPayment.mutateAsync({
       tenant_id: "", // Will be set by the mutation
       attendance_id: values.attendance_id,
-      paid_amount: parseFloat(values.paid_amount),
+      paid_amount: payAmount,
       balance_due: balanceDue,
       paid_to: values.paid_to,
       payment_account_id: values.payment_account_id,
@@ -123,9 +147,23 @@ export function PayrollPaymentForm() {
                       <span>Montant total:</span>
                       <span className="font-medium">{totalAmount.toLocaleString()} FCFA</span>
                     </div>
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Heures: {selectedAttendance.hours_worked}h × {selectedAttendance.daily_rate.toLocaleString()} FCFA</span>
-                    </div>
+                    {alreadyPaid > 0 && (
+                      <>
+                        <div className="flex justify-between text-sm text-orange-600 dark:text-orange-400">
+                          <span>Déjà payé:</span>
+                          <span className="font-medium">-{alreadyPaid.toLocaleString()} FCFA</span>
+                        </div>
+                        <div className="flex justify-between font-semibold border-t pt-1">
+                          <span>Reliquat à payer:</span>
+                          <span>{remainingDue.toLocaleString()} FCFA</span>
+                        </div>
+                      </>
+                    )}
+                    {alreadyPaid === 0 && (
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>Heures: {selectedAttendance.hours_worked}h × {selectedAttendance.daily_rate.toLocaleString()} FCFA</span>
+                      </div>
+                    )}
                   </div>
                 </AlertDescription>
               </Alert>
@@ -162,10 +200,18 @@ export function PayrollPaymentForm() {
                 name="paid_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Montant payé (FCFA)</FormLabel>
+                    <FormLabel>Montant payé (FCFA) {remainingDue > 0 && <span className="text-xs text-muted-foreground">(max: {remainingDue.toLocaleString()})</span>}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="40000" {...field} />
+                      <Input 
+                        type="number" 
+                        placeholder={remainingDue > 0 ? remainingDue.toString() : "0"} 
+                        max={remainingDue > 0 ? remainingDue : undefined}
+                        {...field} 
+                      />
                     </FormControl>
+                    {paidAmount > remainingDue && remainingDue > 0 && (
+                      <p className="text-xs text-destructive">Le montant dépasse le reliquat de {remainingDue.toLocaleString()} FCFA</p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
