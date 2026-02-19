@@ -100,6 +100,64 @@ const reportTypes = [
   },
 ];
 
+/** Load logo as base64 for PDF embedding */
+const loadLogoBase64 = async (): Promise<string | null> => {
+  try {
+    const response = await fetch("/logoGHp.png");
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+};
+
+/** Add standardized header with logo to a PDF report */
+const addReportHeader = (
+  doc: jsPDF, 
+  title: string, 
+  logoBase64: string | null, 
+  headerColor: [number, number, number] = [30, 30, 40]
+) => {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Header bar
+  doc.setFillColor(...headerColor);
+  doc.rect(0, 0, pageWidth, 32, "F");
+  
+  // Logo
+  let textStartX = 15;
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, "PNG", 12, 4, 24, 24);
+      textStartX = 40;
+    } catch {
+      // skip if logo fails
+    }
+  }
+  
+  // Title
+  doc.setFontSize(16);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.text(title, textStartX, 14);
+  
+  // Subtitle
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text("contact@growhubsenegal.com | +221 78 475 28 58", textStartX, 21);
+  doc.text("Sacré Cœur 2 N#8613f - BP 11837 Dakar - SN", textStartX, 27);
+  
+  // Date
+  doc.setFontSize(9);
+  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth - 15, 27, { align: "right" });
+};
+
 
 const Rapports = () => {
   const { toast } = useToast();
@@ -193,35 +251,16 @@ const Rapports = () => {
     }
   });
 
-  const generateCampaignReport = () => {
-
+  const generateCampaignReport = async () => {
     setGeneratingReport("campagne");
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
-      //barre entete
-      doc.setFillColor(30, 30, 40); // vert moderne 
-      doc.rect(0, 0, pageWidth, 30, "F");
-              // Crée l'image logo sur le pdf
-        const img = new Image();
-        img.src = "/logoGHp.png"; 
+      const logoBase64 = await loadLogoBase64();
+      
+      addReportHeader(doc, "GrowHub Sénégal", logoBase64);
 
-        // Quand l'image est chargée, l'ajouter au PDF
-        img.onload = () => {
-          doc.addImage(img, "PNG", 10, 5, 15, 15); // x=10, y=5, largeur=30, hauteur=30
-        
-      // En-tête
-
-      // AJOUT 
-      doc.setFontSize(16);
-      doc.setTextColor(255, 255,255);
-      doc.text("GrowHub Sénégal", pageWidth / 2, 15, { align: "center" });
-
-      doc.setFontSize(10);
-      doc.setTextColor(255, 255, 255);
-      doc.text("contact@growhubsenegal.com | +221 78 475 28 58", pageWidth / 2, 22, { align: "center" });
-      doc.text("Sacré Cœur 2 N#8613f - BP 11837 Dakar - SN", pageWidth / 2, 27, { align: "center" });
-      let yPos = 40;
+      let yPos = 42;
       
       // Statistiques générales
       doc.setFontSize(14);
@@ -268,22 +307,17 @@ const Rapports = () => {
 
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
-
-        //Dessiner la barre EN PREMIER
         doc.setFillColor(30, 30, 40);
         doc.rect(0, pageHeight - 18, pageWidth, 18, "F");
-        // Puis définir le texte
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(10);
         doc.text("© 2026 GrowHub Sénégal", 15, pageHeight - 6);
-        
         doc.text(
-        "NINEA : 006485181 2V2 I RCCM: SN DKR 2017 B 20723", // NINEA
-        pageWidth / 2,
-        pageHeight - 6,
-        { align: "center" }
-      );
-
+          "NINEA : 006485181 2V2 I RCCM: SN DKR 2017 B 20723",
+          pageWidth / 2,
+          pageHeight - 6,
+          { align: "center" }
+        );
         doc.text(
           `Page ${i} / ${pageCount}`,
           pageWidth - 15,
@@ -292,9 +326,7 @@ const Rapports = () => {
         );
       }
 
-
       doc.save(`rapport-campagne-${new Date().toISOString().split('T')[0]}.pdf`);
-      };
       toast({
         title: "Rapport généré",
         description: "Le rapport de campagne a été téléchargé",
@@ -310,19 +342,14 @@ const Rapports = () => {
     }
   };
 
-  const generateFinancialReport = () => {
+  const generateFinancialReport = async () => {
     setGeneratingReport("financier");
     try {
       const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
+      const logoBase64 = await loadLogoBase64();
+      addReportHeader(doc, "États Financiers SYSCOHADA", logoBase64);
       
-      doc.setFontSize(20);
-      doc.text("États Financiers SYSCOHADA", pageWidth / 2, 20, { align: "center" });
-      
-      doc.setFontSize(10);
-      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, 28, { align: "center" });
-      
-      let yPos = 40;
+      let yPos = 42;
       
       // Statistiques financières
       const totalExpenses = transactions.filter(t => t.transaction_type === 'depense').reduce((sum, t) => sum + Number(t.amount || 0), 0);
@@ -380,19 +407,14 @@ const Rapports = () => {
     }
   };
 
-  const generateProductionReport = () => {
+  const generateProductionReport = async () => {
     setGeneratingReport("production");
     try {
       const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
+      const logoBase64 = await loadLogoBase64();
+      addReportHeader(doc, "Analyse de Production", logoBase64, [249, 115, 22]);
       
-      doc.setFontSize(20);
-      doc.text("Analyse de Production", pageWidth / 2, 20, { align: "center" });
-      
-      doc.setFontSize(10);
-      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, 28, { align: "center" });
-      
-      let yPos = 40;
+      let yPos = 42;
       
       const totalProduction = productionRecords.reduce((sum, p) => sum + Number(p.quantity || 0), 0);
       const avgQuality = productionRecords.reduce((sum, p) => sum + Number(p.quality_grade || 0), 0) / (productionRecords.length || 1);
@@ -446,19 +468,14 @@ const Rapports = () => {
     }
   };
 
-  const generateHRReport = () => {
+  const generateHRReport = async () => {
     setGeneratingReport("rh");
     try {
       const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
+      const logoBase64 = await loadLogoBase64();
+      addReportHeader(doc, "Performance Ressources Humaines", logoBase64, [168, 85, 247]);
       
-      doc.setFontSize(20);
-      doc.text("Performance Ressources Humaines", pageWidth / 2, 20, { align: "center" });
-      
-      doc.setFontSize(10);
-      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, 28, { align: "center" });
-      
-      let yPos = 40;
+      let yPos = 42;
       
       const totalSalary = employees.reduce((sum, e) => sum + Number(e.salary || 0), 0);
       
@@ -508,19 +525,14 @@ const Rapports = () => {
     }
   };
 
-  const generateCommercialReport = () => {
+  const generateCommercialReport = async () => {
     setGeneratingReport("commercial");
     try {
       const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
+      const logoBase64 = await loadLogoBase64();
+      addReportHeader(doc, "Analyse Commerciale", logoBase64, [37, 99, 235]);
       
-      doc.setFontSize(20);
-      doc.text("Analyse Commerciale", pageWidth / 2, 20, { align: "center" });
-      
-      doc.setFontSize(10);
-      doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, 28, { align: "center" });
-      
-      let yPos = 40;
+      let yPos = 42;
       
       const totalRevenue = sales.reduce((sum, s) => sum + Number(s.total_amount || 0), 0);
       const totalQuantity = sales.reduce((sum, s) => sum + Number(s.quantity || 0), 0);

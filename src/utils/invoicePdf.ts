@@ -66,10 +66,10 @@ const addLogo = (doc: jsPDF, logoBase64: string, x: number, y: number, maxH: num
   try {
     const img = new Image();
     img.src = logoBase64;
-    const ratio = img.width / img.height;
+    const ratio = img.width / img.height || 1;
     const h = maxH;
     const w = h * ratio;
-    doc.addImage(logoBase64, "PNG", x, y, Math.min(w, 40), h);
+    doc.addImage(logoBase64, "PNG", x, y, Math.min(w, 50), h);
   } catch {
     // silently skip if image fails
   }
@@ -96,9 +96,9 @@ function renderClassic(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
 
   // Header with logo
   if (logoBase64) {
-    addLogo(doc, logoBase64, 15, 12, 14);
+    addLogo(doc, logoBase64, 15, 10, 20);
     doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK);
-    doc.text(company.name || "", 58, 20);
+    doc.text(company.name || "", 62, 20);
   } else {
     doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(...DARK);
     doc.text(company.name || "Mon entreprise", 15, 20);
@@ -211,9 +211,9 @@ function renderModern(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, lo
 
   // Company name in banner (with optional logo)
   if (logoBase64) {
-    addLogo(doc, logoBase64, 20, 10, 12);
+    addLogo(doc, logoBase64, 18, 8, 18);
     doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.setTextColor(255, 255, 255);
-    doc.text(company.name || "Mon Entreprise", 65, 20);
+    doc.text(company.name || "Mon Entreprise", 68, 20);
   } else {
     doc.setFontSize(20); doc.setFont("helvetica", "bold"); doc.setTextColor(255, 255, 255);
     doc.text(company.name || "Mon Entreprise", 20, 20);
@@ -326,7 +326,7 @@ function renderMinimal(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
 
   // Logo + Centered title
   if (logoBase64) {
-    addLogo(doc, logoBase64, pw / 2 - 7, 14, 12);
+    addLogo(doc, logoBase64, pw / 2 - 10, 10, 18);
     doc.setFontSize(32); doc.setFont("helvetica", "bold"); doc.setTextColor(...BLACK);
     doc.text("FACTURE", pw / 2, 38, { align: "center" });
   } else {
@@ -443,7 +443,7 @@ function renderElegant(doc: jsPDF, invoice: InvoiceData, company: CompanyInfo, l
 
   // Logo + Company name centered
   if (logoBase64) {
-    addLogo(doc, logoBase64, pw / 2 - 7, 18, 10);
+    addLogo(doc, logoBase64, pw / 2 - 10, 14, 16);
     doc.setFontSize(14); doc.setFont("times", "bold"); doc.setTextColor(...DARK);
     doc.text(company.name || "Mon Entreprise", pw / 2, 33, { align: "center" });
   } else {
