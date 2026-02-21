@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Eye, FileText } from "lucide-react";
+import { Check, Eye, FileText, Download } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { generateInvoicePdf } from "@/utils/invoicePdf";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -242,6 +243,7 @@ export const InvoiceTemplateSelector = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedStyle, setSelectedStyle] = useState<InvoiceStyle>("classic");
+  const [previewStyle, setPreviewStyle] = useState<InvoiceStyle | null>(null);
 
   // Load current tenant invoice style
   const { data: tenantSettings } = useQuery({
@@ -294,8 +296,12 @@ export const InvoiceTemplateSelector = () => {
     saveMutation.mutate(style);
   };
 
-  const handlePreview = async (e: React.MouseEvent, styleId: InvoiceStyle) => {
+  const handlePreview = (e: React.MouseEvent, styleId: InvoiceStyle) => {
     e.stopPropagation();
+    setPreviewStyle(styleId);
+  };
+
+  const getSampleData = (styleId: InvoiceStyle) => {
     const sampleInvoice = {
       invoiceNumber: "PREV-001",
       date: new Date().toLocaleDateString("fr-FR"),
@@ -323,8 +329,15 @@ export const InvoiceTemplateSelector = () => {
       capital: "10 000 000 FCFA",
       logoUrl: tenant?.logo_url || undefined,
     };
+    return { sampleInvoice, sampleCompany };
+  };
+
+  const handleDownloadPreview = async (styleId: InvoiceStyle) => {
+    const { sampleInvoice, sampleCompany } = getSampleData(styleId);
     await generateInvoicePdf(sampleInvoice, sampleCompany, styleId);
   };
+
+  const previewStyleData = previewStyle ? STYLES.find(s => s.id === previewStyle) : null;
 
   return (
     <div className="space-y-6">
@@ -392,6 +405,54 @@ export const InvoiceTemplateSelector = () => {
           </div>
         </CardContent>
       </Card>
+      {/* Preview Dialog */}
+      <Dialog open={!!previewStyle} onOpenChange={(open) => !open && setPreviewStyle(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-primary" />
+              Aperçu : {previewStyleData?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {previewStyle && previewStyleData && (() => {
+              const Preview = PREVIEW_MAP[previewStyle];
+              return (
+                <div className="max-w-[320px] mx-auto">
+                  <Preview style={previewStyleData} />
+                </div>
+              );
+            })()}
+            <p className="text-sm text-muted-foreground mt-4 text-center">
+              {previewStyleData?.description}
+            </p>
+          </div>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              onClick={() => previewStyle && handleDownloadPreview(previewStyle)}
+            >
+              <Download className="h-4 w-4" />
+              Télécharger PDF
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1"
+              onClick={() => {
+                if (previewStyle) {
+                  handleSelect(previewStyle);
+                  setPreviewStyle(null);
+                }
+              }}
+            >
+              <Check className="h-4 w-4" />
+              Définir par défaut
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
