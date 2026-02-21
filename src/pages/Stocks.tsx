@@ -111,6 +111,28 @@ const Stocks = () => {
   // Recalculate available for aggregated items
   stockByType.forEach(s => { s.available = s.quantity - s.reserved; s.status = getStockStatus(s.available, s.reorderLevel); });
 
+  // Helper: get current total stock in a warehouse
+  const getWarehouseCurrentStock = (warehouseName: string) => {
+    return productionItems
+      .filter(item => item.storage_location === warehouseName)
+      .reduce((sum, item) => sum + Number(item.quantity_on_hand || 0), 0);
+  };
+
+  // Helper: get warehouse capacity
+  const getWarehouseCapacity = (warehouseName: string) => {
+    const wh = warehouses.find(w => w.item_name === warehouseName);
+    return wh ? Number(wh.quantity_on_hand || 0) : null;
+  };
+
+  // Helper: check if adding qty to warehouse would exceed capacity
+  const checkWarehouseCapacity = (warehouseName: string, additionalQty: number): { ok: boolean; capacity: number; currentStock: number; remaining: number } | null => {
+    const capacity = getWarehouseCapacity(warehouseName);
+    if (capacity === null || capacity === 0) return null; // no capacity defined
+    const currentStock = getWarehouseCurrentStock(warehouseName);
+    const remaining = capacity - currentStock;
+    return { ok: additionalQty <= remaining, capacity, currentStock, remaining };
+  };
+
   // Aggregate totals by type (for global stats)
   const stockTotals = productionItems.reduce((acc, item) => {
     const type = item.item_name || 'Autre';
@@ -141,11 +163,18 @@ const Stocks = () => {
 
   const handleMovementSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const qty = parseFloat(movementFormData.quantity) || 0;
+    // Check destination warehouse capacity
+    const capacityCheck = checkWarehouseCapacity(movementFormData.destinationWarehouse, qty);
+    if (capacityCheck && !capacityCheck.ok) {
+      toast.error(`Capacité insuffisante dans ${movementFormData.destinationWarehouse}: ${capacityCheck.remaining} tonnes disponibles sur ${capacityCheck.capacity} tonnes`);
+      return;
+    }
     try {
       await recordMovement.mutateAsync({
         item_name: movementFormData.saltType,
         movement_type: 'transfer',
-        quantity: parseFloat(movementFormData.quantity) || 0,
+        quantity: qty,
         date: movementFormData.date,
         source_warehouse: movementFormData.sourceWarehouse,
         destination_warehouse: movementFormData.destinationWarehouse,
@@ -160,6 +189,13 @@ const Stocks = () => {
 
   const handleStockSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const qty = parseFloat(stockFormData.quantity) || 0;
+    // Check warehouse capacity
+    const capacityCheck = checkWarehouseCapacity(stockFormData.warehouse, qty);
+    if (capacityCheck && !capacityCheck.ok) {
+      toast.error(`Capacité insuffisante dans ${stockFormData.warehouse}: ${capacityCheck.remaining} tonnes disponibles sur ${capacityCheck.capacity} tonnes`);
+      return;
+    }
     try {
       await createItem.mutateAsync({
         item_name: stockFormData.saltType,
@@ -651,8 +687,10 @@ const Stocks = () => {
                           const warehouseStock = stockByType.filter(s => s.warehouse === w.item_name);
                           const warehouseTotalStock = warehouseStock.reduce((sum, s) => sum + s.quantity, 0);
                           const warehouseTotalReserved = warehouseStock.reduce((sum, s) => sum + s.reserved, 0);
+                          const warehouseCapacity = Number(w.quantity_on_hand || 0);
+                          const isOverCapacity = warehouseCapacity > 0 && warehouseTotalStock > warehouseCapacity;
                           return (
-                            <Card key={w.id} className="border">
+                            <Card key={w.id} className={`border ${isOverCapacity ? 'border-destructive' : ''}`}>
                               <CardContent className="p-4">
                                 <div className="flex items-start justify-between mb-3">
                                   <div>
@@ -668,8 +706,14 @@ const Stocks = () => {
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="text-muted-foreground">Stock actuel</span>
-                                    <span className="font-medium">{Math.round(warehouseTotalStock)} tonnes</span>
+                                    <span className={`font-medium ${isOverCapacity ? 'text-destructive' : ''}`}>{Math.round(warehouseTotalStock)} tonnes</span>
                                   </div>
+                                  {isOverCapacity && (
+                                    <div className="flex items-center gap-1 text-destructive text-xs">
+                                      <AlertTriangle className="h-3 w-3" />
+                                      <span>Capacité dépassée de {Math.round(warehouseTotalStock - warehouseCapacity)} tonnes</span>
+                                    </div>
+                                  )}
                                   {warehouseTotalReserved > 0 && (
                                     <div className="flex justify-between">
                                       <span className="text-amber-600">🔒 Sous commande</span>
