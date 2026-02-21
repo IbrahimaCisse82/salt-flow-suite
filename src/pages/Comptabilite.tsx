@@ -79,6 +79,7 @@ const Comptabilite = () => {
   const [transactionType, setTransactionType] = useState<"achat" | "salaire" | "virement_interne" | "divers">("achat");
   const [paymentFormData, setPaymentFormData] = useState({
     accountId: "",
+    paymentMethod: "",
     paymentDate: "",
     amountReceived: "",
     canBeDelivered: false
@@ -96,6 +97,7 @@ const Comptabilite = () => {
   const [expenseFormData, setExpenseFormData] = useState({
     date: "",
     accountId: "",
+    paymentMethod: "",
     campagneId: "",
     campagnePhase: "",
     expenseTypeId: "",
@@ -109,12 +111,32 @@ const Comptabilite = () => {
   const [salaryFormData, setSalaryFormData] = useState({
     date: "",
     accountId: "",
+    paymentMethod: "",
     employeeType: "" as "permanent" | "saisonnier" | "journalier" | "",
     employeeId: "",
     amount: "",
     period: "",
     notes: ""
   });
+
+  // Helper: modes de paiement liés au type de compte
+  const getPaymentMethodsForAccount = (accountId: string) => {
+    const account = accounts.find((a: any) => a.id === accountId);
+    if (!account) return [];
+    if (account.account_type === 'banque') {
+      return [
+        { value: 'virement', label: 'Virement' },
+        { value: 'cheque', label: 'Chèque' },
+      ];
+    }
+    if (account.account_type === 'caisse') {
+      return [
+        { value: 'especes', label: 'Espèces' },
+        { value: 'mobile_money', label: 'Mobile Money' },
+      ];
+    }
+    return [];
+  };
   
   // État pour le formulaire de virement
   const [virementFormData, setVirementFormData] = useState({
@@ -483,6 +505,7 @@ const Comptabilite = () => {
       setSelectedInvoice(null);
       setPaymentFormData({
         accountId: "",
+        paymentMethod: "",
         paymentDate: "",
         amountReceived: "",
         canBeDelivered: false
@@ -718,6 +741,7 @@ const Comptabilite = () => {
       setExpenseFormData({
         date: "",
         accountId: "",
+        paymentMethod: "",
         campagneId: "",
         campagnePhase: "",
         expenseTypeId: "",
@@ -848,6 +872,7 @@ const Comptabilite = () => {
       setSalaryFormData({
         date: "",
         accountId: "",
+        paymentMethod: "",
         employeeType: "",
         employeeId: "",
         amount: "",
@@ -1464,7 +1489,7 @@ const Comptabilite = () => {
                         <Label htmlFor="depense-account">Compte</Label>
                         <Select 
                           value={expenseFormData.accountId}
-                          onValueChange={(value) => setExpenseFormData({...expenseFormData, accountId: value})}
+                          onValueChange={(value) => setExpenseFormData({...expenseFormData, accountId: value, paymentMethod: ""})}
                         >
                           <SelectTrigger id="depense-account">
                             <SelectValue placeholder="Sélectionnez un compte" />
@@ -1479,6 +1504,26 @@ const Comptabilite = () => {
                         </Select>
                       </div>
                     </div>
+                    {expenseFormData.accountId && (
+                      <div className="space-y-2">
+                        <Label htmlFor="depense-payment-method">Mode de paiement</Label>
+                        <Select
+                          value={expenseFormData.paymentMethod}
+                          onValueChange={(value) => setExpenseFormData({...expenseFormData, paymentMethod: value})}
+                        >
+                          <SelectTrigger id="depense-payment-method">
+                            <SelectValue placeholder="Sélectionnez le mode" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50">
+                            {getPaymentMethodsForAccount(expenseFormData.accountId).map((method) => (
+                              <SelectItem key={method.value} value={method.value}>
+                                {method.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="depense-campagne">Campagne (optionnel)</Label>
@@ -1622,7 +1667,7 @@ const Comptabilite = () => {
                         <Label htmlFor="salaire-account">Compte de paiement</Label>
                         <Select 
                           value={salaryFormData.accountId}
-                          onValueChange={(value) => setSalaryFormData({...salaryFormData, accountId: value})}
+                          onValueChange={(value) => setSalaryFormData({...salaryFormData, accountId: value, paymentMethod: ""})}
                         >
                           <SelectTrigger id="salaire-account">
                             <SelectValue placeholder="Sélectionnez un compte" />
@@ -1637,6 +1682,26 @@ const Comptabilite = () => {
                         </Select>
                       </div>
                     </div>
+                    {salaryFormData.accountId && (
+                      <div className="space-y-2">
+                        <Label htmlFor="salaire-payment-method">Mode de paiement</Label>
+                        <Select
+                          value={salaryFormData.paymentMethod}
+                          onValueChange={(value) => setSalaryFormData({...salaryFormData, paymentMethod: value})}
+                        >
+                          <SelectTrigger id="salaire-payment-method">
+                            <SelectValue placeholder="Sélectionnez le mode" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background z-50">
+                            {getPaymentMethodsForAccount(salaryFormData.accountId).map((method) => (
+                              <SelectItem key={method.value} value={method.value}>
+                                {method.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <Label htmlFor="salaire-type">Type d'employé</Label>
                       <Select
@@ -1847,7 +1912,7 @@ const Comptabilite = () => {
                     <Label htmlFor="payment-account">Compte de paiement *</Label>
                     <Select
                       value={paymentFormData.accountId}
-                      onValueChange={(value) => setPaymentFormData({...paymentFormData, accountId: value})}
+                      onValueChange={(value) => setPaymentFormData({...paymentFormData, accountId: value, paymentMethod: ""})}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Banque ou Caisse" />
@@ -1861,6 +1926,27 @@ const Comptabilite = () => {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {paymentFormData.accountId && (
+                    <div className="space-y-2">
+                      <Label htmlFor="payment-method">Mode de paiement *</Label>
+                      <Select
+                        value={paymentFormData.paymentMethod}
+                        onValueChange={(value) => setPaymentFormData({...paymentFormData, paymentMethod: value})}
+                      >
+                        <SelectTrigger id="payment-method">
+                          <SelectValue placeholder="Sélectionnez le mode" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          {getPaymentMethodsForAccount(paymentFormData.accountId).map((method) => (
+                            <SelectItem key={method.value} value={method.value}>
+                              {method.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="payment-date">Date de paiement *</Label>
