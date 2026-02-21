@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Warehouse, Info } from "lucide-react";
 import { useMemo } from "react";
 
@@ -14,6 +15,7 @@ export interface OrderFormState {
   unit_price: string;
   notes: string;
   warehouse_id: string;
+  apply_tva?: boolean;
 }
 
 interface OrderFormDialogProps {
@@ -48,7 +50,8 @@ export const OrderFormDialog = ({
   );
 
   const isExport = selectedClient?.client_type?.toLowerCase() === "export";
-  const effectiveTvaRate = isExport ? 0 : tvaRate;
+  const applyTva = form.apply_tva !== undefined ? form.apply_tva : !isExport;
+  const effectiveTvaRate = isExport ? 0 : (applyTva ? tvaRate : 0);
 
   const quantity = parseFloat(form.quantity) || 0;
   const unitPrice = parseFloat(form.unit_price) || 0;
@@ -85,7 +88,18 @@ export const OrderFormDialog = ({
               <Info className="h-4 w-4 shrink-0" />
               {isExport
                 ? "Client export — TVA exonérée (0%)"
-                : `Client local — TVA ${tvaRate}%`}
+                : applyTva ? `Client local — TVA ${tvaRate}%` : "Client local — Sans TVA"}
+            </div>
+          )}
+
+          {selectedClient && !isExport && (
+            <div className="flex items-center justify-between p-2 rounded-md border">
+              <Label htmlFor="apply-tva" className="text-sm cursor-pointer">Appliquer la TVA ({tvaRate}%)</Label>
+              <Switch
+                id="apply-tva"
+                checked={applyTva}
+                onCheckedChange={(checked) => onFormChange({ ...form, apply_tva: checked })}
+              />
             </div>
           )}
 
@@ -143,7 +157,7 @@ export const OrderFormDialog = ({
                 <span className="font-medium">{formatNumber(tvaAmount)} FCFA</span>
               </div>
               <div className="flex justify-between border-t pt-1 mt-1">
-                <span className="font-semibold">Total TTC</span>
+                <span className="font-semibold">Total {effectiveTvaRate > 0 ? "TTC" : "HT"}</span>
                 <span className="font-bold text-primary">{formatNumber(totalTTC)} FCFA</span>
               </div>
             </div>

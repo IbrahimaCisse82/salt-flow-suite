@@ -86,7 +86,9 @@ const Commercial = () => {
   const { sales, isLoading: salesLoading, updateSale, createSale, isCreating, isUpdating } = useSales();
 
   // Forms
-  const [orderForm, setOrderForm] = useState({
+  const [orderForm, setOrderForm] = useState<{
+    client_id: string; salt_type: string; quantity: string; unit_price: string; notes: string; warehouse_id: string; apply_tva?: boolean;
+  }>({
     client_id: "",
     salt_type: "gros",
     quantity: "",
@@ -200,7 +202,8 @@ const Commercial = () => {
     const qty = parseFloat(orderForm.quantity);
     const price = parseFloat(orderForm.unit_price);
     const amountHT = qty * price;
-    const tvaRate = isExport ? 0 : TVA_RATE;
+    const applyTva = orderForm.apply_tva !== undefined ? orderForm.apply_tva : !isExport;
+    const tvaRate = isExport ? 0 : (applyTva ? TVA_RATE : 0);
     const tvaAmount = Math.round(amountHT * tvaRate / 100);
 
     try {
