@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { Droplets, Plus, MapPin, Eye, Settings } from "lucide-react";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useBassins, BassinStatus, BassinType } from "@/hooks/useBassins";
 import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton";
 import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
+
+const MapPicker = lazy(() => import("@/components/Map/MapPicker"));
 
 const statusConfig: Record<BassinStatus, { label: string; className: string }> = {
   active: { label: "En production", className: "bg-primary/10 text-primary border-primary/30" },
@@ -43,6 +45,8 @@ const Bassins = () => {
     code: "",
     area: undefined as number | undefined,
     location: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
     status: "repos" as BassinStatus,
     bassin_type: undefined as BassinType | undefined,
   });
@@ -71,7 +75,7 @@ const Bassins = () => {
       await createBassin(newBassinData);
       toast({ title: "Bassin créé", description: "Bassin créé avec succès !" });
       setShowAddDialog(false);
-      setNewBassinData({ name: "", code: "", area: undefined, location: "", status: "repos", bassin_type: undefined });
+      setNewBassinData({ name: "", code: "", area: undefined, location: "", latitude: null, longitude: null, status: "repos", bassin_type: undefined });
     } catch (error: any) {
       const message = error?.message || (typeof error === 'string' ? error : "Impossible de créer le bassin");
       toast({ title: "Erreur", description: message, variant: "destructive" });
@@ -87,6 +91,8 @@ const Bassins = () => {
         code: selectedBassin.code,
         area: selectedBassin.area,
         location: selectedBassin.location,
+        latitude: selectedBassin.latitude,
+        longitude: selectedBassin.longitude,
         status: selectedBassin.status,
         bassin_type: selectedBassin.bassin_type,
       });
@@ -270,8 +276,21 @@ const Bassins = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Localisation</Label>
-                  <Input value={newBassinData.location} onChange={e => setNewBassinData({ ...newBassinData, location: e.target.value })} placeholder="Ex: Zone Nord" />
+                  <Label>Localisation (carte)</Label>
+                  <Suspense fallback={<div className="h-[300px] bg-muted animate-pulse rounded-lg" />}>
+                    <MapPicker
+                      initialLat={newBassinData.latitude ?? 14.7167}
+                      initialLng={newBassinData.longitude ?? -17.4677}
+                      onLocationChange={(lat, lng, address) => {
+                        setNewBassinData(prev => ({
+                          ...prev,
+                          latitude: lat,
+                          longitude: lng,
+                          location: address || prev.location,
+                        }));
+                      }}
+                    />
+                  </Suspense>
                 </div>
 
                 <div className="flex gap-2 pt-4">
@@ -296,6 +315,18 @@ const Bassins = () => {
                   <p><strong>Surface :</strong> {selectedBassin.area ? `${selectedBassin.area} ha` : "Non spécifié"}</p>
                   <p><strong>Localisation :</strong> {selectedBassin.location || "Non spécifiée"}</p>
                   <p><strong>Statut :</strong> {statusConfig[getBassinStatus(selectedBassin)].label}</p>
+                  {selectedBassin.latitude && selectedBassin.longitude && (
+                    <div className="space-y-2">
+                      <p className="font-semibold text-sm">Position GPS</p>
+                      <Suspense fallback={<div className="h-[250px] bg-muted animate-pulse rounded-lg" />}>
+                        <MapPicker
+                          initialLat={selectedBassin.latitude}
+                          initialLng={selectedBassin.longitude}
+                          onLocationChange={() => {}}
+                        />
+                      </Suspense>
+                    </div>
+                  )}
                 </div>
               )}
             </DialogContent>
@@ -353,8 +384,21 @@ const Bassins = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Localisation</Label>
-                    <Input value={selectedBassin.location || ''} onChange={e => setSelectedBassin({ ...selectedBassin, location: e.target.value })} />
+                    <Label>Localisation (carte)</Label>
+                    <Suspense fallback={<div className="h-[300px] bg-muted animate-pulse rounded-lg" />}>
+                      <MapPicker
+                        initialLat={selectedBassin.latitude ?? 14.7167}
+                        initialLng={selectedBassin.longitude ?? -17.4677}
+                        onLocationChange={(lat, lng, address) => {
+                          setSelectedBassin((prev: any) => ({
+                            ...prev,
+                            latitude: lat,
+                            longitude: lng,
+                            location: address || prev?.location,
+                          }));
+                        }}
+                      />
+                    </Suspense>
                   </div>
 
                   <div className="flex gap-2 pt-4">
