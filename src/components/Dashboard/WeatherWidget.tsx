@@ -66,7 +66,12 @@ export const WeatherWidget = ({ latitude, longitude, location = "Votre localisat
   }
 
   const getWeatherIcon = (iconCode: string) => {
-    return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+    // Map WMO-style icon codes to emoji for Open-Meteo compatibility
+    const iconMap: Record<string, string> = {
+      '01d': '☀️', '02d': '🌤️', '03d': '☁️', '04d': '☁️',
+      '09d': '🌧️', '10d': '🌦️', '11d': '⛈️', '13d': '❄️', '50d': '🌫️',
+    };
+    return iconMap[iconCode] || '☁️';
   };
 
   const formatTime = (timestamp: number) => {
@@ -90,11 +95,7 @@ export const WeatherWidget = ({ latitude, longitude, location = "Votre localisat
             {/* Météo actuelle */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <img
-                  src={getWeatherIcon(weather.current.icon)}
-                  alt={weather.current.description}
-                  className="h-16 w-16"
-                />
+                <span className="text-5xl">{getWeatherIcon(weather.current.icon)}</span>
                 <div>
                   <p className="text-3xl font-bold">{weather.current.temperature}°C</p>
                   <p className="text-sm text-muted-foreground capitalize">
@@ -139,11 +140,7 @@ export const WeatherWidget = ({ latitude, longitude, location = "Votre localisat
                           hour: '2-digit',
                         })}h
                       </p>
-                      <img
-                        src={getWeatherIcon(item.icon)}
-                        alt={item.description}
-                        className="h-8 w-8"
-                      />
+                      <span className="text-xl">{getWeatherIcon(item.icon)}</span>
                       <p className="text-sm font-medium">{item.temperature}°</p>
                     </div>
                   ))}
