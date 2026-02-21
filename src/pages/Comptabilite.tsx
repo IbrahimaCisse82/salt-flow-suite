@@ -299,9 +299,9 @@ const Comptabilite = () => {
     }
   });
 
-  // Calculer les revenus du mois (encaissements : ventes, recettes)
+  // Calculer les revenus du mois (uniquement les ventes)
   const monthlyRevenue = monthlyTransactions
-    .filter((t: any) => ['vente_locale', 'vente_export', 'recette'].includes(t.transaction_type))
+    .filter((t: any) => ['vente_locale', 'vente_export'].includes(t.transaction_type))
     .reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0);
 
   // Calculer les dépenses du mois (décaissements : dépenses, salaires, achats)
