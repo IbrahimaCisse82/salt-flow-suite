@@ -94,7 +94,7 @@ const Production = () => {
     quantity: Number(record.quantity),
     type: record.salt_type,
     quality: record.quality_grade || 'N/A',
-    status: "completed"
+    status: record.status || "completed"
   }));
 
   // Calculate production statistics
@@ -535,9 +535,11 @@ const Production = () => {
                           Qualité {harvest.quality}
                         </Badge>
                         <Badge 
-                          className="bg-green-500/10 text-green-700 hover:bg-green-500/20"
+                          className={harvest.status === 'processing' 
+                            ? "bg-amber-500/10 text-amber-700 hover:bg-amber-500/20" 
+                            : "bg-green-500/10 text-green-700 hover:bg-green-500/20"}
                         >
-                          Complété
+                          {harvest.status === 'processing' ? 'En traitement' : 'Complété'}
                         </Badge>
                       </div>
                     </div>
