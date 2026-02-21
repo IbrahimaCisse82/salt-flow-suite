@@ -14,6 +14,8 @@ export interface BassinFormData {
   code?: string;
   area?: number | string;
   location?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   is_active?: boolean;
   status?: BassinStatus;
   bassin_type?: BassinType;
@@ -53,12 +55,14 @@ export const useBassins = () => {
         throw new Error("Tenant ID manquant");
       }
 
-      const insertData: BassinInsert & { bassin_type?: string } = {
+      const insertData: BassinInsert & { bassin_type?: string; latitude?: number | null; longitude?: number | null } = {
         tenant_id: profile.tenant_id,
         name: formData.name.trim(),
         code: cleanString(formData.code),
         area: ensureNumber(formData.area),
         location: cleanString(formData.location),
+        latitude: formData.latitude ?? null,
+        longitude: formData.longitude ?? null,
         is_active: formData.status === 'active',
         status: formData.status || 'repos',
         bassin_type: formData.bassin_type
@@ -93,11 +97,13 @@ export const useBassins = () => {
 
   const updateBassinMutation = useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<BassinFormData>): Promise<BassinRow> => {
-      const updateData: BassinUpdate & { bassin_type?: string } = {
+      const updateData: BassinUpdate & { bassin_type?: string; latitude?: number | null; longitude?: number | null } = {
         name: updates.name?.trim(),
         code: updates.code !== undefined ? cleanString(updates.code) : undefined,
         area: updates.area !== undefined ? ensureNumber(updates.area) : undefined,
         location: updates.location !== undefined ? cleanString(updates.location) : undefined,
+        latitude: (updates as any).latitude !== undefined ? (updates as any).latitude : undefined,
+        longitude: (updates as any).longitude !== undefined ? (updates as any).longitude : undefined,
         is_active: updates.status !== undefined ? updates.status === 'active' : updates.is_active,
         status: updates.status,
         bassin_type: (updates as any).bassin_type,

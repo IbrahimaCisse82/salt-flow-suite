@@ -178,7 +178,9 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_maintenance: boolean | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
           name: string
           status: string | null
           tenant_id: string
@@ -194,7 +196,9 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_maintenance?: boolean | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           name: string
           status?: string | null
           tenant_id: string
@@ -210,7 +214,9 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_maintenance?: boolean | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           name?: string
           status?: string | null
           tenant_id?: string
