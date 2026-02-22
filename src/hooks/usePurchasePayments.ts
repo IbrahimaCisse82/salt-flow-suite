@@ -77,37 +77,7 @@
 
       if (error) throw error;
 
-      // 2. Mettre à jour total_paid et status de la commande
-      const { data: order } = await supabase
-        .from("purchase_orders")
-        .select("total_amount, total_paid, status")
-        .eq("id", input.purchase_order_id)
-        .single();
-
-      if (order) {
-        const currentPaid = order.total_paid || 0;
-        let newPaid = currentPaid;
-        
-        if (input.payment_type === "refund") {
-          newPaid = currentPaid - input.amount;
-        } else {
-          newPaid = currentPaid + input.amount;
-        }
-
-        const totalAmount = order.total_amount || 0;
-        let newStatus = order.status;
-
-        if (newPaid >= totalAmount) {
-          newStatus = "paid";
-        } else if (newPaid > 0) {
-          newStatus = "partially_paid";
-        }
-
-        await supabase
-          .from("purchase_orders")
-          .update({ total_paid: newPaid, status: newStatus })
-          .eq("id", input.purchase_order_id);
-      }
+      // 2. total_paid et status sont mis à jour par le trigger DB (trg_handle_purchase_payment)
 
       // 3. Marquer les notifications comme actionnées
       await supabase

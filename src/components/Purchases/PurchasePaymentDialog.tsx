@@ -172,43 +172,59 @@
              </div>
            </div>
  
-           <div className="grid grid-cols-2 gap-4">
-             <div className="space-y-2">
-               <Label>Mode de paiement</Label>
-               <Select
-                 value={formData.payment_method}
-                 onValueChange={(v) => setFormData({ ...formData, payment_method: v })}
-               >
-                 <SelectTrigger>
-                   <SelectValue />
-                 </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="especes">Espèces</SelectItem>
-                   <SelectItem value="virement">Virement</SelectItem>
-                   <SelectItem value="cheque">Chèque</SelectItem>
-                   <SelectItem value="mobile">Mobile Money</SelectItem>
-                 </SelectContent>
-               </Select>
-             </div>
-             <div className="space-y-2">
-               <Label>Compte de trésorerie</Label>
-               <Select
-                 value={formData.account_id}
-                 onValueChange={(v) => setFormData({ ...formData, account_id: v })}
-               >
-                 <SelectTrigger>
-                   <SelectValue placeholder="Sélectionner" />
-                 </SelectTrigger>
-                 <SelectContent>
-                   {accounts.map((acc: any) => (
-                     <SelectItem key={acc.id} value={acc.id}>
-                       {acc.account_name}
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
-             </div>
-           </div>
+          <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Compte de trésorerie *</Label>
+                <Select
+                  value={formData.account_id}
+                  onValueChange={(v) => {
+                    const selectedAcc = accounts.find((a: any) => a.id === v);
+                    const accType = (selectedAcc?.account_type || '').toLowerCase();
+                    // Auto-sélectionner le premier mode compatible
+                    const defaultMethod = accType === 'banque' ? 'virement' : 'especes';
+                    setFormData({ ...formData, account_id: v, payment_method: defaultMethod });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map((acc: any) => (
+                      <SelectItem key={acc.id} value={acc.id}>
+                        {acc.account_name} ({acc.account_type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Mode de paiement</Label>
+                {(() => {
+                  const selectedAcc = accounts.find((a: any) => a.id === formData.account_id);
+                  const accType = (selectedAcc?.account_type || '').toLowerCase();
+                  const methods = accType === 'banque' 
+                    ? [{ value: 'virement', label: 'Virement' }, { value: 'cheque', label: 'Chèque' }]
+                    : accType === 'caisse'
+                    ? [{ value: 'especes', label: 'Espèces' }, { value: 'mobile', label: 'Mobile Money' }]
+                    : [{ value: 'especes', label: 'Espèces' }, { value: 'virement', label: 'Virement' }, { value: 'cheque', label: 'Chèque' }, { value: 'mobile', label: 'Mobile Money' }];
+                  return (
+                    <Select
+                      value={formData.payment_method}
+                      onValueChange={(v) => setFormData({ ...formData, payment_method: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {methods.map(m => (
+                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                })()}
+              </div>
+            </div>
  
            <div className="space-y-2">
              <Label>Notes</Label>
