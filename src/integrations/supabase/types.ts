@@ -1057,6 +1057,7 @@ export type Database = {
       }
       inventory_items: {
         Row: {
+          cmp: number | null
           created_at: string | null
           description: string | null
           id: string
@@ -1072,11 +1073,13 @@ export type Database = {
           reserved_quantity: number | null
           storage_location: string | null
           tenant_id: string
+          total_stock_value: number | null
           unit_cost: number | null
           unit_of_measure: string | null
           updated_at: string | null
         }
         Insert: {
+          cmp?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -1092,11 +1095,13 @@ export type Database = {
           reserved_quantity?: number | null
           storage_location?: string | null
           tenant_id: string
+          total_stock_value?: number | null
           unit_cost?: number | null
           unit_of_measure?: string | null
           updated_at?: string | null
         }
         Update: {
+          cmp?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -1112,11 +1117,126 @@ export type Database = {
           reserved_quantity?: number | null
           storage_location?: string | null
           tenant_id?: string
+          total_stock_value?: number | null
           unit_cost?: number | null
           unit_of_measure?: string | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      inventory_valuation_layers: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          inventory_item_id: string
+          layer_date: string
+          movement_type: string
+          notes: string | null
+          quantity: number
+          reference_id: string | null
+          remaining_quantity: number
+          source_type: string
+          tenant_id: string
+          total_value: number | null
+          unit_cost: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_item_id: string
+          layer_date?: string
+          movement_type: string
+          notes?: string | null
+          quantity: number
+          reference_id?: string | null
+          remaining_quantity: number
+          source_type: string
+          tenant_id: string
+          total_value?: number | null
+          unit_cost?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_item_id?: string
+          layer_date?: string
+          movement_type?: string
+          notes?: string | null
+          quantity?: number
+          reference_id?: string | null
+          remaining_quantity?: number
+          source_type?: string
+          tenant_id?: string
+          total_value?: number | null
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_valuation_layers_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_valuation_layers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_valuation_snapshots: {
+        Row: {
+          cmp: number
+          created_at: string
+          id: string
+          inventory_item_id: string
+          quantity_on_hand: number
+          snapshot_date: string
+          tenant_id: string
+          total_value: number
+        }
+        Insert: {
+          cmp?: number
+          created_at?: string
+          id?: string
+          inventory_item_id: string
+          quantity_on_hand?: number
+          snapshot_date: string
+          tenant_id: string
+          total_value?: number
+        }
+        Update: {
+          cmp?: number
+          created_at?: string
+          id?: string
+          inventory_item_id?: string
+          quantity_on_hand?: number
+          snapshot_date?: string
+          tenant_id?: string
+          total_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_valuation_snapshots_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_valuation_snapshots_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       journal_entries: {
         Row: {
@@ -3326,6 +3446,10 @@ export type Database = {
           p_transaction_type: string
         }
         Returns: string
+      }
+      create_valuation_snapshot: {
+        Args: { p_snapshot_date?: string; p_tenant_id: string }
+        Returns: number
       }
       generate_balance_sheet: {
         Args: {

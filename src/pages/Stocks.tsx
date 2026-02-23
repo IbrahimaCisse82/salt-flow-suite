@@ -35,13 +35,16 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   History,
-  MapPin
+  MapPin,
+  DollarSign,
+  Camera
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useInventoryItems, useStockMovements } from "@/hooks/useInventoryItems";
 import { useStockMovementsHistory } from "@/hooks/useStockMovements";
+import { useInventoryValuation } from "@/hooks/useInventoryValuation";
 import {
   BarChart,
   Bar,
@@ -75,7 +78,7 @@ const Stocks = () => {
   const { items: inventoryItems, createItem, isLoading: inventoryLoading } = useInventoryItems();
   const { recordMovement } = useStockMovements();
   const { movements, isLoading: movementsLoading } = useStockMovementsHistory();
-  
+  const { layers, snapshots, createSnapshot, isLoading: valuationLoading } = useInventoryValuation();
   // Separate items by category
   const productionItems = inventoryItems.filter(item => item.item_category === 'production');
   const warehouses = inventoryItems.filter(item => item.item_category === 'warehouse');
@@ -143,7 +146,12 @@ const Stocks = () => {
   const totalStock = stockByType.reduce((sum, item) => sum + item.available, 0);
   const totalReserved = stockByType.reduce((sum, item) => sum + item.reserved, 0);
   const alertCount = stockByType.filter(s => s.status === 'faible').length;
-  
+
+  // Total stock value (CMP × quantity)
+  const totalStockValue = productionItems.reduce((sum, item) => 
+    sum + (Number(item.total_stock_value) || (Number(item.quantity_on_hand || 0) * Number(item.cmp || item.unit_cost || 0))), 0
+  );
+  const avgCMP = totalStock > 0 ? totalStockValue / totalStock : 0;
   // Chart data (aggregate by type for chart)
   const chartData = Object.entries(stockTotals).map(([type, qty]) => ({
     name: type,
@@ -440,7 +448,7 @@ const Stocks = () => {
           </div>
 
           {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             <Card>
               <CardContent className="p-4 md:p-6">
                 <Package className="h-8 w-8 text-primary mb-3" />
@@ -450,6 +458,18 @@ const Stocks = () => {
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
                   {stockByType.length} catégories{totalReserved > 0 ? ` | ${Math.round(totalReserved)}t réservées` : ''}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 md:p-6">
+                <DollarSign className="h-8 w-8 text-primary mb-3" />
+                <p className="text-sm text-muted-foreground">Valeur stock</p>
+                {inventoryLoading ? <Skeleton className="h-9 w-24 mt-1" /> : (
+                  <p className="text-2xl font-bold">{Math.round(totalStockValue).toLocaleString('fr-FR')} F</p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  CMP moyen: {Math.round(avgCMP).toLocaleString('fr-FR')} F/t
                 </p>
               </CardContent>
             </Card>
@@ -503,8 +523,9 @@ const Stocks = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="stocks" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="stocks">Stocks</TabsTrigger>
+              <TabsTrigger value="valorisation">Valorisation</TabsTrigger>
               <TabsTrigger value="chart">Graphique</TabsTrigger>
               <TabsTrigger value="movements">Mouvements</TabsTrigger>
               <TabsTrigger value="warehouses">Entrepôts</TabsTrigger>
@@ -542,6 +563,11 @@ const Stocks = () => {
                               <div className="text-right">
                                 <p className="text-xl font-bold">{Math.round(stock.available)} {stock.unit}</p>
                                 <p className="text-xs text-muted-foreground">Total: {Math.round(stock.quantity)} {stock.unit}</p>
+                                {(() => {
+                                  const matchingItem = productionItems.find(i => i.item_name === stock.type && i.storage_location === stock.warehouse);
+                                  const cmp = matchingItem ? Number(matchingItem.cmp || matchingItem.unit_cost || 0) : 0;
+                                  return cmp > 0 ? <p className="text-xs text-muted-foreground">CMP: {Math.round(cmp).toLocaleString('fr-FR')} F/t</p> : null;
+                                })()}
                                 {stock.reserved > 0 && (
                                   <p className="text-xs font-medium text-amber-600">🔒 {Math.round(stock.reserved)} {stock.unit} sous commande</p>
                                 )}
@@ -570,6 +596,99 @@ const Stocks = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Valorisation Tab */}
+            <TabsContent value="valorisation" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2"><DollarSign className="h-5 w-5 text-primary" />Valorisation CMP par article</CardTitle>
+                    <Button onClick={() => createSnapshot.mutate(undefined)} size="sm" className="gap-2" disabled={createSnapshot.isPending}>
+                      <Camera className="h-4 w-4" />{createSnapshot.isPending ? 'En cours...' : 'Snapshot mensuel'}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {inventoryLoading ? (
+                    <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full" />)}</div>
+                  ) : productionItems.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <DollarSign className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>Aucun article de production à valoriser</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Article</TableHead>
+                            <TableHead>Entrepôt</TableHead>
+                            <TableHead className="text-right">Quantité (t)</TableHead>
+                            <TableHead className="text-right">CMP (F/t)</TableHead>
+                            <TableHead className="text-right">Valeur totale (F)</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {productionItems.map((item) => {
+                            const cmp = Number(item.cmp || item.unit_cost || 0);
+                            const qty = Number(item.quantity_on_hand || 0);
+                            const value = Number(item.total_stock_value) || (qty * cmp);
+                            return (
+                              <TableRow key={item.id}>
+                                <TableCell className="font-medium">{item.item_name}</TableCell>
+                                <TableCell><Badge variant="secondary" className="text-xs">{item.storage_location || '—'}</Badge></TableCell>
+                                <TableCell className="text-right">{qty.toFixed(1)}</TableCell>
+                                <TableCell className="text-right">{Math.round(cmp).toLocaleString('fr-FR')}</TableCell>
+                                <TableCell className="text-right font-semibold">{Math.round(value).toLocaleString('fr-FR')}</TableCell>
+                              </TableRow>
+                            );
+                          })}
+                          <TableRow className="border-t-2 font-bold">
+                            <TableCell colSpan={2}>Total</TableCell>
+                            <TableCell className="text-right">{totalStock.toFixed(1)}</TableCell>
+                            <TableCell className="text-right">{Math.round(avgCMP).toLocaleString('fr-FR')}</TableCell>
+                            <TableCell className="text-right">{Math.round(totalStockValue).toLocaleString('fr-FR')}</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Snapshots history */}
+              {snapshots.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><History className="h-5 w-5 text-primary" />Historique des snapshots</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead className="text-right">Quantité (t)</TableHead>
+                            <TableHead className="text-right">CMP (F/t)</TableHead>
+                            <TableHead className="text-right">Valeur (F)</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {snapshots.slice(0, 20).map((snap) => (
+                            <TableRow key={snap.id}>
+                              <TableCell>{new Date(snap.snapshot_date).toLocaleDateString('fr-FR')}</TableCell>
+                              <TableCell className="text-right">{Number(snap.quantity_on_hand).toFixed(1)}</TableCell>
+                              <TableCell className="text-right">{Math.round(Number(snap.cmp)).toLocaleString('fr-FR')}</TableCell>
+                              <TableCell className="text-right font-medium">{Math.round(Number(snap.total_value)).toLocaleString('fr-FR')}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             {/* Chart Tab */}
