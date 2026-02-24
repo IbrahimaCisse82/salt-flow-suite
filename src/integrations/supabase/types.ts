@@ -3372,6 +3372,31 @@ export type Database = {
           },
         ]
       }
+      budget_commitment_summary: {
+        Row: {
+          alert_level: number | null
+          budgeted_amount: number | null
+          campagne_id: string | null
+          committed_amount: number | null
+          engagement_rate: number | null
+          expense_category: string | null
+          paid_amount: number | null
+          phase: string | null
+          po_count: number | null
+          realized_amount: number | null
+          remaining_to_commit: number | null
+          total_engaged: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campagne_budget_lines_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orphaned_profiles: {
         Row: {
           created_at: string | null
@@ -3412,6 +3437,15 @@ export type Database = {
           p_schedule_time: string
         }
         Returns: string
+      }
+      check_budget_commitment: {
+        Args: {
+          p_amount: number
+          p_campagne_id: string
+          p_expense_category: string
+          p_phase: string
+        }
+        Returns: Json
       }
       check_user_active: {
         Args: { p_user_id: string }
