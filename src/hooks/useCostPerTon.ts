@@ -12,13 +12,17 @@ export interface CostPerTonData {
   cout_energie: number;
   cout_transport: number;
   cout_maintenance: number;
+  cout_amortissement: number;
   autres_couts: number;
   cout_total: number;
   cout_par_tonne: number;
+  stock_value: number;
+  stock_cmp_moyen: number;
   details_par_type: Record<string, {
     production_kg: number;
     production_tons: number;
     cout_estime: number;
+    cmp_unitaire: number;
   }>;
   period_start: string;
   period_end: string;
@@ -131,6 +135,7 @@ export const useCostPerTon = () => {
           cout_energie: data.cout_energie,
           cout_transport: data.cout_transport,
           cout_maintenance: data.cout_maintenance,
+          cout_amortissement: data.cout_amortissement,
           autres_couts: data.autres_couts,
           details_par_type: data.details_par_type,
           notes: params.notes || null,
