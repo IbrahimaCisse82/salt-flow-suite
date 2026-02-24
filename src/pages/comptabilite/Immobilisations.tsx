@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, TrendingDown, Package, Ban, HandCoins } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { DepreciationScheduleTable } from "@/components/Accounting/DepreciationScheduleTable";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(amount) + " FCFA";
@@ -111,6 +112,7 @@ const Immobilisations = () => {
           <Tabs defaultValue="active">
             <TabsList>
               <TabsTrigger value="active">Actifs ({activeAssets.length})</TabsTrigger>
+              <TabsTrigger value="amortissements">Amortissements</TabsTrigger>
               <TabsTrigger value="disposed">Cédés ({disposedAssets.length})</TabsTrigger>
             </TabsList>
 
@@ -161,6 +163,10 @@ const Immobilisations = () => {
                   </Table>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="amortissements">
+              <DepreciationScheduleTable assets={activeAssets} />
             </TabsContent>
 
             <TabsContent value="disposed">
