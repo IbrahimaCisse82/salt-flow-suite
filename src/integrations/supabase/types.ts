@@ -942,6 +942,11 @@ export type Database = {
           commissioning_date: string | null
           created_at: string | null
           depreciation_method: string
+          disposal_date: string | null
+          disposal_notes: string | null
+          disposal_price: number | null
+          disposal_type: string | null
+          disposed_by: string | null
           id: string
           net_book_value: number | null
           notes: string | null
@@ -962,6 +967,11 @@ export type Database = {
           commissioning_date?: string | null
           created_at?: string | null
           depreciation_method?: string
+          disposal_date?: string | null
+          disposal_notes?: string | null
+          disposal_price?: number | null
+          disposal_type?: string | null
+          disposed_by?: string | null
           id?: string
           net_book_value?: number | null
           notes?: string | null
@@ -982,6 +992,11 @@ export type Database = {
           commissioning_date?: string | null
           created_at?: string | null
           depreciation_method?: string
+          disposal_date?: string | null
+          disposal_notes?: string | null
+          disposal_price?: number | null
+          disposal_type?: string | null
+          disposed_by?: string | null
           id?: string
           net_book_value?: number | null
           notes?: string | null
@@ -3484,6 +3499,17 @@ export type Database = {
       create_valuation_snapshot: {
         Args: { p_snapshot_date?: string; p_tenant_id: string }
         Returns: number
+      }
+      dispose_fixed_asset: {
+        Args: {
+          p_asset_id: string
+          p_disposal_date?: string
+          p_disposal_price?: number
+          p_disposal_type: string
+          p_notes?: string
+          p_payment_account_id?: string
+        }
+        Returns: Json
       }
       generate_balance_sheet: {
         Args: {

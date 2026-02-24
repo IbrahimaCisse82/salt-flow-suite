@@ -35,6 +35,7 @@ const routeLabels: Record<string, string> = {
   "/comptabilite/rapprochement": "Rapprochement",
   "/comptabilite/operations-diverses": "Opérations Diverses",
   "/comptabilite/cloture": "Clôture d'exercice",
+  "/comptabilite/immobilisations": "Immobilisations",
 };
 
 export const Breadcrumbs = () => {

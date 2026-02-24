@@ -23,6 +23,7 @@ const ComptaGrandLivre = lazy(() => import('@/pages/comptabilite/GrandLivre'));
 const ComptaRapprochement = lazy(() => import('@/pages/comptabilite/Rapprochement'));
 const ComptaOperationsDiverses = lazy(() => import('@/pages/comptabilite/OperationsDiverses'));
 const ComptaClotureExercice = lazy(() => import('@/pages/comptabilite/ClotureExercice'));
+const ComptaImmobilisations = lazy(() => import('@/pages/comptabilite/Immobilisations'));
 const Rapports = lazy(() => import('@/pages/Rapports'));
 const Parametres = lazy(() => import('@/pages/Parametres'));
 const CGU = lazy(() => import('@/pages/CGU'));
@@ -187,6 +188,16 @@ export const AppRoutes = () => {
             <ProtectedRoute>
               <RoleProtectedRoute>
                 <ComptaClotureExercice />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/comptabilite/immobilisations"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute>
+                <ComptaImmobilisations />
               </RoleProtectedRoute>
             </ProtectedRoute>
           }
