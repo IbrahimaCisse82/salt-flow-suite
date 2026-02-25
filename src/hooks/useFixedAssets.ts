@@ -2,31 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import type { FixedAssetRow } from "@/types/database.types";
 
-export interface FixedAsset {
-  id: string;
-  tenant_id: string;
-  asset_name: string;
-  asset_category: string;
-  account_number: string;
-  acquisition_date: string;
-  commissioning_date: string | null;
-  acquisition_cost: number;
-  residual_value: number;
-  useful_life_years: number;
-  depreciation_method: string;
-  total_depreciated: number;
-  net_book_value: number;
-  status: string;
-  notes: string | null;
-  purchase_order_id: string | null;
-  disposal_date: string | null;
-  disposal_type: string | null;
-  disposal_price: number | null;
-  disposal_notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
+// Re-export the DB-aligned type for consumers
+export type FixedAsset = FixedAssetRow;
 
 export interface DisposalParams {
   asset_id: string;
@@ -70,9 +49,9 @@ export const useFixedAssets = () => {
         p_notes: params.notes || null,
       });
       if (error) throw error;
-      return data;
+      return data as Record<string, unknown>;
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["fixed-assets"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] });

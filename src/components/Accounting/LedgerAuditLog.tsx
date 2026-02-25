@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Shield, AlertTriangle, CheckCircle2, Ban } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import type { LedgerAuditLogRow } from "@/types/database.types";
 
 const ACTION_CONFIG: Record<string, { label: string; icon: React.ReactNode; variant: "default" | "destructive" | "outline" | "secondary" }> = {
   validation: { label: "Validation", icon: <CheckCircle2 className="h-3 w-3" />, variant: "default" },
@@ -19,7 +20,7 @@ export const LedgerAuditLog = () => {
 
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ["ledger-audit-log", tenantId],
-    queryFn: async () => {
+    queryFn: async (): Promise<LedgerAuditLogRow[]> => {
       if (!tenantId) return [];
       const { data, error } = await supabase
         .from("ledger_audit_log")
@@ -30,7 +31,7 @@ export const LedgerAuditLog = () => {
         console.error("Error loading audit log:", error);
         return [];
       }
-      return data || [];
+      return (data as LedgerAuditLogRow[]) || [];
     },
     enabled: !!tenantId,
   });
@@ -66,8 +67,9 @@ export const LedgerAuditLog = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {logs.map((log: any) => {
+            {logs.map((log) => {
               const config = ACTION_CONFIG[log.action_type] || ACTION_CONFIG.blocked_update;
+              const details = log.details as Record<string, unknown> | null;
               return (
                 <TableRow key={log.id}>
                   <TableCell className="whitespace-nowrap text-sm">
@@ -80,9 +82,11 @@ export const LedgerAuditLog = () => {
                   </TableCell>
                   <TableCell className="font-mono text-sm">{log.table_name}</TableCell>
                   <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
-                    {log.details?.reason || log.details?.total_debit
-                      ? `D: ${log.details.total_debit} / C: ${log.details.total_credit}`
-                      : JSON.stringify(log.details).slice(0, 80)}
+                    {details?.reason
+                      ? String(details.reason)
+                      : details?.total_debit != null
+                        ? `D: ${details.total_debit} / C: ${details.total_credit}`
+                        : JSON.stringify(details).slice(0, 80)}
                   </TableCell>
                 </TableRow>
               );

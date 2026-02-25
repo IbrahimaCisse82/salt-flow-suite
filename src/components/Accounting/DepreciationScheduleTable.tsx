@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import type { FixedAsset } from "@/hooks/useFixedAssets";
+import type { DepreciationScheduleRow } from "@/types/database.types";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(amount) + " FCFA";
@@ -21,30 +21,16 @@ interface Props {
   assets: FixedAsset[];
 }
 
-interface ScheduleLine {
-  id: string;
-  fixed_asset_id: string;
-  period_start: string;
-  period_end: string;
-  depreciation_amount: number;
-  cumulative_depreciation: number;
-  net_book_value: number;
-  is_posted: boolean;
-  posted_at: string | null;
-  transaction_id: string | null;
-}
-
 export const DepreciationScheduleTable = ({ assets }: Props) => {
-  const { profile } = useAuth();
   const queryClient = useQueryClient();
   const [selectedAssetId, setSelectedAssetId] = useState<string>("");
-  const [confirmPost, setConfirmPost] = useState<ScheduleLine | null>(null);
+  const [confirmPost, setConfirmPost] = useState<DepreciationScheduleRow | null>(null);
 
   const selectedAsset = assets.find((a) => a.id === selectedAssetId);
 
   const { data: schedule = [], isLoading } = useQuery({
     queryKey: ["depreciation-schedule", selectedAssetId],
-    queryFn: async (): Promise<ScheduleLine[]> => {
+    queryFn: async (): Promise<DepreciationScheduleRow[]> => {
       if (!selectedAssetId) return [];
       const { data, error } = await supabase
         .from("depreciation_schedule")
@@ -55,7 +41,7 @@ export const DepreciationScheduleTable = ({ assets }: Props) => {
         console.error("Error loading depreciation schedule:", error);
         return [];
       }
-      return (data as ScheduleLine[]) || [];
+      return (data as DepreciationScheduleRow[]) || [];
     },
     enabled: !!selectedAssetId,
   });

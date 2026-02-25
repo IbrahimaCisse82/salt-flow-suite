@@ -240,3 +240,20 @@ export type NotificationHistoryUpdate = TableUpdate<"notification_history">;
 export type CampagnePhaseBudgetRow = TableRow<"campagne_phase_budgets">;
 export type CampagnePhaseBudgetInsert = TableInsert<"campagne_phase_budgets">;
 export type CampagnePhaseBudgetUpdate = TableUpdate<"campagne_phase_budgets">;
+
+// ==================== Fixed Assets ====================
+
+export type FixedAssetRow = TableRow<"fixed_assets">;
+export type FixedAssetInsert = TableInsert<"fixed_assets">;
+export type FixedAssetUpdate = TableUpdate<"fixed_assets">;
+
+// ==================== Depreciation Schedule ====================
+
+export type DepreciationScheduleRow = TableRow<"depreciation_schedule">;
+export type DepreciationScheduleInsert = TableInsert<"depreciation_schedule">;
+export type DepreciationScheduleUpdate = TableUpdate<"depreciation_schedule">;
+
+// ==================== Ledger Audit Log ====================
+
+export type LedgerAuditLogRow = TableRow<"ledger_audit_log">;
+export type LedgerAuditLogInsert = TableInsert<"ledger_audit_log">;
