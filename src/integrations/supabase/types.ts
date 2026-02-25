@@ -1361,6 +1361,47 @@ export type Database = {
         }
         Relationships: []
       }
+      ledger_audit_log: {
+        Row: {
+          action_type: string
+          created_at: string
+          details: Json | null
+          id: string
+          record_id: string
+          table_name: string
+          tenant_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          record_id: string
+          table_name: string
+          tenant_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          record_id?: string
+          table_name?: string
+          tenant_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_history: {
         Row: {
           id: string
@@ -3261,6 +3302,7 @@ export type Database = {
           description: string | null
           document_number: string | null
           id: string
+          is_validated: boolean
           journal_code: string | null
           notes: string | null
           reference: string | null
@@ -3268,6 +3310,8 @@ export type Database = {
           transaction_date: string | null
           transaction_type: string | null
           updated_at: string | null
+          validated_at: string | null
+          validated_by: string | null
         }
         Insert: {
           account_id?: string | null
@@ -3279,6 +3323,7 @@ export type Database = {
           description?: string | null
           document_number?: string | null
           id?: string
+          is_validated?: boolean
           journal_code?: string | null
           notes?: string | null
           reference?: string | null
@@ -3286,6 +3331,8 @@ export type Database = {
           transaction_date?: string | null
           transaction_type?: string | null
           updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
         }
         Update: {
           account_id?: string | null
@@ -3297,6 +3344,7 @@ export type Database = {
           description?: string | null
           document_number?: string | null
           id?: string
+          is_validated?: boolean
           journal_code?: string | null
           notes?: string | null
           reference?: string | null
@@ -3304,6 +3352,8 @@ export type Database = {
           transaction_date?: string | null
           transaction_type?: string | null
           updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
         }
         Relationships: [
           {
@@ -3680,6 +3730,14 @@ export type Database = {
           user_id: string
         }
         Returns: boolean
+      }
+      validate_transaction: {
+        Args: { p_transaction_id: string }
+        Returns: Json
+      }
+      validate_transactions_bulk: {
+        Args: { p_transaction_ids: string[] }
+        Returns: Json
       }
     }
     Enums: {
