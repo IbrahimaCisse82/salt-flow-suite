@@ -13,10 +13,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAccountingLedger, JournalEntryWithTransaction } from "@/hooks/useAccountingLedger";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAccountingLedger } from "@/hooks/useAccountingLedger";
+import { useTransactions } from "@/hooks/useTransactions";
 import { format, subMonths } from "date-fns";
 import { fr } from "date-fns/locale";
-import { BookOpen, Scale, FileText, TrendingUp, TrendingDown, CheckCircle, AlertTriangle } from "lucide-react";
+import { BookOpen, Scale, FileText, TrendingUp, TrendingDown, CheckCircle, AlertTriangle, Shield, Lock } from "lucide-react";
 import { TableSkeleton } from "@/components/LoadingSkeletons";
 
 const TRANSACTION_TYPE_LABELS: Record<string, { label: string; color: string }> = {
@@ -44,6 +47,8 @@ export const GeneralLedger = () => {
   const [startDate, setStartDate] = useState(format(subMonths(firstDayOfMonth, 1), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(today, "yyyy-MM-dd"));
   const [accountFilter, setAccountFilter] = useState("");
+  const [selectedTxIds, setSelectedTxIds] = useState<Set<string>>(new Set());
+  const [confirmValidate, setConfirmValidate] = useState(false);
 
   const { 
     journalEntries, 
@@ -53,6 +58,8 @@ export const GeneralLedger = () => {
     totalCredit, 
     isBalanced 
   } = useAccountingLedger(startDate, endDate);
+
+  const { validateTransactionsBulk } = useTransactions();
 
   const filteredEntries = accountFilter
     ? journalEntries.filter(
@@ -69,6 +76,47 @@ export const GeneralLedger = () => {
           b.account_name?.toLowerCase().includes(accountFilter.toLowerCase())
       )
     : trialBalance;
+
+  // Group entries by transaction to show validation status
+  const txValidationMap = new Map<string, boolean>();
+  journalEntries.forEach((e) => {
+    // We'll check the is_validated field from the transaction data
+    // For now we track unique transaction IDs
+    if (e.transaction_id && !txValidationMap.has(e.transaction_id)) {
+      txValidationMap.set(e.transaction_id, false);
+    }
+  });
+
+  // Get unvalidated transaction IDs from entries
+  const unvalidatedTxIds = [...new Set(
+    filteredEntries
+      .filter(e => e.transaction_id)
+      .map(e => e.transaction_id)
+  )];
+
+  const toggleTxSelection = (txId: string) => {
+    setSelectedTxIds(prev => {
+      const next = new Set(prev);
+      if (next.has(txId)) next.delete(txId);
+      else next.add(txId);
+      return next;
+    });
+  };
+
+  const selectAllUnvalidated = () => {
+    setSelectedTxIds(new Set(unvalidatedTxIds));
+  };
+
+  const handleBulkValidate = () => {
+    if (selectedTxIds.size === 0) return;
+    validateTransactionsBulk.mutate([...selectedTxIds], {
+      onSuccess: () => {
+        setSelectedTxIds(new Set());
+        setConfirmValidate(false);
+      },
+      onSettled: () => setConfirmValidate(false),
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -169,25 +217,53 @@ export const GeneralLedger = () => {
         </CardContent>
       </Card>
 
+      {/* Validation toolbar */}
+      {selectedTxIds.size > 0 && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardContent className="py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <Shield className="h-4 w-4 text-primary" />
+              <span className="font-medium">{selectedTxIds.size} transaction(s) sélectionnée(s)</span>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setSelectedTxIds(new Set())}>
+                Désélectionner
+              </Button>
+              <Button size="sm" onClick={() => setConfirmValidate(true)}>
+                <Lock className="h-4 w-4 mr-1" />
+                Valider & Verrouiller
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Onglets Journal / Balance */}
       <Card>
         <Tabs defaultValue="journal">
           <CardHeader className="pb-0">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
                 Grand Livre & Balance
               </CardTitle>
-              <TabsList>
-                <TabsTrigger value="journal" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Journal
-                </TabsTrigger>
-                <TabsTrigger value="balance" className="flex items-center gap-2">
-                  <Scale className="h-4 w-4" />
-                  Balance
-                </TabsTrigger>
-              </TabsList>
+              <div className="flex items-center gap-2">
+                {unvalidatedTxIds.length > 0 && (
+                  <Button size="sm" variant="outline" onClick={selectAllUnvalidated}>
+                    Tout sélectionner ({unvalidatedTxIds.length})
+                  </Button>
+                )}
+                <TabsList>
+                  <TabsTrigger value="journal" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Journal
+                  </TabsTrigger>
+                  <TabsTrigger value="balance" className="flex items-center gap-2">
+                    <Scale className="h-4 w-4" />
+                    Balance
+                  </TabsTrigger>
+                </TabsList>
+              </div>
             </div>
           </CardHeader>
 
@@ -206,6 +282,7 @@ export const GeneralLedger = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-10"></TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Type</TableHead>
                         <TableHead>Compte</TableHead>
@@ -218,8 +295,18 @@ export const GeneralLedger = () => {
                     <TableBody>
                       {filteredEntries.map((entry) => {
                         const typeInfo = TRANSACTION_TYPE_LABELS[entry.transaction_type] || TRANSACTION_TYPE_LABELS.autre;
+                        const txId = entry.transaction_id;
+                        const isSelected = txId ? selectedTxIds.has(txId) : false;
                         return (
                           <TableRow key={entry.id}>
+                            <TableCell className="pr-0">
+                              {txId && (
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={() => toggleTxSelection(txId)}
+                                />
+                              )}
+                            </TableCell>
                             <TableCell className="whitespace-nowrap">
                               {entry.transaction_date
                                 ? format(new Date(entry.transaction_date), "dd/MM/yyyy", { locale: fr })
@@ -310,6 +397,40 @@ export const GeneralLedger = () => {
           </CardContent>
         </Tabs>
       </Card>
+
+      {/* Confirmation dialog */}
+      <Dialog open={confirmValidate} onOpenChange={setConfirmValidate}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Valider & Verrouiller les transactions
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Vous êtes sur le point de valider <strong>{selectedTxIds.size}</strong> transaction(s).
+            </p>
+            <Card className="bg-destructive/5 border-destructive/20">
+              <CardContent className="pt-3 text-sm space-y-1">
+                <p className="font-medium text-destructive">⚠️ Action irréversible</p>
+                <p>• Les transactions validées ne pourront plus être modifiées</p>
+                <p>• Les écritures comptables associées seront verrouillées</p>
+                <p>• Un enregistrement sera ajouté au journal d'audit</p>
+              </CardContent>
+            </Card>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmValidate(false)}>Annuler</Button>
+            <Button 
+              onClick={handleBulkValidate}
+              disabled={validateTransactionsBulk.isPending}
+            >
+              {validateTransactionsBulk.isPending ? "Validation..." : "Confirmer la validation"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

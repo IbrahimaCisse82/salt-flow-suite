@@ -56,7 +56,7 @@ export const useTransactions = () => {
         transaction_type: formData.transaction_type,
         amount: ensureNumber(formData.amount) || 0,
         description: cleanString(formData.description),
-        reference: cleanString(formData.reference_type), // Uses 'reference' column
+        reference: cleanString(formData.reference_type),
         notes: formData.reference_id ? `Ref: ${formData.reference_id}` : null
       };
 
@@ -110,6 +110,44 @@ export const useTransactions = () => {
     }
   });
 
+  // Validate a single transaction (locks it permanently)
+  const validateTransaction = useMutation({
+    mutationFn: async (transactionId: string) => {
+      const { data, error } = await supabase.rpc("validate_transaction", {
+        p_transaction_id: transactionId,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounting-ledger'] });
+      toast.success("Transaction validée — verrouillée définitivement");
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur validation: ${error.message}`);
+    },
+  });
+
+  // Bulk validate
+  const validateTransactionsBulk = useMutation({
+    mutationFn: async (transactionIds: string[]) => {
+      const { data, error } = await supabase.rpc("validate_transactions_bulk", {
+        p_transaction_ids: transactionIds,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounting-ledger'] });
+      toast.success(`${data?.validated_count || 0} transactions validées`);
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur validation groupée: ${error.message}`);
+    },
+  });
+
   // KPIs financiers
   const totalRecettes = transactions
     .filter(t => ['recette', 'vente_locale', 'vente_export'].includes(t.transaction_type || ''))
@@ -126,6 +164,8 @@ export const useTransactions = () => {
     isLoading,
     createTransaction,
     updateTransaction,
+    validateTransaction,
+    validateTransactionsBulk,
     // KPIs
     totalRecettes,
     totalDepenses,

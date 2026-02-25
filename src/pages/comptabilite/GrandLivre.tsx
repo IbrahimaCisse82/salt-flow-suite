@@ -5,6 +5,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { GeneralLedger } from "@/components/Accounting/GeneralLedger";
 import { AccountingFlowDiagram } from "@/components/Accounting/AccountingFlowDiagram";
+import { LedgerAuditLog } from "@/components/Accounting/LedgerAuditLog";
 
 const GrandLivre = () => {
   const { isOpen } = useSidebar();
@@ -18,6 +19,7 @@ const GrandLivre = () => {
           <Breadcrumbs />
           <AccountingFlowDiagram />
           <GeneralLedger />
+          <LedgerAuditLog />
         </main>
       </div>
     </div>
