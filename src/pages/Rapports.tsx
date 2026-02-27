@@ -33,6 +33,9 @@ import { PredictiveAnalysisCard } from "@/components/Analytics/PredictiveAnalysi
 import { PeriodComparisonCard } from "@/components/Analytics/PeriodComparisonCard";
 import { ProductionHeatmap } from "@/components/Analytics/ProductionHeatmap";
 import { ScheduledReportsManager } from "@/components/Analytics/ScheduledReportsManager";
+import { AssetDepreciationChart } from "@/components/Analytics/AssetDepreciationChart";
+import { ProfitabilityChart } from "@/components/Analytics/ProfitabilityChart";
+import { BudgetAlertsWidget } from "@/components/Analytics/BudgetAlertsWidget";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -963,6 +966,14 @@ const Rapports = () => {
 
             <TabsContent value="analytics" className="space-y-6">
               <ScheduledReportsManager />
+
+              {/* Dashboard analytique avancé */}
+              <ProfitabilityChart />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <AssetDepreciationChart />
+                <BudgetAlertsWidget />
+              </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <PredictiveAnalysisCard />
