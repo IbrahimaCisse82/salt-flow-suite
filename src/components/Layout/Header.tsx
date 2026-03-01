@@ -1,8 +1,7 @@
 import { memo, useMemo, useState } from "react";
-import { Waves, Menu, Bell, User, LogOut, Building2, PanelLeft, PanelLeftClose, ChevronDown } from "lucide-react";
+import { Menu, Bell, User, LogOut, Building2, ChevronDown } from "lucide-react";
 import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,11 +48,7 @@ import {
   X
 } from "lucide-react";
 import saltLogo from "@/assets/salt-logo.png";
-import { 
-  useAccountantNotifications, 
-  useUnreadNotificationsCount,
-  useMarkNotificationAsRead 
-} from "@/hooks/useAccountantNotifications";
+import { NotificationCenter } from "@/components/Notifications/NotificationCenter";
 
 const adminNavItems: MobileNavItem[] = [
   { icon: LayoutDashboard, label: "Tableau de bord", href: "/admin" },
@@ -97,11 +92,6 @@ const HeaderComponent = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedMobileItems, setExpandedMobileItems] = useState<string[]>([]);
   const { toggle: toggleSidebar, isOpen: sidebarOpen } = useSidebar();
-  
-  // Utiliser les vraies notifications de la base de données
-  const { data: accountantNotifications = [] } = useAccountantNotifications();
-  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
-  const markAsReadMutation = useMarkNotificationAsRead();
 
   // OPTIMIZATION: Memoize computed values
   const userRole = useMemo(() => 
@@ -119,55 +109,19 @@ const HeaderComponent = () => {
     [navItems, userRole]
   );
 
-  const markAllAsRead = async () => {
-    try {
-      await Promise.all(
-        accountantNotifications
-          .filter(n => !n.is_read)
-          .map(n => markAsReadMutation.mutateAsync(n.id))
-      );
-      toast({
-        title: "Notifications marquées comme lues",
-        description: "Toutes les notifications ont été lues",
-      });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de marquer les notifications comme lues",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleNotificationClick = async (notificationId: string, isRead: boolean) => {
-    if (!isRead) {
-      try {
-        await markAsReadMutation.mutateAsync(notificationId);
-      } catch (error) {
-        console.error('Error marking notification as read:', error);
-      }
-    }
-  };
-
   const queryClient = useQueryClient();
 
   const handleLogout = async () => {
     try {
-      // Déconnexion de Supabase en PREMIER (avant de clear le storage)
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
-      // Ensuite seulement, vider le cache et le storage
       queryClient.clear();
       localStorage.clear();
       sessionStorage.clear();
-      
       toast({
         title: "Déconnexion réussie",
         description: "À bientôt !",
       });
-      
-      // Navigation fluide vers /auth avec reset de l'historique
       navigate("/auth", { replace: true });
     } catch (error) {
       logger.error("Logout error:", error);
@@ -227,75 +181,7 @@ const HeaderComponent = () => {
           
           <ThemeToggle />
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative h-8 w-8 sm:h-10 sm:w-10">
-                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive animate-pulse" />
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-72 sm:w-80">
-              <DropdownMenuLabel className="flex items-center justify-between">
-                <span>Notifications</span>
-                {unreadCount > 0 && (
-                  <Badge variant="secondary" className="ml-2">
-                    {unreadCount} nouvelle{unreadCount > 1 ? 's' : ''}
-                  </Badge>
-                )}
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="max-h-[400px] overflow-y-auto">
-                {accountantNotifications.length > 0 ? (
-                  accountantNotifications.map((notification) => (
-                    <DropdownMenuItem
-                      key={notification.id}
-                      className="flex gap-3 p-3 cursor-pointer"
-                      onClick={() => handleNotificationClick(notification.id, notification.is_read)}
-                    >
-                      <div className="flex-shrink-0">
-                        <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                      </div>
-                      <div className="flex-1 space-y-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className={`text-xs sm:text-sm font-medium truncate ${!notification.is_read ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {notification.title}
-                          </p>
-                          {!notification.is_read && (
-                            <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground break-words">
-                          {notification.message}
-                        </p>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground">
-                          {new Date(notification.created_at).toLocaleString('fr-FR')}
-                        </p>
-                      </div>
-                    </DropdownMenuItem>
-                  ))
-                ) : (
-                  <div className="p-6 text-center">
-                    <Bell className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Aucune notification</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">Vous êtes à jour !</p>
-                  </div>
-                )}
-              </div>
-              {unreadCount > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="justify-center text-primary cursor-pointer"
-                    onClick={markAllAsRead}
-                  >
-                    Tout marquer comme lu
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <NotificationCenter />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
