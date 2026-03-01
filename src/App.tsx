@@ -64,9 +64,16 @@ const PageLoader = () => (
   </div>
 );
 
-// Component to track page views
+// Component to track page views and realtime notifications
 const PageTracker = () => {
   usePageTracking();
+  return null;
+};
+
+// Component for realtime notifications (inside AuthProvider)
+import { useRealtimeNotifications } from "./hooks/useRealtimeNotifications";
+const RealtimeNotifier = () => {
+  useRealtimeNotifications();
   return null;
 };
 
@@ -76,6 +83,7 @@ const App = () => (
       <SidebarProvider>
         <TooltipProvider>
           <PageTracker />
+          <RealtimeNotifier />
           <Toaster />
           <Sonner />
           <Suspense fallback={<PageLoader />}>
