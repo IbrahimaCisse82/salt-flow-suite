@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 interface ScheduledReport {
   id: string;
@@ -9,49 +9,97 @@ interface ScheduledReport {
 }
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
+    // --- Authentication ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    // Validate caller identity
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claims, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claims?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    const userId = claims.claims.sub as string;
+
+    // --- Authorization: check role ---
+    const serviceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Récupérer les rapports à exécuter maintenant
-    const { data: reports, error: reportsError } = await supabaseClient
+    const { data: profile, error: profileError } = await serviceClient
+      .from('profiles')
+      .select('role, tenant_id')
+      .eq('id', userId)
+      .single();
+
+    if (profileError || !profile) {
+      return new Response(
+        JSON.stringify({ error: 'Profil introuvable' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
+
+    const allowedRoles = ['admin', 'gerant', 'comptable'];
+    if (!allowedRoles.includes(profile.role)) {
+      return new Response(
+        JSON.stringify({ error: 'Permissions insuffisantes' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
+
+    // --- Business logic: only process reports for caller's tenant ---
+    const tenantFilter = profile.role === 'admin' ? {} : { tenant_id: profile.tenant_id };
+
+    let query = serviceClient
       .from('scheduled_reports')
       .select('*')
       .eq('is_active', true)
       .lte('next_run_at', new Date().toISOString())
       .order('next_run_at');
 
+    if (tenantFilter.tenant_id) {
+      query = query.eq('tenant_id', tenantFilter.tenant_id);
+    }
+
+    const { data: reports, error: reportsError } = await query;
+
     if (reportsError) {
       throw reportsError;
     }
-
-    console.log(`Found ${reports?.length || 0} reports to generate`);
 
     const results = [];
 
     for (const report of reports || []) {
       try {
-        // Générer le rapport selon le type
-        const reportData = await generateReport(supabaseClient, report);
+        const reportData = await generateReport(serviceClient, report);
 
-        // Envoyer par email (simulation - vous pouvez intégrer un service d'email)
-        console.log(`Report generated for tenant ${report.tenant_id}`, {
-          type: report.report_type,
-          recipients: report.recipient_emails
-        });
-
-        // Mettre à jour last_run_at et calculer next_run_at
-        await supabaseClient
+        await serviceClient
           .from('scheduled_reports')
-          .update({
-            last_run_at: new Date().toISOString()
-          })
+          .update({ last_run_at: new Date().toISOString() })
           .eq('id', report.id);
 
         results.push({
@@ -64,7 +112,7 @@ Deno.serve(async (req) => {
         results.push({
           report_id: report.id,
           status: 'error',
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: 'Erreur lors de la génération'
         });
       }
     }
@@ -83,7 +131,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error in generate-scheduled-report:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Erreur interne' }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
@@ -95,7 +143,6 @@ Deno.serve(async (req) => {
 async function generateReport(supabaseClient: any, report: ScheduledReport) {
   const { tenant_id, report_type } = report;
 
-  // Récupérer les données selon le type de rapport
   switch (report_type) {
     case 'campagne':
       return await generateCampaignReport(supabaseClient, tenant_id);
