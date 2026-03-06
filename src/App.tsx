@@ -9,6 +9,7 @@ import { SidebarProvider } from "@/contexts/SidebarContext";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 import { Loader2 } from "lucide-react";
 import { usePageTracking } from "./hooks/usePageTracking";
+import { useRealtimeNotifications } from "./hooks/useRealtimeNotifications";
 
 // Lazy load toutes les pages pour améliorer le temps de chargement initial
 const Index = lazy(() => import("./pages/Index"));
@@ -19,7 +20,6 @@ const Campagne = lazy(() => import("./pages/Campagne"));
 const Production = lazy(() => import("./pages/Production"));
 const Stocks = lazy(() => import("./pages/Stocks"));
 const Equipes = lazy(() => import("./pages/Equipes"));
-
 const Commercial = lazy(() => import("./pages/Commercial"));
 const Rapports = lazy(() => import("./pages/Rapports"));
 const Parametres = lazy(() => import("./pages/Parametres"));
@@ -49,29 +49,28 @@ const Install = lazy(() => import("./pages/Install"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
-      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: true,
       retry: 1,
     },
   },
 });
 
-// Composant de loading léger pour Suspense (pas plein écran pour éviter le flash)
+// Composant de loading léger pour Suspense
 const PageLoader = () => (
   <div className="flex items-center justify-center py-20">
     <Loader2 className="h-6 w-6 animate-spin text-primary" />
   </div>
 );
 
-// Component to track page views and realtime notifications
+// Component to track page views
 const PageTracker = () => {
   usePageTracking();
   return null;
 };
 
 // Component for realtime notifications (inside AuthProvider)
-import { useRealtimeNotifications } from "./hooks/useRealtimeNotifications";
 const RealtimeNotifier = () => {
   useRealtimeNotifications();
   return null;
@@ -88,17 +87,19 @@ const App = () => (
           <Sonner />
           <Suspense fallback={<PageLoader />}>
             <Routes>
+              {/* Public routes */}
               <Route path="/auth" element={<Auth />} />
               <Route path="/install" element={<Install />} />
               <Route path="/cgu" element={<CGU />} />
               <Route path="/admin/setup" element={<AdminSetup />} />
+
+              {/* Protected routes */}
               <Route path="/" element={<RoleProtectedRoute><Index /></RoleProtectedRoute>} />
               <Route path="/bassins" element={<RoleProtectedRoute><Bassins /></RoleProtectedRoute>} />
               <Route path="/campagne" element={<RoleProtectedRoute><Campagne /></RoleProtectedRoute>} />
               <Route path="/production" element={<RoleProtectedRoute><Production /></RoleProtectedRoute>} />
               <Route path="/stocks" element={<RoleProtectedRoute><Stocks /></RoleProtectedRoute>} />
               <Route path="/equipes" element={<RoleProtectedRoute><Equipes /></RoleProtectedRoute>} />
-              
               <Route path="/commercial" element={<RoleProtectedRoute><Commercial /></RoleProtectedRoute>} />
               <Route path="/rapports" element={<RoleProtectedRoute><Rapports /></RoleProtectedRoute>} />
               <Route path="/parametres" element={<RoleProtectedRoute><Parametres /></RoleProtectedRoute>} />
@@ -111,6 +112,8 @@ const App = () => (
               <Route path="/achats" element={<RoleProtectedRoute><Achats /></RoleProtectedRoute>} />
               <Route path="/utilisateurs" element={<RoleProtectedRoute><GestionUtilisateurs /></RoleProtectedRoute>} />
               <Route path="/gestion-utilisateurs" element={<Navigate to="/utilisateurs" replace />} />
+
+              {/* Admin routes */}
               <Route path="/admin" element={<RoleProtectedRoute><AdminDashboard /></RoleProtectedRoute>} />
               <Route path="/admin/tenants" element={<RoleProtectedRoute><AdminTenants /></RoleProtectedRoute>} />
               <Route path="/admin/users" element={<RoleProtectedRoute><AdminUserManagement /></RoleProtectedRoute>} />
@@ -121,7 +124,9 @@ const App = () => (
               <Route path="/admin/audit-logs" element={<RoleProtectedRoute><AdminAuditLogs /></RoleProtectedRoute>} />
               <Route path="/admin/settings" element={<RoleProtectedRoute><AdminSettings /></RoleProtectedRoute>} />
               <Route path="/admin/email-templates" element={<RoleProtectedRoute><AdminEmailTemplates /></RoleProtectedRoute>} />
-              <Route path="*" element={<Navigate to="/" replace />} />
+
+              {/* 404 — affiche la page NotFound au lieu de rediriger silencieusement */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </TooltipProvider>
