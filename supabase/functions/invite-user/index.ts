@@ -6,7 +6,6 @@ Deno.serve(async (req) => {
   const origin = req.headers.get('origin')
   const corsHeaders = getCorsHeaders(origin)
   
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -15,23 +14,21 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     
-    // Créer un client admin avec la service role key
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
     
-    // Créer un client pour vérifier l'utilisateur authentifié
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Non authentifié - token manquant' }),
+        JSON.stringify({ error: 'Non authentifié' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
     const token = authHeader.replace('Bearer ', '')
     const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: { headers: { Authorization: authHeader } }
     })
 
-    // Vérifier que l'utilisateur est authentifié
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
     if (userError || !user) {
       return new Response(
@@ -40,40 +37,38 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Vérifier le rôle de l'utilisateur depuis user_roles
-    const { data: roleData, error: roleError } = await supabaseClient
+    // Check role: admin OR gerant can invite users
+    const { data: roleData } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .order('role')
-      .limit(1)
-      .maybeSingle()
+      .single()
 
-    if (roleError || !roleData || roleData.role !== 'gerant') {
+    const callerRole = roleData?.role
+    if (callerRole !== 'admin' && callerRole !== 'gerant') {
       return new Response(
-        JSON.stringify({ error: 'Non autorisé - seuls les gérants peuvent inviter des utilisateurs' }),
+        JSON.stringify({ error: 'Non autorisé' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Récupérer le tenant_id depuis le profil
-    const { data: profile, error: profileError } = await supabaseClient
+    // Get caller's tenant
+    const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('tenant_id')
       .eq('id', user.id)
       .single()
 
-    if (profileError || !profile) {
+    if (!profile?.tenant_id) {
       return new Response(
         JSON.stringify({ error: 'Profil utilisateur non trouvé' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Récupérer les données du nouvel utilisateur
     const { email, password, full_name, role } = await req.json()
 
-    // SECURITY: Input validation and sanitization
+    // Input validation
     if (!email || !password || !full_name || !role) {
       return new Response(
         JSON.stringify({ error: 'Données manquantes' }),
@@ -81,7 +76,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Validate email format
+    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email) || email.length > 255) {
       return new Response(
@@ -90,23 +85,22 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Sanitize and validate full_name
+    // Sanitize full_name
     const sanitizedFullName = String(full_name).trim().slice(0, 100)
     if (sanitizedFullName.length === 0 || !/^[a-zA-ZÀ-ÿ\s'-]+$/.test(sanitizedFullName)) {
       return new Response(
-        JSON.stringify({ error: 'Nom invalide - utilisez uniquement des lettres, espaces, tirets et apostrophes' }),
+        JSON.stringify({ error: 'Nom invalide' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // SECURITY: Strong password validation
+    // Password validation
     if (password.length < 8) {
       return new Response(
         JSON.stringify({ error: 'Le mot de passe doit contenir au moins 8 caractères' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-    
     if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
       return new Response(
         JSON.stringify({ error: 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre' }),
@@ -114,26 +108,19 @@ Deno.serve(async (req) => {
       )
     }
 
-    // SECURITY: Role hierarchy validation - prevent privilege escalation
-    // Gerants cannot create admin users or other gerants
-    const allowedRoles = ['commercial', 'comptable', 'production']
+    // Role hierarchy: gerant can only create operational roles
+    // Admin can create any non-admin role via invite
+    const allowedByGerant = ['commercial', 'comptable', 'production']
+    const allowedByAdmin = ['gerant', 'commercial', 'comptable', 'production']
+    
+    const allowedRoles = callerRole === 'admin' ? allowedByAdmin : allowedByGerant
     if (!allowedRoles.includes(role)) {
       return new Response(
-        JSON.stringify({ error: 'Non autorisé - vous ne pouvez créer que des utilisateurs commerciaux, comptables ou de production' }),
+        JSON.stringify({ error: `Non autorisé - rôle "${role}" non permis` }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Validate role is a valid value
-    const validRoles = ['admin', 'gerant', 'commercial', 'comptable', 'production']
-    if (!validRoles.includes(role)) {
-      return new Response(
-        JSON.stringify({ error: 'Rôle invalide' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Créer l'utilisateur avec l'API Admin
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: email.toLowerCase().trim(),
       password,
@@ -147,7 +134,6 @@ Deno.serve(async (req) => {
 
     if (createError) {
       logger.error('Erreur création utilisateur:', createError)
-      // SECURITY: Sanitize error message - don't expose database details
       const sanitizedError = createError.message?.includes('duplicate')
         ? 'Un compte avec cet email existe déjà'
         : 'Impossible de créer le compte utilisateur'
@@ -163,10 +149,9 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
-    logger.error('Erreur invite-user:', error?.message || error)
-    // SECURITY: Return generic error message to client, log details server-side
+    logger.error('Erreur invite-user:', error)
     return new Response(
-      JSON.stringify({ error: error?.message || 'Une erreur est survenue lors de l\'invitation' }),
+      JSON.stringify({ error: 'Une erreur est survenue lors de l\'invitation' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
