@@ -14,17 +14,21 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Non authentifié' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: {
-        headers: { Authorization: req.headers.get('Authorization')! },
+        headers: { Authorization: authHeader },
       },
     })
 
-    // Verify the user is authenticated and is an admin
-    const {
-      data: { user },
-    } = await supabaseClient.auth.getUser()
-
+    const { data: { user } } = await supabaseClient.auth.getUser()
     if (!user) {
       return new Response(
         JSON.stringify({ error: 'Non authentifié' }),
@@ -32,41 +36,46 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Check if user is admin
-    const { data: roleData, error: roleError } = await supabaseClient
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+
+    // Verify caller is admin
+    const { data: roleData } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single()
 
-    if (roleError || roleData?.role !== 'admin') {
+    if (roleData?.role !== 'admin') {
       return new Response(
-        JSON.stringify({ error: 'Non autorisé - seuls les admins peuvent modifier les rôles' }),
+        JSON.stringify({ error: 'Non autorisé' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Get the request body
     const { userId, newRole } = await req.json()
 
     if (!userId || !newRole) {
       return new Response(
-        JSON.stringify({ error: 'Champs requis manquants: userId et newRole' }),
+        JSON.stringify({ error: 'Champs requis manquants' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Validate role
     const validRoles = ['admin', 'gerant', 'commercial', 'comptable', 'production']
     if (!validRoles.includes(newRole)) {
       return new Response(
-        JSON.stringify({ error: `Rôle invalide. Doit être l'un de: ${validRoles.join(', ')}` }),
+        JSON.stringify({ error: 'Rôle invalide' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Use service role client to update the role
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+    // Prevent self role change
+    if (userId === user.id) {
+      return new Response(
+        JSON.stringify({ error: 'Vous ne pouvez pas modifier votre propre rôle' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // Get current role
     const { data: currentRoleData } = await supabaseAdmin
@@ -77,27 +86,33 @@ Deno.serve(async (req) => {
 
     const oldRole = currentRoleData?.role || 'none'
 
-    // Update or insert the role
-    const { error: updateError } = await supabaseAdmin
+    // Delete existing role(s) first, then insert new one
+    // This prevents accumulating multiple roles
+    await supabaseAdmin
       .from('user_roles')
-      .upsert({
+      .delete()
+      .eq('user_id', userId)
+
+    const { error: insertError } = await supabaseAdmin
+      .from('user_roles')
+      .insert({
         user_id: userId,
         role: newRole,
-        assigned_by: user.id,
-        assigned_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,role'
       })
 
-    if (updateError) {
-      logger.error('Error updating role:', updateError)
+    if (insertError) {
+      logger.error('Error updating role:', insertError)
+      // Attempt to restore old role on failure
+      if (oldRole !== 'none') {
+        await supabaseAdmin.from('user_roles').insert({ user_id: userId, role: oldRole })
+      }
       return new Response(
         JSON.stringify({ error: 'Impossible de mettre à jour le rôle' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Log the role change in security audit log
+    // Log the role change
     await supabaseAdmin
       .from('security_audit_log')
       .insert({
@@ -117,21 +132,15 @@ Deno.serve(async (req) => {
         oldRole,
         newRole
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
     logger.error('Error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue'
+    // SECURITY: Never leak internal error details
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      }
+      JSON.stringify({ error: 'Une erreur est survenue lors de la mise à jour du rôle' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })
