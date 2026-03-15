@@ -86,6 +86,7 @@ const App = () => (
           <RealtimeNotifier />
           <Toaster />
           <Sonner />
+          <MobileBottomNav />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public routes */}
