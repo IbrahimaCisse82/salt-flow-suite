@@ -45,7 +45,7 @@ const HeaderComponent = () => {
   );
 
   const navItems = useMemo(() => 
-    userRole === 'admin' ? adminNavItems : salinesNavItems,
+    userRole === 'admin' ? adminMobileNavItems : salinesNavItems,
     [userRole]
   );
 
