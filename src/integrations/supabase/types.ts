@@ -3485,21 +3485,14 @@ export type Database = {
       }
       orphaned_profiles: {
         Row: {
+          created_at: string | null
           email: string | null
           full_name: string | null
           id: string | null
+          minutes_since_creation: number | null
           role: Database["public"]["Enums"]["app_role"] | null
-          tenant_id: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {
