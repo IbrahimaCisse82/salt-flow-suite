@@ -194,4 +194,16 @@ All colors MUST be HSL.
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  /* Safe area for mobile bottom nav */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Add bottom padding to main content on mobile to avoid overlap with bottom nav */
+  @media (max-width: 767px) {
+    main {
+      padding-bottom: 4.5rem !important;
+    }
+  }
 }
