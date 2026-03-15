@@ -7,6 +7,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
+import { MobileBottomNav } from "./components/Layout/MobileBottomNav";
 import { Loader2 } from "lucide-react";
 import { usePageTracking } from "./hooks/usePageTracking";
 import { useRealtimeNotifications } from "./hooks/useRealtimeNotifications";
@@ -85,6 +86,7 @@ const App = () => (
           <RealtimeNotifier />
           <Toaster />
           <Sonner />
+          <MobileBottomNav />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public routes */}
