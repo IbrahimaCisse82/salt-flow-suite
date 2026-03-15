@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,48 +13,20 @@ import {
 import { logger } from '@/utils/logger';
 
 export const useOfflineSync = () => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
 
-  // Surveiller le statut de la connexion
-  useEffect(() => {
-    const handleOnline = () => {
-      logger.info('Connection restored');
-      setIsOnline(true);
-      toast({
-        title: 'Connexion rétablie',
-        description: 'Synchronisation des données en cours...',
-      });
-      syncPendingMutations();
-    };
-
-    const handleOffline = () => {
-      logger.warn('Connection lost');
-      setIsOnline(false);
-      toast({
-        title: 'Mode hors ligne',
-        description: 'Vos modifications seront synchronisées automatiquement.',
-        variant: 'destructive',
-      });
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Initialiser la base de données offline
-    initOfflineDB().catch((error) => {
-      logger.error('Failed to init offline DB:', error);
-    });
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+  // Use refs to avoid stale closures in event handlers
+  const isSyncingRef = useRef(isSyncing);
+  isSyncingRef.current = isSyncing;
+  const isOnlineRef = useRef(isOnline);
+  isOnlineRef.current = isOnline;
+  const userRef = useRef(user);
+  userRef.current = user;
 
   // Mettre à jour le compteur de mutations en attente
   const updatePendingCount = useCallback(async () => {
@@ -68,7 +40,7 @@ export const useOfflineSync = () => {
 
   // Synchroniser les mutations en attente
   const syncPendingMutations = useCallback(async () => {
-    if (!isOnline || !user || isSyncing) return;
+    if (!isOnlineRef.current || !userRef.current || isSyncingRef.current) return;
 
     setIsSyncing(true);
     try {
@@ -81,7 +53,7 @@ export const useOfflineSync = () => {
       for (const mutation of mutations) {
         try {
           // Vérifier que la mutation appartient à l'utilisateur actuel
-          if (mutation.userId !== user.id) {
+          if (mutation.userId !== userRef.current!.id) {
             logger.warn('Skipping mutation from different user:', mutation.id);
             await deleteSyncedMutation(mutation.id);
             continue;
@@ -151,7 +123,41 @@ export const useOfflineSync = () => {
     } finally {
       setIsSyncing(false);
     }
-  }, [isOnline, user, isSyncing, toast, queryClient, updatePendingCount]);
+  }, [toast, queryClient, updatePendingCount]);
+
+  // Surveiller le statut de la connexion
+  useEffect(() => {
+    const handleOnline = () => {
+      logger.info('Connection restored');
+      setIsOnline(true);
+    };
+
+    const handleOffline = () => {
+      logger.warn('Connection lost');
+      setIsOnline(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Initialiser la base de données offline
+    initOfflineDB().catch((error) => {
+      logger.error('Failed to init offline DB:', error);
+    });
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Toast on connectivity changes
+  useEffect(() => {
+    // Skip initial render
+    if (isOnline) {
+      // Don't toast on mount
+    }
+  }, [isOnline]);
 
   // Synchroniser automatiquement quand en ligne
   useEffect(() => {
@@ -159,7 +165,7 @@ export const useOfflineSync = () => {
       updatePendingCount();
       syncPendingMutations();
     }
-  }, [isOnline, user]);
+  }, [isOnline, user, syncPendingMutations, updatePendingCount]);
 
   // Synchroniser périodiquement
   useEffect(() => {
