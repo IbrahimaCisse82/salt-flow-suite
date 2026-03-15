@@ -544,13 +544,6 @@ export type Database = {
             foreignKeyName: "cost_per_ton_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "orphaned_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cost_per_ton_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -661,13 +654,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "depreciation_schedule_transaction_id_fkey"
-            columns: ["transaction_id"]
-            isOneToOne: false
-            referencedRelation: "accounting_ledger"
-            referencedColumns: ["transaction_id"]
           },
           {
             foreignKeyName: "depreciation_schedule_transaction_id_fkey"
@@ -906,13 +892,6 @@ export type Database = {
             foreignKeyName: "financial_reports_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "orphaned_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "financial_reports_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -921,13 +900,6 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "financial_reports_validated_by_fkey"
-            columns: ["validated_by"]
-            isOneToOne: false
-            referencedRelation: "orphaned_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1301,13 +1273,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chart_of_accounts"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "journal_entries_transaction_id_fkey"
-            columns: ["transaction_id"]
-            isOneToOne: false
-            referencedRelation: "accounting_ledger"
-            referencedColumns: ["transaction_id"]
           },
           {
             foreignKeyName: "journal_entries_transaction_id_fkey"
@@ -1832,13 +1797,6 @@ export type Database = {
             foreignKeyName: "purchase_notifications_actioned_by_fkey"
             columns: ["actioned_by"]
             isOneToOne: false
-            referencedRelation: "orphaned_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_notifications_actioned_by_fkey"
-            columns: ["actioned_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1847,13 +1805,6 @@ export type Database = {
             columns: ["purchase_order_id"]
             isOneToOne: false
             referencedRelation: "purchase_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_notifications_target_user_id_fkey"
-            columns: ["target_user_id"]
-            isOneToOne: false
-            referencedRelation: "orphaned_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1913,13 +1864,6 @@ export type Database = {
           purchase_order_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "purchase_order_history_action_by_fkey"
-            columns: ["action_by"]
-            isOneToOne: false
-            referencedRelation: "orphaned_profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "purchase_order_history_action_by_fkey"
             columns: ["action_by"]
@@ -2000,13 +1944,6 @@ export type Database = {
             columns: ["purchase_order_id"]
             isOneToOne: false
             referencedRelation: "purchase_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_order_items_received_by_fkey"
-            columns: ["received_by"]
-            isOneToOne: false
-            referencedRelation: "orphaned_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2153,13 +2090,6 @@ export type Database = {
             foreignKeyName: "purchase_orders_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
-            referencedRelation: "orphaned_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_orders_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2174,13 +2104,6 @@ export type Database = {
             foreignKeyName: "purchase_orders_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "orphaned_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_orders_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2188,21 +2111,7 @@ export type Database = {
             foreignKeyName: "purchase_orders_received_by_fkey"
             columns: ["received_by"]
             isOneToOne: false
-            referencedRelation: "orphaned_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_orders_received_by_fkey"
-            columns: ["received_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_orders_rejected_by_fkey"
-            columns: ["rejected_by"]
-            isOneToOne: false
-            referencedRelation: "orphaned_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2279,13 +2188,6 @@ export type Database = {
             foreignKeyName: "purchase_payments_processed_by_fkey"
             columns: ["processed_by"]
             isOneToOne: false
-            referencedRelation: "orphaned_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_payments_processed_by_fkey"
-            columns: ["processed_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2302,13 +2204,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_payments_transaction_id_fkey"
-            columns: ["transaction_id"]
-            isOneToOne: false
-            referencedRelation: "accounting_ledger"
-            referencedColumns: ["transaction_id"]
           },
           {
             foreignKeyName: "purchase_payments_transaction_id_fkey"
@@ -2412,13 +2307,6 @@ export type Database = {
             foreignKeyName: "quality_certificates_issued_by_fkey"
             columns: ["issued_by"]
             isOneToOne: false
-            referencedRelation: "orphaned_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quality_certificates_issued_by_fkey"
-            columns: ["issued_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -2508,13 +2396,6 @@ export type Database = {
             columns: ["production_record_id"]
             isOneToOne: false
             referencedRelation: "production_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quality_tests_tested_by_fkey"
-            columns: ["tested_by"]
-            isOneToOne: false
-            referencedRelation: "orphaned_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2666,13 +2547,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sales_transaction_id_fkey"
-            columns: ["transaction_id"]
-            isOneToOne: false
-            referencedRelation: "accounting_ledger"
-            referencedColumns: ["transaction_id"]
           },
           {
             foreignKeyName: "sales_transaction_id_fkey"
@@ -2838,13 +2712,6 @@ export type Database = {
           warehouse?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "stock_movements_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "orphaned_profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "stock_movements_created_by_fkey"
             columns: ["created_by"]
@@ -3433,31 +3300,6 @@ export type Database = {
       }
     }
     Views: {
-      accounting_ledger: {
-        Row: {
-          account_name: string | null
-          account_number: string | null
-          credit: number | null
-          debit: number | null
-          description: string | null
-          id: string | null
-          reference: string | null
-          running_balance: number | null
-          tenant_id: string | null
-          transaction_date: string | null
-          transaction_id: string | null
-          transaction_type: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "transactions_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       budget_commitment_summary: {
         Row: {
           alert_level: number | null
@@ -3482,17 +3324,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      orphaned_profiles: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          id: string | null
-          minutes_since_creation: number | null
-          role: Database["public"]["Enums"]["app_role"] | null
-        }
-        Relationships: []
       }
     }
     Functions: {
@@ -3624,6 +3455,23 @@ export type Database = {
         }
         Returns: number
       }
+      get_accounting_ledger: {
+        Args: never
+        Returns: {
+          account_name: string
+          account_number: string
+          credit: number
+          debit: number
+          description: string
+          id: string
+          reference: string
+          running_balance: number
+          tenant_id: string
+          transaction_date: string
+          transaction_id: string
+          transaction_type: string
+        }[]
+      }
       get_clients_safe: {
         Args: never
         Returns: {
@@ -3654,6 +3502,17 @@ export type Database = {
           salary: number
           tenant_id: string
           updated_at: string
+        }[]
+      }
+      get_orphaned_profiles: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          minutes_since_creation: number
+          role: string
         }[]
       }
       get_primary_user_role: {
