@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { Menu, Bell, User, LogOut, Building2, ChevronDown } from "lucide-react";
+import { Menu, User, LogOut, Building2, ChevronDown, X } from "lucide-react";
 import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -26,64 +26,9 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
-import {
-  LayoutDashboard,
-  Droplets,
-  Calendar,
-  Package,
-  Users,
-  TrendingUp,
-  FileText,
-  Settings,
-  Database,
-  Wallet,
-  UserCog,
-  Building2 as BuildingIcon,
-  BookOpen,
-  BookOpenCheck,
-  Landmark,
-  FilePlus2,
-  Lock,
-  ShoppingCart,
-  X
-} from "lucide-react";
 import saltLogo from "@/assets/salt-logo.png";
 import { NotificationCenter } from "@/components/Notifications/NotificationCenter";
-
-const adminNavItems: MobileNavItem[] = [
-  { icon: LayoutDashboard, label: "Tableau de bord", href: "/admin" },
-  { icon: BuildingIcon, label: "Entreprises", href: "/admin/tenants" },
-  { icon: BookOpen, label: "Plan comptable", href: "/admin/chart-of-accounts" },
-  { icon: Settings, label: "Paramètres", href: "/parametres" },
-];
-
-interface MobileNavItem {
-  icon: React.ElementType;
-  label: string;
-  href: string;
-  children?: MobileNavItem[];
-}
-
-const salinesNavItems: MobileNavItem[] = [
-  { icon: LayoutDashboard, label: "Tableau de bord", href: "/" },
-  { icon: Droplets, label: "Bassins salants", href: "/bassins" },
-  { icon: Calendar, label: "Plan de campagne", href: "/campagne" },
-  { icon: Database, label: "Production", href: "/production" },
-  { icon: Package, label: "Stocks", href: "/stocks" },
-  { icon: Users, label: "Équipes", href: "/equipes" },
-  { icon: TrendingUp, label: "Commercial", href: "/commercial" },
-  { icon: Wallet, label: "Comptabilité", href: "/comptabilite", children: [
-    { icon: BookOpenCheck, label: "Grand Livre", href: "/comptabilite/grand-livre" },
-    { icon: Landmark, label: "Rapprochement", href: "/comptabilite/rapprochement" },
-    { icon: FilePlus2, label: "Opérations Diverses", href: "/comptabilite/operations-diverses" },
-    { icon: Lock, label: "Clôture exercice", href: "/comptabilite/cloture" },
-    { icon: Building2, label: "Immobilisations", href: "/comptabilite/immobilisations" },
-  ]},
-  { icon: ShoppingCart, label: "Achats", href: "/achats" },
-  { icon: FileText, label: "Rapports", href: "/rapports" },
-  { icon: UserCog, label: "Utilisateurs", href: "/utilisateurs" },
-  { icon: Settings, label: "Paramètres", href: "/parametres" },
-];
+import { adminMobileNavItems, salinesNavItems, type NavItem } from "@/config/navigation";
 
 const HeaderComponent = () => {
   const navigate = useNavigate();

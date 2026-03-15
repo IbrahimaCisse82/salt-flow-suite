@@ -230,10 +230,8 @@ const Auth = () => {
         title: "Inscription réussie",
         description: "Votre entreprise et votre compte ont été créés",
       });
-      // Attendre un court instant pour laisser l'AuthContext se mettre à jour
-      setTimeout(() => {
-        navigate("/", { replace: true });
-      }, 100);
+      // Navigate immediately — AuthContext will pick up the session from onAuthStateChange
+      navigate("/", { replace: true });
     } catch (error: any) {
       logger.error("Signup error:", error);
       toast({
