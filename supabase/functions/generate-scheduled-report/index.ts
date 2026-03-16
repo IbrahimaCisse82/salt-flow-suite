@@ -50,9 +50,10 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Get profile for tenant_id
     const { data: profile, error: profileError } = await serviceClient
       .from('profiles')
-      .select('role, tenant_id')
+      .select('tenant_id')
       .eq('id', userId)
       .single();
 
@@ -63,8 +64,16 @@ Deno.serve(async (req) => {
       );
     }
 
+    // SECURITY: Get role from user_roles table (not profiles)
+    const { data: roleData } = await serviceClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+
+    const userRole = roleData?.role;
     const allowedRoles = ['admin', 'gerant', 'comptable'];
-    if (!allowedRoles.includes(profile.role)) {
+    if (!userRole || !allowedRoles.includes(userRole)) {
       return new Response(
         JSON.stringify({ error: 'Permissions insuffisantes' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
@@ -72,7 +81,7 @@ Deno.serve(async (req) => {
     }
 
     // --- Business logic: only process reports for caller's tenant ---
-    const tenantFilter = profile.role === 'admin' ? {} : { tenant_id: profile.tenant_id };
+    const tenantFilter = userRole === 'admin' ? {} : { tenant_id: profile.tenant_id };
 
     let query = serviceClient
       .from('scheduled_reports')
