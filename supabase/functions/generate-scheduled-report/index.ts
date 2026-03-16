@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
     }
 
     // --- Business logic: only process reports for caller's tenant ---
-    const tenantFilter = profile.role === 'admin' ? {} : { tenant_id: profile.tenant_id };
+    const tenantFilter = userRole === 'admin' ? {} : { tenant_id: profile.tenant_id };
 
     let query = serviceClient
       .from('scheduled_reports')
