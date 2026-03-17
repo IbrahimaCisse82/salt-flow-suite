@@ -22,18 +22,35 @@ export interface BassinFormData {
 }
 
 export const useBassins = () => {
-  const { profile } = useAuth();
+  const { user, profile, tenant } = useAuth();
   const queryClient = useQueryClient();
+  const currentTenantId = profile?.tenant_id ?? tenant?.id ?? null;
+
+  const resolveTenantId = async (): Promise<string | null> => {
+    if (currentTenantId) return currentTenantId;
+
+    const { data: refreshedProfile, error } = await supabase
+      .rpc('get_profiles_with_roles')
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error refreshing tenant context:', error);
+      return null;
+    }
+
+    return refreshedProfile?.tenant_id ?? null;
+  };
 
   const { data: bassins = [], isLoading } = useQuery({
-    queryKey: ['bassins', profile?.tenant_id],
+    queryKey: ['bassins', currentTenantId],
     queryFn: async (): Promise<BassinRow[]> => {
-      if (!profile?.tenant_id) return [];
+      const tenantId = currentTenantId ?? (await resolveTenantId());
+      if (!tenantId) return [];
 
       const { data, error } = await supabase
         .from('bassins')
         .select('*')
-        .eq('tenant_id', profile.tenant_id)
+        .eq('tenant_id', tenantId)
         .is('deleted_at', null)
         .order('name');
       
@@ -43,7 +60,7 @@ export const useBassins = () => {
       }
       return data || [];
     },
-    enabled: !!profile?.tenant_id,
+    enabled: !!user,
     retry: 1
   });
 
@@ -51,12 +68,13 @@ export const useBassins = () => {
     tableName: 'bassins',
     operation: 'insert',
     mutationFn: async (formData: BassinFormData): Promise<BassinRow> => {
-      if (!profile?.tenant_id) {
-        throw new Error("Tenant ID manquant");
+      const tenantId = await resolveTenantId();
+      if (!tenantId) {
+        throw new Error("Tenant ID manquant. Rechargez la page et réessayez.");
       }
 
       const insertData: BassinInsert & { bassin_type?: string; latitude?: number | null; longitude?: number | null } = {
-        tenant_id: profile.tenant_id,
+        tenant_id: tenantId,
         name: formData.name.trim(),
         code: cleanString(formData.code),
         area: ensureNumber(formData.area),

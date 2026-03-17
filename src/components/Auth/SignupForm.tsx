@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ interface SignupFormProps {
 
 export const SignupForm = ({ onSuccess }: SignupFormProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -143,6 +145,8 @@ export const SignupForm = ({ onSuccess }: SignupFormProps) => {
       });
 
       if (profileUpdateError) throw profileUpdateError;
+
+      await queryClient.invalidateQueries({ queryKey: ['profile-with-tenant-role', user.id] });
 
       toast({
         title: "Inscription réussie",
