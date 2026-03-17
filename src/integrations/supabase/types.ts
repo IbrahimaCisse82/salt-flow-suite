@@ -3572,6 +3572,15 @@ export type Database = {
         Returns: boolean
       }
       is_manager_or_admin: { Args: { _user_id: string }; Returns: boolean }
+      link_profile_to_tenant: {
+        Args: {
+          _email: string
+          _full_name: string
+          _tenant_id: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       liquidate_tva: {
         Args: {
           p_description?: string

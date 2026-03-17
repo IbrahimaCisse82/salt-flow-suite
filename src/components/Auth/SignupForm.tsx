@@ -133,12 +133,14 @@ export const SignupForm = ({ onSuccess }: SignupFormProps) => {
 
       if (tenantError) throw tenantError;
 
-      // 4) Link profile to tenant
+      // 4) Link profile to tenant via secure function
       const user = signInData.session.user;
-      const { error: profileUpdateError } = await supabase
-        .from("profiles")
-        .update({ tenant_id: tenantId, full_name: validated.fullName, email: validated.email })
-        .eq("id", user.id);
+      const { error: profileUpdateError } = await supabase.rpc("link_profile_to_tenant", {
+        _user_id: user.id,
+        _tenant_id: tenantId,
+        _full_name: validated.fullName,
+        _email: validated.email,
+      });
 
       if (profileUpdateError) throw profileUpdateError;
 
