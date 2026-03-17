@@ -50,7 +50,7 @@ export const SignupForm = ({ onSuccess }: SignupFormProps) => {
       setLoading(true);
 
       // 1) Create user via Edge Function
-      const { data: createData, error: createErr } = await supabase.functions.invoke("create-user", {
+      const response = await supabase.functions.invoke("create-user", {
         body: {
           email: validated.email,
           password: validated.password,
@@ -59,8 +59,27 @@ export const SignupForm = ({ onSuccess }: SignupFormProps) => {
         },
       });
 
+      // Handle edge function errors properly
+      const createData = response.data;
+      const createErr = response.error;
+
       if (createErr) {
-        throw new Error(createData?.error || createErr.message || "Impossible de créer le compte");
+        // Try to extract the actual error message from the response
+        let errorMessage = "Impossible de créer le compte";
+        if (createData?.error) {
+          errorMessage = createData.error;
+        } else if (createErr instanceof Error && 'context' in createErr) {
+          try {
+            const ctx = (createErr as any).context;
+            if (ctx instanceof Response) {
+              const body = await ctx.json();
+              if (body?.error) errorMessage = body.error;
+            }
+          } catch {
+            // fallback to generic message
+          }
+        }
+        throw new Error(errorMessage);
       }
       if (createData?.error) throw new Error(createData.error);
       if (!createData?.user?.id) throw new Error("Création utilisateur échouée");
