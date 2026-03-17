@@ -184,7 +184,6 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
         .from('transactions')
         .insert({
           tenant_id: profile.tenant_id,
-          account_id: firstAccount.accountId,
           transaction_type: 'divers',
           journal_code: journalCode,
           transaction_date: date,
