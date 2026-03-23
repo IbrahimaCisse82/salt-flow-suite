@@ -29,6 +29,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import saltLogo from "@/assets/salt-logo.png";
 import { NotificationCenter } from "@/components/Notifications/NotificationCenter";
 import { adminMobileNavItems, salinesNavItems, type NavItem } from "@/config/navigation";
+import { prefetchRoute } from "@/App";
 
 const HeaderComponent = () => {
   const navigate = useNavigate();
