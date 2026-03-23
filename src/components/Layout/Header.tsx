@@ -29,6 +29,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import saltLogo from "@/assets/salt-logo.png";
 import { NotificationCenter } from "@/components/Notifications/NotificationCenter";
 import { adminMobileNavItems, salinesNavItems, type NavItem } from "@/config/navigation";
+import { prefetchRoute } from "@/App";
 
 const HeaderComponent = () => {
   const navigate = useNavigate();
@@ -171,10 +172,11 @@ const HeaderComponent = () => {
               const isExpanded = expandedMobileItems.includes(item.href);
               return (
                 <div key={item.href}>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-3"
-                    onClick={() => {
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-3"
+                      onMouseEnter={() => prefetchRoute(item.href)}
+                      onClick={() => {
                       if (hasChildren) {
                         setExpandedMobileItems(prev =>
                           prev.includes(item.href) ? prev.filter(h => h !== item.href) : [...prev, item.href]

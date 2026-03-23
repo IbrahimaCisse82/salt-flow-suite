@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
 import { useAuth } from "@/contexts/AuthContext";
+import { prefetchRoute } from "@/App";
 import {
   LayoutDashboard,
   Droplets,
@@ -58,6 +59,7 @@ const MobileBottomNavComponent = () => {
             <button
               key={item.href}
               onClick={() => navigate(item.href)}
+              onTouchStart={() => prefetchRoute(item.href)}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 flex-1 h-full rounded-lg transition-colors",
                 isActive

@@ -12,6 +12,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCampagnes } from "@/hooks/useCampagnes";
 import { adminNavItems, salinesNavItems, type NavItem } from "@/config/navigation";
+import { prefetchRoute } from "@/App";
 
 const SidebarComponent = () => {
   const location = useLocation();
@@ -71,6 +72,8 @@ const SidebarComponent = () => {
                   !(isActive || isChildActive(item)) && "hover:translate-x-0.5",
                   isOpen ? "justify-start" : "justify-center px-0"
                 )}
+                onMouseEnter={() => prefetchRoute(item.href)}
+                onFocus={() => prefetchRoute(item.href)}
                 onClick={() => {
                   if (hasChildren && isOpen) {
                     toggleExpand(item.href);
@@ -99,6 +102,8 @@ const SidebarComponent = () => {
                         key={child.href}
                         variant={isChildRouteActive ? "secondary" : "ghost"}
                         size="sm"
+                        onMouseEnter={() => prefetchRoute(child.href)}
+                        onFocus={() => prefetchRoute(child.href)}
                         className={cn(
                           "w-full justify-start gap-2 text-sm transition-all duration-200",
                           isChildRouteActive && "bg-secondary/80 font-medium",
