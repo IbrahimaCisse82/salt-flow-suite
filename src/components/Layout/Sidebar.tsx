@@ -72,6 +72,8 @@ const SidebarComponent = () => {
                   !(isActive || isChildActive(item)) && "hover:translate-x-0.5",
                   isOpen ? "justify-start" : "justify-center px-0"
                 )}
+                onMouseEnter={() => prefetchRoute(item.href)}
+                onFocus={() => prefetchRoute(item.href)}
                 onClick={() => {
                   if (hasChildren && isOpen) {
                     toggleExpand(item.href);
