@@ -12,6 +12,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCampagnes } from "@/hooks/useCampagnes";
 import { adminNavItems, salinesNavItems, type NavItem } from "@/config/navigation";
+import { prefetchRoute } from "@/App";
 
 const SidebarComponent = () => {
   const location = useLocation();
