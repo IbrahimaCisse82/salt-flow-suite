@@ -102,6 +102,8 @@ const SidebarComponent = () => {
                         key={child.href}
                         variant={isChildRouteActive ? "secondary" : "ghost"}
                         size="sm"
+                        onMouseEnter={() => prefetchRoute(child.href)}
+                        onFocus={() => prefetchRoute(child.href)}
                         className={cn(
                           "w-full justify-start gap-2 text-sm transition-all duration-200",
                           isChildRouteActive && "bg-secondary/80 font-medium",
