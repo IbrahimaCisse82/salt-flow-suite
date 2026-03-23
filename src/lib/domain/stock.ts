@@ -23,7 +23,8 @@ export interface StockMovementParams {
  * with row-level locking (SELECT FOR UPDATE).
  */
 export const processStockMovement = async (params: StockMovementParams) => {
-  const { data, error } = await supabase.rpc('process_stock_movement' as string, {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.rpc as any)('process_stock_movement', {
     p_item_id: params.itemId,
     p_quantity: params.quantity,
     p_movement_type: params.movementType,
@@ -33,7 +34,7 @@ export const processStockMovement = async (params: StockMovementParams) => {
     p_reference_type: params.referenceType ?? null,
     p_reference_id: params.referenceId ?? null,
     p_notes: params.notes ?? null,
-  } as Record<string, unknown>);
+  });
 
   if (error) throw error;
   return data;
