@@ -59,6 +59,7 @@ const MobileBottomNavComponent = () => {
             <button
               key={item.href}
               onClick={() => navigate(item.href)}
+              onTouchStart={() => prefetchRoute(item.href)}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 flex-1 h-full rounded-lg transition-colors",
                 isActive
