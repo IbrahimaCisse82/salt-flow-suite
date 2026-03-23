@@ -11,35 +11,18 @@ const STALE_TIME_OPERATIONAL = 5 * 60 * 1000;
 /** 1 hour cache time for reference data */
 const GC_TIME_REFERENCE = 60 * 60 * 1000;
 
-/** Reference data query keys that should be cached aggressively */
-const REFERENCE_QUERY_KEYS = [
-  'clients', 'suppliers', 'accounts', 'chart-of-accounts',
-  'expense-types', 'inventory-items', 'employees', 'teams',
-  'bassins', 'campagnes', 'tenants',
-];
-
-/** Check if a query key matches reference data */
-const isReferenceData = (queryKey: readonly unknown[]): boolean => {
-  const firstKey = String(queryKey[0] ?? '');
-  return REFERENCE_QUERY_KEYS.some(k => firstKey.includes(k));
-};
-
 export const createQueryClient = (): QueryClient =>
   new QueryClient({
     defaultOptions: {
       queries: {
         staleTime: STALE_TIME_OPERATIONAL,
         gcTime: GC_TIME_REFERENCE,
-        retry: (failureCount, error) => {
-          // Don't retry on 4xx errors
-          if (error && 'status' in (error as Record<string, unknown>)) {
-            const status = (error as Record<string, unknown>).status as number;
-            if (status >= 400 && status < 500) return false;
-          }
+        retry: (failureCount, error: unknown) => {
+          const err = error as { status?: number } | undefined;
+          if (err?.status && err.status >= 400 && err.status < 500) return false;
           return failureCount < 2;
         },
         refetchOnWindowFocus: false,
-        // When offline, serve from cache without refetching
         networkMode: 'offlineFirst',
       },
       mutations: {
@@ -48,17 +31,6 @@ export const createQueryClient = (): QueryClient =>
     },
   });
 
-/** Apply aggressive caching to reference data queries */
-export const configureReferenceCaching = (queryClient: QueryClient): void => {
-  queryClient.getQueryCache().subscribe((event) => {
-    if (event.type === 'added' && event.query.queryKey) {
-      if (isReferenceData(event.query.queryKey)) {
-        event.query.setOptions({
-          ...event.query.options,
-          staleTime: STALE_TIME_REFERENCE,
-          gcTime: GC_TIME_REFERENCE,
-        });
-      }
-    }
-  });
-};
+/** Reference data query keys that benefit from longer cache */
+export const REFERENCE_STALE_TIME = STALE_TIME_REFERENCE;
+export const REFERENCE_GC_TIME = GC_TIME_REFERENCE;
