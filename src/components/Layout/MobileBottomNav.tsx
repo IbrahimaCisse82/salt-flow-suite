@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { hasAccessToPage, UserRole } from "@/utils/permissions";
 import { useAuth } from "@/contexts/AuthContext";
+import { prefetchRoute } from "@/App";
 import {
   LayoutDashboard,
   Droplets,
