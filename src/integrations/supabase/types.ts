@@ -3591,6 +3591,20 @@ export type Database = {
         Returns: string
       }
       post_depreciation: { Args: { p_schedule_id: string }; Returns: undefined }
+      process_stock_movement: {
+        Args: {
+          p_item_id: string
+          p_movement_type: string
+          p_notes?: string
+          p_quantity: number
+          p_reference_id?: string
+          p_reference_type?: string
+          p_unit_cost?: number
+          p_warehouse_from?: string
+          p_warehouse_to?: string
+        }
+        Returns: Json
+      }
       seed_chart_of_accounts_for_tenant: {
         Args: { p_tenant_id: string }
         Returns: undefined
