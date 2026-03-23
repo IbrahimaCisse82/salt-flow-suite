@@ -48,16 +48,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Install = lazy(() => import("./pages/Install"));
 
 // Optimized QueryClient with better caching
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
-      refetchOnWindowFocus: true,
-      retry: 1,
-    },
-  },
-});
+const queryClient = createQueryClient();
 
 // Composant de loading léger pour Suspense
 const PageLoader = () => (
