@@ -18,7 +18,8 @@ export const useSales = () => {
         .from('sales')
         .select(`
           *,
-          client:clients(name, client_type)
+          client:clients(name, client_type),
+          sale_items(id, salt_type, warehouse_id, warehouse_name, quantity, unit_price, amount_ht)
         `)
         .order('sale_date', { ascending: false });
       
