@@ -178,41 +178,61 @@ const Commercial = () => {
   const TVA_RATE = 18; // Taux TVA standard SYSCOHADA
 
   const handleCreateOrder = async () => {
-    if (!orderForm.client_id || !orderForm.quantity || !orderForm.unit_price || !orderForm.warehouse_id) {
+    if (!orderForm.client_id || orderForm.items.length === 0) {
       toast({ title: "Erreur", description: "Remplissez tous les champs obligatoires", variant: "destructive" });
       return;
     }
 
-    const selectedClient = clients.find((c: any) => c.id === orderForm.client_id);
-    if (!selectedClient?.client_type) {
-      toast({ title: "Erreur", description: "Le type de client (local/export) doit être renseigné avant de créer une commande", variant: "destructive" });
+    const invalidLines = orderForm.items.filter(
+      (i) => !i.salt_type || !i.warehouse_id || !(parseFloat(i.quantity) > 0) || !(parseFloat(i.unit_price) > 0)
+    );
+    if (invalidLines.length > 0) {
+      toast({ title: "Erreur", description: "Chaque ligne doit avoir un type, entrepôt, quantité et prix", variant: "destructive" });
       return;
     }
 
-    const isExport = selectedClient.client_type.toLowerCase() === "export";
-    const qty = parseFloat(orderForm.quantity);
-    const price = parseFloat(orderForm.unit_price);
-    const amountHT = qty * price;
-    const applyTva = orderForm.apply_tva !== undefined ? orderForm.apply_tva : !isExport;
-    const tvaRate = isExport ? 0 : (applyTva ? TVA_RATE : 0);
-    const tvaAmount = Math.round(amountHT * tvaRate / 100);
+    const selectedClientObj = clients.find((c: any) => c.id === orderForm.client_id);
+    if (!selectedClientObj?.client_type) {
+      toast({ title: "Erreur", description: "Le type de client (local/export) doit être renseigné", variant: "destructive" });
+      return;
+    }
+
+    const isExportClient = selectedClientObj.client_type.toLowerCase() === "export";
+    const applyTva = orderForm.apply_tva !== undefined ? orderForm.apply_tva : !isExportClient;
+    const tvaRate = isExportClient ? 0 : applyTva ? TVA_RATE : 0;
+
+    // Use first line as the "main" sale record for backward compat
+    const firstLine = orderForm.items[0];
+    const totalQty = orderForm.items.reduce((sum, i) => sum + (parseFloat(i.quantity) || 0), 0);
+    // Weighted average unit price
+    const totalHT = orderForm.items.reduce((sum, i) => sum + (parseFloat(i.quantity) || 0) * (parseFloat(i.unit_price) || 0), 0);
+    const avgUnitPrice = totalQty > 0 ? totalHT / totalQty : 0;
+    const tvaAmount = Math.round(totalHT * tvaRate / 100);
 
     try {
       await createSale({
         client_id: orderForm.client_id,
-        salt_type: orderForm.salt_type,
-        quantity: qty,
-        unit_price: price,
+        salt_type: firstLine.salt_type,
+        quantity: totalQty,
+        unit_price: Math.round(avgUnitPrice),
         notes: orderForm.notes,
         payment_status: "pending",
-        warehouse_id: orderForm.warehouse_id,
+        warehouse_id: firstLine.warehouse_id,
         tva_rate: tvaRate,
         tva_amount: tvaAmount,
-        amount_ht: amountHT,
+        amount_ht: totalHT,
+        // Pass items for the hook to insert sale_items
+        items: orderForm.items.map((i) => ({
+          salt_type: i.salt_type,
+          warehouse_id: i.warehouse_id,
+          warehouse_name: warehouses.find((w: any) => w.id === i.warehouse_id)?.item_name || '',
+          quantity: parseFloat(i.quantity),
+          unit_price: parseFloat(i.unit_price),
+        })),
       });
-      toast({ title: "Commande créée", description: "La commande a été enregistrée et le stock réservé" });
+      toast({ title: "Commande créée", description: `Commande de ${orderForm.items.length} produit(s) enregistrée` });
       setIsNewOrderDialogOpen(false);
-      setOrderForm({ client_id: "", salt_type: "gros", quantity: "", unit_price: "", notes: "", warehouse_id: "" });
+      setOrderForm(createEmptyOrderForm());
     } catch (error) {
       console.error("Erreur création commande:", error);
     }
