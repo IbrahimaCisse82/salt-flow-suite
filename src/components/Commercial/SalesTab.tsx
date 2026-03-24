@@ -81,7 +81,15 @@ export const OrdersTab = ({ sales, allSales, isLoading, isUpdating, onValidate, 
           {isLoading ? (
             <ListSkeleton items={4} showAvatar={false} />
           ) : sales.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">Aucune commande en attente</p>
+            <div className="text-center py-10 space-y-3">
+              <ShoppingCart className="h-10 w-10 text-muted-foreground/50 mx-auto" />
+              <p className="text-muted-foreground font-medium">Aucune commande en attente</p>
+              <p className="text-sm text-muted-foreground">Cliquez sur « Nouvelle commande » pour commencer.<br/>Après validation, elle passera en facturation.</p>
+              <Button onClick={onNewOrder} className="mt-2">
+                <Plus className="h-4 w-4 mr-2" />
+                Créer ma première commande
+              </Button>
+            </div>
           ) : (
             <div className="space-y-4">
               {sales.map((sale: any) => (
