@@ -87,9 +87,19 @@ export const OrdersTab = ({ sales, allSales, isLoading, isUpdating, onValidate, 
               {sales.map((sale: any) => (
                 <div key={sale.id} className="p-4 border rounded-lg">
                   <div className="flex justify-between items-start">
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold">{sale.client?.name || "Client inconnu"}</p>
-                      <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
+                      {sale.sale_items && sale.sale_items.length > 0 ? (
+                        <div className="mt-1 space-y-0.5">
+                          {sale.sale_items.map((item: any) => (
+                            <p key={item.id} className="text-sm text-muted-foreground">
+                              {item.quantity} t · {item.salt_type} — {item.warehouse_name || 'N/A'}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{sale.quantity} t - {sale.salt_type}</p>
+                      )}
                       <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA</p>
                       <p className="text-xs text-muted-foreground">{formatDate(sale.sale_date)}</p>
                     </div>
@@ -137,7 +147,13 @@ export const OrdersTab = ({ sales, allSales, isLoading, isUpdating, onValidate, 
                   <div key={sale.id} className="p-3 border rounded-lg flex justify-between items-center">
                     <div>
                       <p className="font-medium">{sale.client?.name || "Client inconnu"}</p>
-                      <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type} · {formatDate(sale.sale_date)}</p>
+                      {sale.sale_items && sale.sale_items.length > 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          {sale.sale_items.map((i: any) => `${i.quantity}t ${i.salt_type}`).join(', ')} · {formatDate(sale.sale_date)}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{sale.quantity} t - {sale.salt_type} · {formatDate(sale.sale_date)}</p>
+                      )}
                       <p className="text-sm font-semibold text-primary">{formatNumber(sale.total_amount)} FCFA</p>
                     </div>
                     <Badge variant={sale.sale_status === "cancelled" ? "destructive" : "secondary"}>
@@ -250,7 +266,17 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
                       <p className="text-sm text-muted-foreground">
                         {sale.invoice_number || `Facture #${sale.id.slice(0, 8)}`} · {formatDate(sale.sale_date)}
                       </p>
-                      <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
+                      {sale.sale_items && sale.sale_items.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {sale.sale_items.map((item: any) => (
+                            <p key={item.id} className="text-sm text-muted-foreground">
+                              {item.quantity} t · {item.salt_type} — {item.warehouse_name || 'N/A'}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{sale.quantity} t - {sale.salt_type}</p>
+                      )}
                       {sale.tva_amount > 0 && (
                         <p className="text-xs text-muted-foreground">HT: {formatNumber(sale.amount_ht)} · TVA {sale.tva_rate}%: {formatNumber(sale.tva_amount)}</p>
                       )}
