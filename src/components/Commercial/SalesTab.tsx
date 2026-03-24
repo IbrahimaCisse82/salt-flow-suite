@@ -341,7 +341,7 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
                     <div>
                       <p className="font-medium">{sale.client?.name || "Client inconnu"}</p>
                       <p className="text-sm text-muted-foreground">
-                        {sale.invoice_number || `#${sale.id.slice(0, 8)}`} · {sale.quantity} kg · {formatDate(sale.sale_date)}
+                        {sale.invoice_number || `#${sale.id.slice(0, 8)}`} · {sale.quantity} t · {formatDate(sale.sale_date)}
                       </p>
                       <p className="text-sm font-semibold text-primary">{formatNumber(sale.total_amount)} FCFA</p>
                     </div>
