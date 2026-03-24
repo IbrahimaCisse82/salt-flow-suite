@@ -86,16 +86,7 @@ const Commercial = () => {
   const { sales, isLoading: salesLoading, updateSale, createSale, isCreating, isUpdating } = useSales();
 
   // Forms
-  const [orderForm, setOrderForm] = useState<{
-    client_id: string; salt_type: string; quantity: string; unit_price: string; notes: string; warehouse_id: string; apply_tva?: boolean;
-  }>({
-    client_id: "",
-    salt_type: "gros",
-    quantity: "",
-    unit_price: "",
-    notes: "",
-    warehouse_id: "",
-  });
+  const [orderForm, setOrderForm] = useState<OrderFormState>(createEmptyOrderForm());
 
   const [clientForm, setClientForm] = useState({
     name: "",
