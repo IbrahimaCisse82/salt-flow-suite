@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Database,
   Plus,
@@ -81,8 +81,16 @@ const Production = () => {
   const { data: productionRecords = [], isLoading: productionLoading } = useProductionRecords();
   const { bassins, isLoading: bassinsLoading } = useBassins();
   const { teams } = useTeams();
+  const recolteTeam = teams?.find(t => t.name?.toLowerCase().includes('récolte'));
   const { items: inventoryItems } = useInventoryItems();
   const warehouses = inventoryItems.filter(item => item.item_category === 'warehouse');
+
+  // Auto-assign Récolte team
+  useEffect(() => {
+    if (recolteTeam && formData.team !== recolteTeam.id) {
+      setFormData(prev => ({ ...prev, team: recolteTeam.id }));
+    }
+  }, [recolteTeam?.id]);
   const { qualityTests, isLoading: qualityLoading } = useQualityTests();
   const { certificates, isLoading: certificatesLoading } = useQualityCertificates();
 
@@ -303,22 +311,9 @@ const Production = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="team">Équipe</Label>
-                  <Select 
-                    value={formData.team} 
-                    onValueChange={(value) => setFormData({...formData, team: value})}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner l'équipe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teams?.map((team) => (
-                        <SelectItem key={team.id} value={team.id}>
-                          {team.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-muted text-sm text-muted-foreground">
+                    {recolteTeam?.name || 'Équipe Récolte (non trouvée)'}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
