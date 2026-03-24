@@ -2407,6 +2407,63 @@ export type Database = {
           },
         ]
       }
+      sale_items: {
+        Row: {
+          amount_ht: number | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          quantity: number
+          sale_id: string
+          salt_type: string
+          tenant_id: string
+          unit_price: number
+          warehouse_id: string | null
+          warehouse_name: string | null
+        }
+        Insert: {
+          amount_ht?: number | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          quantity: number
+          sale_id: string
+          salt_type: string
+          tenant_id: string
+          unit_price: number
+          warehouse_id?: string | null
+          warehouse_name?: string | null
+        }
+        Update: {
+          amount_ht?: number | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          quantity?: number
+          sale_id?: string
+          salt_type?: string
+          tenant_id?: string
+          unit_price?: number
+          warehouse_id?: string | null
+          warehouse_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales: {
         Row: {
           amount_ht: number | null
