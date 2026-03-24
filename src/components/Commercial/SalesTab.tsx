@@ -442,7 +442,7 @@ export const DeliveryTab = ({ deliverableSales, deliveredSales, isLoading, isUpd
             <div key={sale.id} className="p-3 border rounded-lg flex justify-between items-center">
               <div>
                 <p className="font-medium">{sale.client?.name || "Client inconnu"}</p>
-                <p className="text-sm text-muted-foreground">{sale.quantity} kg</p>
+                <p className="text-sm text-muted-foreground">{sale.quantity} t</p>
               </div>
               <Badge variant="default">
                 <CheckCircle className="h-3 w-3 mr-1" />
