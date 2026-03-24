@@ -642,13 +642,16 @@ export const EmployeeManagement = ({ isManager }: EmployeeManagementProps) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_salary">Salaire (FCFA)</Label>
+                <Label htmlFor="edit_salary">
+                  {EMPLOYEE_TYPES.find(t => t.value === formData.employee_type)?.salaryLabel || "Salaire (FCFA)"}
+                </Label>
                 <Input
                   id="edit_salary"
                   type="number"
                   min={0}
                   value={formData.salary}
                   onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                  placeholder={EMPLOYEE_TYPES.find(t => t.value === formData.employee_type)?.salaryPlaceholder || "0"}
                 />
               </div>
             </div>
