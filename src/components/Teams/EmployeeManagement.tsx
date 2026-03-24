@@ -53,9 +53,9 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const EMPLOYEE_TYPES = [
-  { value: "permanent", label: "Permanent" },
-  { value: "saisonnier", label: "Saisonnier" },
-  { value: "journalier", label: "Journalier" },
+  { value: "permanent", label: "Permanent", salaryLabel: "Salaire mensuel (FCFA)", salaryPlaceholder: "Ex: 150 000" },
+  { value: "saisonnier", label: "Saisonnier", salaryLabel: "Montant forfaitaire (FCFA)", salaryPlaceholder: "Ex: 500 000" },
+  { value: "journalier", label: "Journalier", salaryLabel: "Taux journalier (FCFA)", salaryPlaceholder: "Ex: 5 000" },
 ];
 
 const POSITIONS = [
