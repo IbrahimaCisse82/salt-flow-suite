@@ -414,7 +414,7 @@ export const DeliveryTab = ({ deliverableSales, deliveredSales, isLoading, isUpd
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-semibold">{sale.client?.name || "Client inconnu"}</p>
-                  <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
+                  <p className="text-sm text-muted-foreground">{sale.quantity} t - {sale.salt_type}</p>
                   <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Paiement: {sale.payment_status === "paid" ? "Complet" : "Partiel"}
