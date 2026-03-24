@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, CheckCircle, Package, Pencil, XCircle, Download, History, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, CheckCircle, Package, Pencil, XCircle, Download, History, ChevronDown, ChevronUp, FileText, ShoppingCart, Truck } from "lucide-react";
 import { ListSkeleton } from "@/components/LoadingSkeletons/ListSkeleton";
 import {
   AlertDialog,
