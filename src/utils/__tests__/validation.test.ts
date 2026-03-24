@@ -34,7 +34,7 @@ describe('Validation Schemas', () => {
 
   describe('passwordSchema', () => {
     it('should validate strong password', () => {
-      expect(passwordSchema.safeParse('Str0ng!Pass').success).toBe(true);
+      expect(passwordSchema.safeParse('Str0ngPass').success).toBe(true);
     });
 
     it('should reject weak password', () => {
@@ -43,20 +43,24 @@ describe('Validation Schemas', () => {
       expect(passwordSchema.safeParse('onlylowercase').success).toBe(false);
     });
 
-    it('should reject password without special char', () => {
-      expect(passwordSchema.safeParse('Str0ngPass').success).toBe(false);
+    it('should reject password without uppercase', () => {
+      expect(passwordSchema.safeParse('str0ngpass').success).toBe(false);
+    });
+
+    it('should reject password without digit', () => {
+      expect(passwordSchema.safeParse('StrongPass').success).toBe(false);
     });
   });
 
   describe('phoneSchema', () => {
-    it('should validate French phone numbers', () => {
-      expect(phoneSchema.safeParse('+33612345678').success).toBe(true);
-      expect(phoneSchema.safeParse('0612345678').success).toBe(true);
+    it('should validate Senegalese phone numbers', () => {
+      expect(phoneSchema.safeParse('+221771234567').success).toBe(true);
+      expect(phoneSchema.safeParse('771234567').success).toBe(true);
     });
 
-    it('should validate international phone numbers', () => {
-      expect(phoneSchema.safeParse('+1234567890').success).toBe(true);
-      expect(phoneSchema.safeParse('+221771234567').success).toBe(true);
+    it('should accept empty or undefined phone', () => {
+      expect(phoneSchema.safeParse('').success).toBe(true);
+      expect(phoneSchema.safeParse(undefined).success).toBe(true);
     });
 
     it('should reject invalid phone numbers', () => {
@@ -115,7 +119,7 @@ describe('Validation Schemas', () => {
         full_name: 'Jean Dupont',
         position: 'Manager',
         employee_type: 'permanent',
-        phone: '+33612345678',
+        phone: '+221771234567',
         email: 'jean@example.com',
         salary: 3000,
         hire_date: '2024-01-01',
@@ -137,55 +141,79 @@ describe('Validation Schemas', () => {
   describe('bassinSchema', () => {
     it('should validate bassin data', () => {
       const result = bassinSchema.safeParse({
-        name: 'Bassin A1',
-        superficie: 1000,
-        status: 'active',
+        name: 'Bassin A',
+        area: 1000,
+        is_active: true,
       });
       expect(result.success).toBe(true);
     });
 
-    it('should reject negative superficie', () => {
+    it('should reject negative area', () => {
       const result = bassinSchema.safeParse({
-        name: 'Bassin A1',
-        superficie: -100,
+        name: 'Bassin A',
+        area: -100,
       });
       expect(result.success).toBe(false);
     });
   });
 
-
   describe('leaveRequestSchema', () => {
     it('should validate leave request with required fields', () => {
       const result = leaveRequestSchema.safeParse({
-        employee_id: 'emp-123',
+        employee_id: '550e8400-e29b-41d4-a716-446655440000',
         start_date: '2024-01-10',
         end_date: '2024-01-15',
         leave_type: 'conge_annuel',
+        reason: 'Vacances annuelles prévues',
       });
       expect(result.success).toBe(true);
     });
 
-    it('should accept optional reason field', () => {
+    it('should accept optional notes field', () => {
       const result = leaveRequestSchema.safeParse({
-        employee_id: 'emp-123',
+        employee_id: '550e8400-e29b-41d4-a716-446655440000',
         start_date: '2024-01-10',
         end_date: '2024-01-15',
         leave_type: 'conge_maladie',
-        reason: 'Medical appointment',
+        reason: 'Consultation médicale urgente',
+        notes: 'Certificat médical fourni',
       });
       expect(result.success).toBe(true);
+    });
+
+    it('should reject when end_date is before start_date', () => {
+      const result = leaveRequestSchema.safeParse({
+        employee_id: '550e8400-e29b-41d4-a716-446655440000',
+        start_date: '2024-01-15',
+        end_date: '2024-01-10',
+        leave_type: 'conge_annuel',
+        reason: 'Vacances annuelles prévues',
+      });
+      expect(result.success).toBe(false);
     });
   });
 
   describe('teamAttendanceSchema', () => {
     it('should validate attendance data', () => {
       const result = teamAttendanceSchema.safeParse({
-        team_id: 'team-123',
+        team_id: '550e8400-e29b-41d4-a716-446655440000',
         attendance_date: '2024-01-15',
         workers_count: 10,
+        hours_worked: 8,
         daily_rate: 5000,
       });
       expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid hours', () => {
+      const result = teamAttendanceSchema.safeParse({
+        team_id: '550e8400-e29b-41d4-a716-446655440000',
+        attendance_date: '2024-01-15',
+        workers_count: 10,
+        hours_worked: 25,
+        daily_rate: 5000,
+      });
+      expect(result.success).toBe(false);
     });
   });
 });

@@ -28,9 +28,9 @@ describe('StatsCard', () => {
       />
     );
 
-    const changeElement = getByText('+12% vs last month');
+    const changeElement = document.querySelector('.text-accent');
     expect(changeElement).toBeInTheDocument();
-    expect(changeElement).toHaveClass('text-green-600');
+    expect(changeElement?.textContent).toContain('+12% vs last month');
   });
 
   it('should render change with trend down', () => {
@@ -44,9 +44,9 @@ describe('StatsCard', () => {
       />
     );
 
-    const changeElement = getByText('-5% vs last month');
+    const changeElement = document.querySelector('.text-destructive');
     expect(changeElement).toBeInTheDocument();
-    expect(changeElement).toHaveClass('text-red-600');
+    expect(changeElement?.textContent).toContain('-5% vs last month');
   });
 
   it('should apply gradient class when gradient prop is true', () => {

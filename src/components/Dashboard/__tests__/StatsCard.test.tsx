@@ -17,7 +17,8 @@ describe('StatsCard', () => {
 
     expect(getByText('Total Sales')).toBeInTheDocument();
     expect(getByText('1,234')).toBeInTheDocument();
-    expect(getByText('+12.5%')).toBeInTheDocument();
+    // change text is prefixed with arrow in the component
+    expect(getByText(/\+12\.5%/)).toBeInTheDocument();
   });
 
   it('should render negative trend', () => {
@@ -31,7 +32,7 @@ describe('StatsCard', () => {
       />
     );
 
-    expect(getByText('-5.2%')).toBeInTheDocument();
+    expect(getByText(/-5\.2%/)).toBeInTheDocument();
   });
 
   it('should render without trend', () => {
