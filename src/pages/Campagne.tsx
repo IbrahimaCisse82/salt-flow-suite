@@ -252,7 +252,88 @@ const Campagne = () => {
     setFormErrors({});
   };
 
-  const handleAddExpense = (phase: string) => {
+  // Ouvrir le dialog d'édition avec les données de la campagne active
+  const openEditDialog = () => {
+    if (!activeCampagne) return;
+    setEditFormData({
+      name: activeCampagne.name || '',
+      year: activeCampagne.year || new Date().getFullYear(),
+      startDate: activeCampagne.start_date || '',
+      endDate: activeCampagne.end_date || '',
+      targetProduction: Number(activeCampagne.target_production) || 0,
+      budgetTotal: Number(activeCampagne.budget_total) || 0,
+    });
+    setEditFormErrors({});
+    setShowEditCampagneDialog(true);
+  };
+
+  // Sauvegarder les modifications de la campagne
+  const handleEditCampagne = async () => {
+    try {
+      if (!activeCampagne?.id) return;
+      
+      if (!editFormData.name.trim()) {
+        setEditFormErrors({ name: "Le nom est requis" });
+        return;
+      }
+      if (editFormData.startDate && editFormData.endDate && editFormData.startDate >= editFormData.endDate) {
+        setEditFormErrors({ endDate: "La date de fin doit être postérieure à la date de début" });
+        return;
+      }
+
+      await updateCampagne({
+        id: activeCampagne.id,
+        name: editFormData.name,
+        year: editFormData.year,
+        start_date: editFormData.startDate,
+        end_date: editFormData.endDate,
+        target_production: editFormData.targetProduction,
+        budget_total: editFormData.budgetTotal,
+      });
+
+      setShowEditCampagneDialog(false);
+      toast({
+        title: "Campagne mise à jour",
+        description: "Les modifications ont été enregistrées avec succès",
+      });
+    } catch (error) {
+      logger.error('Error updating campagne:', error);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible de mettre à jour la campagne",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Clôturer la campagne active
+  const handleCloseCampagne = async () => {
+    try {
+      if (!activeCampagne?.id) return;
+
+      await updateCampagne({
+        id: activeCampagne.id,
+        status: 'terminee',
+        actual_production: campagneStats?.totalProduction || 0,
+      });
+
+      setShowCloseCampagneDialog(false);
+      queryClient.invalidateQueries({ queryKey: ['campagne-stats'] });
+      toast({
+        title: "Campagne clôturée",
+        description: `"${activeCampagne.name}" a été clôturée avec succès`,
+      });
+    } catch (error) {
+      logger.error('Error closing campagne:', error);
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Impossible de clôturer la campagne",
+        variant: "destructive"
+      });
+    }
+  };
+
+
     const newExpense: BudgetExpense = {
       id: `${phase}-${Date.now()}`,
       description: '',
