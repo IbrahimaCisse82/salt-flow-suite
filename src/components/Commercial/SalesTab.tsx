@@ -266,7 +266,17 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
                       <p className="text-sm text-muted-foreground">
                         {sale.invoice_number || `Facture #${sale.id.slice(0, 8)}`} · {formatDate(sale.sale_date)}
                       </p>
-                      <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
+                      {sale.sale_items && sale.sale_items.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {sale.sale_items.map((item: any) => (
+                            <p key={item.id} className="text-sm text-muted-foreground">
+                              {item.quantity} t · {item.salt_type} — {item.warehouse_name || 'N/A'}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{sale.quantity} t - {sale.salt_type}</p>
+                      )}
                       {sale.tva_amount > 0 && (
                         <p className="text-xs text-muted-foreground">HT: {formatNumber(sale.amount_ht)} · TVA {sale.tva_rate}%: {formatNumber(sale.tva_amount)}</p>
                       )}
