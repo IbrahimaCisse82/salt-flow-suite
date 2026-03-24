@@ -611,6 +611,28 @@ const Campagne = () => {
                   : "Aucune campagne active - Créez un nouveau plan de campagne"}
               </p>
             </div>
+            {activeCampagne && activeCampagne.status !== 'terminee' && (
+              <div className="flex gap-2 flex-shrink-0">
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={openEditDialog}
+                >
+                  <Pencil className="h-4 w-4" />
+                  <span className="hidden sm:inline">Modifier</span>
+                </Button>
+                <Button 
+                  variant="destructive"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setShowCloseCampagneDialog(true)}
+                >
+                  <XCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">Clôturer</span>
+                </Button>
+              </div>
+            )}
             <Button 
               className="gap-2 bg-gradient-to-r from-primary to-accent flex-shrink-0"
               onClick={() => setShowNewCampagneDialog(true)}
