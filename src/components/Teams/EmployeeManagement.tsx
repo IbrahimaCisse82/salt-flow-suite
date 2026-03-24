@@ -53,9 +53,9 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const EMPLOYEE_TYPES = [
-  { value: "permanent", label: "Permanent" },
-  { value: "saisonnier", label: "Saisonnier" },
-  { value: "journalier", label: "Journalier" },
+  { value: "permanent", label: "Permanent", salaryLabel: "Salaire mensuel (FCFA)", salaryPlaceholder: "Ex: 150 000" },
+  { value: "saisonnier", label: "Saisonnier", salaryLabel: "Montant forfaitaire (FCFA)", salaryPlaceholder: "Ex: 500 000" },
+  { value: "journalier", label: "Journalier", salaryLabel: "Taux journalier (FCFA)", salaryPlaceholder: "Ex: 5 000" },
 ];
 
 const POSITIONS = [
@@ -315,6 +315,7 @@ export const EmployeeManagement = ({ isManager }: EmployeeManagementProps) => {
                     <TableHead className="hidden md:table-cell">Contact</TableHead>
                     <TableHead>Poste</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead className="hidden lg:table-cell">Rémunération</TableHead>
                     <TableHead className="hidden lg:table-cell">Date d'embauche</TableHead>
                     {isManager && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
@@ -354,6 +355,18 @@ export const EmployeeManagement = ({ isManager }: EmployeeManagementProps) => {
                           {EMPLOYEE_TYPES.find((t) => t.value === employee.employee_type)?.label ||
                             employee.employee_type}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {employee.salary ? (
+                          <div>
+                            <p className="font-medium">{Number(employee.salary).toLocaleString('fr-FR')} FCFA</p>
+                            <p className="text-xs text-muted-foreground">
+                              {employee.employee_type === 'permanent' ? '/mois' : 
+                               employee.employee_type === 'journalier' ? '/jour' : 
+                               'forfait'}
+                            </p>
+                          </div>
+                        ) : "-"}
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
                         {employee.hire_date
@@ -513,14 +526,16 @@ export const EmployeeManagement = ({ isManager }: EmployeeManagementProps) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="salary">Salaire (FCFA)</Label>
+                <Label htmlFor="salary">
+                  {EMPLOYEE_TYPES.find(t => t.value === formData.employee_type)?.salaryLabel || "Salaire (FCFA)"}
+                </Label>
                 <Input
                   id="salary"
                   type="number"
                   min={0}
                   value={formData.salary}
                   onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
-                  placeholder="0"
+                  placeholder={EMPLOYEE_TYPES.find(t => t.value === formData.employee_type)?.salaryPlaceholder || "0"}
                 />
               </div>
             </div>
@@ -640,13 +655,16 @@ export const EmployeeManagement = ({ isManager }: EmployeeManagementProps) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit_salary">Salaire (FCFA)</Label>
+                <Label htmlFor="edit_salary">
+                  {EMPLOYEE_TYPES.find(t => t.value === formData.employee_type)?.salaryLabel || "Salaire (FCFA)"}
+                </Label>
                 <Input
                   id="edit_salary"
                   type="number"
                   min={0}
                   value={formData.salary}
                   onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                  placeholder={EMPLOYEE_TYPES.find(t => t.value === formData.employee_type)?.salaryPlaceholder || "0"}
                 />
               </div>
             </div>
