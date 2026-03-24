@@ -147,7 +147,13 @@ export const OrdersTab = ({ sales, allSales, isLoading, isUpdating, onValidate, 
                   <div key={sale.id} className="p-3 border rounded-lg flex justify-between items-center">
                     <div>
                       <p className="font-medium">{sale.client?.name || "Client inconnu"}</p>
-                      <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type} · {formatDate(sale.sale_date)}</p>
+                      {sale.sale_items && sale.sale_items.length > 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          {sale.sale_items.map((i: any) => `${i.quantity}t ${i.salt_type}`).join(', ')} · {formatDate(sale.sale_date)}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{sale.quantity} t - {sale.salt_type} · {formatDate(sale.sale_date)}</p>
+                      )}
                       <p className="text-sm font-semibold text-primary">{formatNumber(sale.total_amount)} FCFA</p>
                     </div>
                     <Badge variant={sale.sale_status === "cancelled" ? "destructive" : "secondary"}>
