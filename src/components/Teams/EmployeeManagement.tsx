@@ -315,6 +315,7 @@ export const EmployeeManagement = ({ isManager }: EmployeeManagementProps) => {
                     <TableHead className="hidden md:table-cell">Contact</TableHead>
                     <TableHead>Poste</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead className="hidden lg:table-cell">Rémunération</TableHead>
                     <TableHead className="hidden lg:table-cell">Date d'embauche</TableHead>
                     {isManager && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
