@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useInventoryItems } from "@/hooks/useInventoryItems";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, ShoppingCart, Truck, FileText } from "lucide-react";
+import { WorkflowStepper } from "@/components/Commercial/WorkflowStepper";
 import {
   AlertDialog,
   AlertDialogAction,
