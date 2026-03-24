@@ -57,6 +57,8 @@ const Campagne = () => {
   const { isOpen } = useSidebar();
   const queryClient = useQueryClient();
   const [showNewCampagneDialog, setShowNewCampagneDialog] = useState(false);
+  const [showEditCampagneDialog, setShowEditCampagneDialog] = useState(false);
+  const [showCloseCampagneDialog, setShowCloseCampagneDialog] = useState(false);
   const [showBudgetDialog, setShowBudgetDialog] = useState(false);
   
   // État du formulaire de création de campagne
