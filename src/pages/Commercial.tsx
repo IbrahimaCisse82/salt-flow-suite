@@ -65,7 +65,8 @@ const Commercial = () => {
   });
   const invoiceStyle = (invoiceStyleSetting as any) || "classic";
 
-  // Dialogs state
+  // Tab & Dialogs state
+  const [activeTab, setActiveTab] = useState("clients");
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false);
   const [isClientDetailsDialogOpen, setIsClientDetailsDialogOpen] = useState(false);
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
