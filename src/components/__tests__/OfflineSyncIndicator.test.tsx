@@ -11,8 +11,8 @@ describe('OfflineSyncIndicator', () => {
   it('should render when offline', () => {
     vi.mocked(OfflineSyncHook.useOfflineSync).mockReturnValue({
       isOnline: false,
-      pendingChanges: 0,
-      syncPendingChanges: vi.fn(),
+      pendingCount: 0,
+      syncNow: vi.fn(),
       isSyncing: false,
     } as any);
 
@@ -23,20 +23,20 @@ describe('OfflineSyncIndicator', () => {
   it('should show pending changes count', () => {
     vi.mocked(OfflineSyncHook.useOfflineSync).mockReturnValue({
       isOnline: false,
-      pendingChanges: 5,
-      syncPendingChanges: vi.fn(),
+      pendingCount: 5,
+      syncNow: vi.fn(),
       isSyncing: false,
     } as any);
 
     const { getByText } = render(<OfflineSyncIndicator />);
-    expect(getByText(/5/)).toBeInTheDocument();
+    expect(getByText('5')).toBeInTheDocument();
   });
 
   it('should not render when online with no pending changes', () => {
     vi.mocked(OfflineSyncHook.useOfflineSync).mockReturnValue({
       isOnline: true,
-      pendingChanges: 0,
-      syncPendingChanges: vi.fn(),
+      pendingCount: 0,
+      syncNow: vi.fn(),
       isSyncing: false,
     } as any);
 

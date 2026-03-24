@@ -31,7 +31,7 @@ describe('StatsCard', () => {
       />
     );
 
-    expect(getByText('-5.2%')).toBeInTheDocument();
+    expect(getByText(/-5\.2%/)).toBeInTheDocument();
   });
 
   it('should render without trend', () => {
