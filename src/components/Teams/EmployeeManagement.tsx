@@ -357,6 +357,18 @@ export const EmployeeManagement = ({ isManager }: EmployeeManagementProps) => {
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
+                        {employee.salary ? (
+                          <div>
+                            <p className="font-medium">{Number(employee.salary).toLocaleString('fr-FR')} FCFA</p>
+                            <p className="text-xs text-muted-foreground">
+                              {employee.employee_type === 'permanent' ? '/mois' : 
+                               employee.employee_type === 'journalier' ? '/jour' : 
+                               'forfait'}
+                            </p>
+                          </div>
+                        ) : "-"}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         {employee.hire_date
                           ? format(new Date(employee.hire_date), "d MMM yyyy", { locale: fr })
                           : "-"}
