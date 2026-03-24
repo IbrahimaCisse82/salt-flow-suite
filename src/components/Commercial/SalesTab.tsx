@@ -263,7 +263,11 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
           {isLoading ? (
             <ListSkeleton items={4} showAvatar={false} />
           ) : sales.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">Aucune facture en cours</p>
+            <div className="text-center py-10 space-y-3">
+              <FileText className="h-10 w-10 text-muted-foreground/50 mx-auto" />
+              <p className="text-muted-foreground font-medium">Aucune facture en cours</p>
+              <p className="text-sm text-muted-foreground">Validez une commande dans l'onglet « Commandes »<br/>pour qu'elle apparaisse ici automatiquement.</p>
+            </div>
           ) : (
             <div className="space-y-4">
               {sales.map((sale: any) => (
