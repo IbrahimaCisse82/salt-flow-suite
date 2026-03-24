@@ -402,9 +402,11 @@ export const DeliveryTab = ({ deliverableSales, deliveredSales, isLoading, isUpd
       {isLoading ? (
         <ListSkeleton items={4} showAvatar={false} />
       ) : deliverableSales.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8">
-          Aucune livraison en attente. Les ventes avec "Peut être livrée" cochée apparaîtront ici.
-        </p>
+        <div className="text-center py-10 space-y-3">
+          <Truck className="h-10 w-10 text-muted-foreground/50 mx-auto" />
+          <p className="text-muted-foreground font-medium">Aucune livraison en attente</p>
+          <p className="text-sm text-muted-foreground">Les commandes facturées et marquées « Peut être livrée »<br/>apparaîtront ici pour confirmation.</p>
+        </div>
       ) : (
         <div className="space-y-4">
           {deliverableSales.map((sale: any) => (
