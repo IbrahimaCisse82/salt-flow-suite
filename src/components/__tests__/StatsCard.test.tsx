@@ -28,9 +28,9 @@ describe('StatsCard', () => {
       />
     );
 
-    const changeElement = getByText('+12% vs last month');
+    const changeElement = document.querySelector('.text-accent');
     expect(changeElement).toBeInTheDocument();
-    expect(changeElement).toHaveClass('text-accent');
+    expect(changeElement?.textContent).toContain('+12% vs last month');
   });
 
   it('should render change with trend down', () => {
