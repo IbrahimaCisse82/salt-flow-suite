@@ -334,6 +334,7 @@ const Campagne = () => {
   };
 
 
+  const handleAddExpense = (phase: string) => {
     const newExpense: BudgetExpense = {
       id: `${phase}-${Date.now()}`,
       description: '',
