@@ -58,6 +58,13 @@ export const useSales = () => {
       tva_rate?: number;
       tva_amount?: number;
       amount_ht?: number;
+      items?: Array<{
+        salt_type: string;
+        warehouse_id: string;
+        warehouse_name: string;
+        quantity: number;
+        unit_price: number;
+      }>;
     }) => {
       if (!profile?.tenant_id) {
         throw new Error("Tenant ID manquant");
@@ -65,7 +72,7 @@ export const useSales = () => {
 
       const subtotal = saleData.quantity * saleData.unit_price;
       const discount = saleData.discount || 0;
-      const amountHT = subtotal - discount;
+      const amountHT = saleData.amount_ht || (subtotal - discount);
       const tvaRate = saleData.tva_rate || 0;
       const tvaAmount = saleData.tva_amount || Math.round(amountHT * tvaRate / 100);
       const totalAmount = amountHT + tvaAmount;
@@ -101,6 +108,29 @@ export const useSales = () => {
         .single();
       
       if (error) throw error;
+
+      // Insert sale_items if multi-line
+      if (saleData.items && saleData.items.length > 0 && data) {
+        const saleItems = saleData.items.map((item) => ({
+          sale_id: data.id,
+          tenant_id: profile.tenant_id,
+          salt_type: item.salt_type,
+          warehouse_id: item.warehouse_id || null,
+          warehouse_name: item.warehouse_name || null,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('sale_items')
+          .insert(saleItems);
+
+        if (itemsError) {
+          console.error('Error inserting sale_items:', itemsError);
+          // Don't throw — the sale is already created
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
