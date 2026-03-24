@@ -81,8 +81,16 @@ const Production = () => {
   const { data: productionRecords = [], isLoading: productionLoading } = useProductionRecords();
   const { bassins, isLoading: bassinsLoading } = useBassins();
   const { teams } = useTeams();
+  const recolteTeam = teams?.find(t => t.name?.toLowerCase().includes('récolte'));
   const { items: inventoryItems } = useInventoryItems();
   const warehouses = inventoryItems.filter(item => item.item_category === 'warehouse');
+
+  // Auto-assign Récolte team
+  useEffect(() => {
+    if (recolteTeam && formData.team !== recolteTeam.id) {
+      setFormData(prev => ({ ...prev, team: recolteTeam.id }));
+    }
+  }, [recolteTeam?.id]);
   const { qualityTests, isLoading: qualityLoading } = useQualityTests();
   const { certificates, isLoading: certificatesLoading } = useQualityCertificates();
 
