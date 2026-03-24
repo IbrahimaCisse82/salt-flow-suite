@@ -332,6 +332,7 @@ const Commercial = () => {
             onOpenChange={setIsNewOrderDialogOpen}
             clients={clients}
             warehouses={warehouses}
+            inventoryItems={inventoryItems}
             form={orderForm}
             onFormChange={setOrderForm}
             onSubmit={handleCreateOrder}
