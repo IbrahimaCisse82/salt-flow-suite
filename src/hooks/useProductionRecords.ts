@@ -57,6 +57,22 @@ export const useCreateProductionRecord = () => {
         throw new Error("La quantité doit être supérieure à 0");
       }
 
+      // Backend validation: only Récolte team allowed
+      if (input.team_id) {
+        const { data: team, error: teamError } = await supabase
+          .from('teams')
+          .select('id, name')
+          .eq('id', input.team_id)
+          .single();
+
+        if (teamError || !team) {
+          throw new Error("Équipe introuvable");
+        }
+        if (!team.name?.toLowerCase().includes('récolte')) {
+          throw new Error("Seule l'équipe 'Récolte' est autorisée pour enregistrer une production");
+        }
+      }
+
       // Backend validation: only active Table Salante bassins allowed
       const { data: bassin, error: bassinError } = await supabase
         .from('bassins')

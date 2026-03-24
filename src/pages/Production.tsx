@@ -303,22 +303,15 @@ const Production = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="team">Équipe</Label>
-                  <Select 
-                    value={formData.team} 
-                    onValueChange={(value) => setFormData({...formData, team: value})}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner l'équipe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teams?.map((team) => (
-                        <SelectItem key={team.id} value={team.id}>
-                          {team.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-muted text-sm text-muted-foreground">
+                    {(() => {
+                      const recolteTeam = teams?.find(t => t.name?.toLowerCase().includes('récolte'));
+                      if (recolteTeam && formData.team !== recolteTeam.id) {
+                        setFormData(prev => ({ ...prev, team: recolteTeam.id }));
+                      }
+                      return recolteTeam?.name || 'Équipe Récolte (non trouvée)';
+                    })()}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
