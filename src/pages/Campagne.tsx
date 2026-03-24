@@ -624,12 +624,12 @@ const Campagne = () => {
                   <span className="hidden sm:inline">Modifier</span>
                 </Button>
                 <Button 
-                  variant="destructive"
+                  variant="outline"
                   size="sm"
-                  className="gap-2"
+                  className="gap-2 border-amber-500 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
                   onClick={() => setShowCloseCampagneDialog(true)}
                 >
-                  <XCircle className="h-4 w-4" />
+                  <CheckCircle className="h-4 w-4" />
                   <span className="hidden sm:inline">Clôturer</span>
                 </Button>
               </div>
