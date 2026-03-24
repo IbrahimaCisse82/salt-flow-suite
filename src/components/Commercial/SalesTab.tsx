@@ -87,9 +87,19 @@ export const OrdersTab = ({ sales, allSales, isLoading, isUpdating, onValidate, 
               {sales.map((sale: any) => (
                 <div key={sale.id} className="p-4 border rounded-lg">
                   <div className="flex justify-between items-start">
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold">{sale.client?.name || "Client inconnu"}</p>
-                      <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
+                      {sale.sale_items && sale.sale_items.length > 0 ? (
+                        <div className="mt-1 space-y-0.5">
+                          {sale.sale_items.map((item: any) => (
+                            <p key={item.id} className="text-sm text-muted-foreground">
+                              {item.quantity} t · {item.salt_type} — {item.warehouse_name || 'N/A'}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{sale.quantity} t - {sale.salt_type}</p>
+                      )}
                       <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA</p>
                       <p className="text-xs text-muted-foreground">{formatDate(sale.sale_date)}</p>
                     </div>
