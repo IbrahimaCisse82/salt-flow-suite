@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, CheckCircle, Package, Pencil, XCircle, Download, History, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, CheckCircle, Package, Pencil, XCircle, Download, History, ChevronDown, ChevronUp, FileText, ShoppingCart, Truck } from "lucide-react";
 import { ListSkeleton } from "@/components/LoadingSkeletons/ListSkeleton";
 import {
   AlertDialog,
@@ -81,7 +81,15 @@ export const OrdersTab = ({ sales, allSales, isLoading, isUpdating, onValidate, 
           {isLoading ? (
             <ListSkeleton items={4} showAvatar={false} />
           ) : sales.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">Aucune commande en attente</p>
+            <div className="text-center py-10 space-y-3">
+              <ShoppingCart className="h-10 w-10 text-muted-foreground/50 mx-auto" />
+              <p className="text-muted-foreground font-medium">Aucune commande en attente</p>
+              <p className="text-sm text-muted-foreground">Cliquez sur « Nouvelle commande » pour commencer.<br/>Après validation, elle passera en facturation.</p>
+              <Button onClick={onNewOrder} className="mt-2">
+                <Plus className="h-4 w-4 mr-2" />
+                Créer ma première commande
+              </Button>
+            </div>
           ) : (
             <div className="space-y-4">
               {sales.map((sale: any) => (
@@ -255,7 +263,11 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
           {isLoading ? (
             <ListSkeleton items={4} showAvatar={false} />
           ) : sales.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">Aucune facture en cours</p>
+            <div className="text-center py-10 space-y-3">
+              <FileText className="h-10 w-10 text-muted-foreground/50 mx-auto" />
+              <p className="text-muted-foreground font-medium">Aucune facture en cours</p>
+              <p className="text-sm text-muted-foreground">Validez une commande dans l'onglet « Commandes »<br/>pour qu'elle apparaisse ici automatiquement.</p>
+            </div>
           ) : (
             <div className="space-y-4">
               {sales.map((sale: any) => (
@@ -329,7 +341,7 @@ export const InvoicesTab = ({ sales, allSales, isLoading, isUpdating, onEditInvo
                     <div>
                       <p className="font-medium">{sale.client?.name || "Client inconnu"}</p>
                       <p className="text-sm text-muted-foreground">
-                        {sale.invoice_number || `#${sale.id.slice(0, 8)}`} · {sale.quantity} kg · {formatDate(sale.sale_date)}
+                        {sale.invoice_number || `#${sale.id.slice(0, 8)}`} · {sale.quantity} t · {formatDate(sale.sale_date)}
                       </p>
                       <p className="text-sm font-semibold text-primary">{formatNumber(sale.total_amount)} FCFA</p>
                     </div>
@@ -390,9 +402,11 @@ export const DeliveryTab = ({ deliverableSales, deliveredSales, isLoading, isUpd
       {isLoading ? (
         <ListSkeleton items={4} showAvatar={false} />
       ) : deliverableSales.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8">
-          Aucune livraison en attente. Les ventes avec "Peut être livrée" cochée apparaîtront ici.
-        </p>
+        <div className="text-center py-10 space-y-3">
+          <Truck className="h-10 w-10 text-muted-foreground/50 mx-auto" />
+          <p className="text-muted-foreground font-medium">Aucune livraison en attente</p>
+          <p className="text-sm text-muted-foreground">Les commandes facturées et marquées « Peut être livrée »<br/>apparaîtront ici pour confirmation.</p>
+        </div>
       ) : (
         <div className="space-y-4">
           {deliverableSales.map((sale: any) => (
@@ -400,7 +414,7 @@ export const DeliveryTab = ({ deliverableSales, deliveredSales, isLoading, isUpd
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-semibold">{sale.client?.name || "Client inconnu"}</p>
-                  <p className="text-sm text-muted-foreground">{sale.quantity} kg - {sale.salt_type}</p>
+                  <p className="text-sm text-muted-foreground">{sale.quantity} t - {sale.salt_type}</p>
                   <p className="text-lg font-bold text-primary mt-1">{formatNumber(sale.total_amount)} FCFA</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Paiement: {sale.payment_status === "paid" ? "Complet" : "Partiel"}
@@ -428,7 +442,7 @@ export const DeliveryTab = ({ deliverableSales, deliveredSales, isLoading, isUpd
             <div key={sale.id} className="p-3 border rounded-lg flex justify-between items-center">
               <div>
                 <p className="font-medium">{sale.client?.name || "Client inconnu"}</p>
-                <p className="text-sm text-muted-foreground">{sale.quantity} kg</p>
+                <p className="text-sm text-muted-foreground">{sale.quantity} t</p>
               </div>
               <Badge variant="default">
                 <CheckCircle className="h-3 w-3 mr-1" />
