@@ -304,13 +304,7 @@ const Production = () => {
                 <div className="space-y-2">
                   <Label htmlFor="team">Équipe</Label>
                   <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-muted text-sm text-muted-foreground">
-                    {(() => {
-                      const recolteTeam = teams?.find(t => t.name?.toLowerCase().includes('récolte'));
-                      if (recolteTeam && formData.team !== recolteTeam.id) {
-                        setFormData(prev => ({ ...prev, team: recolteTeam.id }));
-                      }
-                      return recolteTeam?.name || 'Équipe Récolte (non trouvée)';
-                    })()}
+                    {recolteTeam?.name || 'Équipe Récolte (non trouvée)'}
                   </div>
                 </div>
 
