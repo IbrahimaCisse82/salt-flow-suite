@@ -349,8 +349,18 @@ const Commercial = () => {
             isLoading={clientsLoading || salesLoading}
           />
 
+          {/* Workflow Stepper */}
+          <WorkflowStepper
+            draftCount={draftSales.length}
+            invoicedCount={invoicedSales.length}
+            deliverableCount={deliverableSales.length}
+            deliveredCount={deliveredSales.length}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+
           {/* Tabs */}
-          <Tabs defaultValue="clients">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="clients">
                 <Users className="h-4 w-4 mr-2" />
@@ -359,14 +369,17 @@ const Commercial = () => {
               <TabsTrigger value="commandes">
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Commandes
+                {draftSales.length > 0 && <span className="ml-1.5 bg-destructive/15 text-destructive text-xs font-bold rounded-full px-1.5">{draftSales.length}</span>}
               </TabsTrigger>
               <TabsTrigger value="facturation">
                 <FileText className="h-4 w-4 mr-2" />
                 Facturation
+                {invoicedSales.length > 0 && <span className="ml-1.5 bg-destructive/15 text-destructive text-xs font-bold rounded-full px-1.5">{invoicedSales.length}</span>}
               </TabsTrigger>
               <TabsTrigger value="livraison">
                 <Truck className="h-4 w-4 mr-2" />
                 Livraison
+                {deliverableSales.length > 0 && <span className="ml-1.5 bg-destructive/15 text-destructive text-xs font-bold rounded-full px-1.5">{deliverableSales.length}</span>}
               </TabsTrigger>
             </TabsList>
 
