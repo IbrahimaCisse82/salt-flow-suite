@@ -44,9 +44,9 @@ describe('StatsCard', () => {
       />
     );
 
-    const changeElement = getByText('-5% vs last month');
+    const changeElement = document.querySelector('.text-destructive');
     expect(changeElement).toBeInTheDocument();
-    expect(changeElement).toHaveClass('text-destructive');
+    expect(changeElement?.textContent).toContain('-5% vs last month');
   });
 
   it('should apply gradient class when gradient prop is true', () => {
