@@ -73,8 +73,19 @@ const Campagne = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   // Use custom hooks for data management
-  const { activeCampagne, campagnes, createCampagne, isCreating, isLoading: campagnesLoading } = useCampagnes();
+  const { activeCampagne, campagnes, createCampagne, updateCampagne, isCreating, isLoading: campagnesLoading } = useCampagnes();
   const { phaseBudgets, upsertPhaseBudget, isUpdating } = useCampagneBudgets(activeCampagne?.id);
+
+  // État du formulaire d'édition de campagne
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    year: new Date().getFullYear(),
+    startDate: '',
+    endDate: '',
+    targetProduction: 0,
+    budgetTotal: 0,
+  });
+  const [editFormErrors, setEditFormErrors] = useState<Record<string, string>>({});
   
   const [phaseExpenses, setPhaseExpenses] = useState<Record<string, BudgetExpense[]>>({
     'preparation-bassins': [],
