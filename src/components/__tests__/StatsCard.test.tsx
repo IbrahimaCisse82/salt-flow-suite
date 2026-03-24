@@ -30,7 +30,7 @@ describe('StatsCard', () => {
 
     const changeElement = getByText('+12% vs last month');
     expect(changeElement).toBeInTheDocument();
-    expect(changeElement).toHaveClass('text-green-600');
+    expect(changeElement).toHaveClass('text-accent');
   });
 
   it('should render change with trend down', () => {
