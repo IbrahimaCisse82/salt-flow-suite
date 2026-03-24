@@ -1159,6 +1159,147 @@ const Campagne = () => {
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Dialog Modifier la campagne */}
+          <Dialog open={showEditCampagneDialog} onOpenChange={setShowEditCampagneDialog}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Modifier la campagne</DialogTitle>
+                <DialogDescription>
+                  Modifiez les paramètres de la campagne en cours
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-name">Nom de la campagne <span className="text-destructive">*</span></Label>
+                    <Input 
+                      id="edit-name" 
+                      value={editFormData.name}
+                      onChange={(e) => {
+                        setEditFormData(prev => ({ ...prev, name: e.target.value }));
+                        if (editFormErrors.name) setEditFormErrors(prev => { const n = {...prev}; delete n.name; return n; });
+                      }}
+                      className={editFormErrors.name ? "border-destructive" : ""}
+                    />
+                    {editFormErrors.name && <p className="text-xs text-destructive">{editFormErrors.name}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-year">Année</Label>
+                    <Input 
+                      id="edit-year" 
+                      type="number"
+                      value={editFormData.year || ''}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, year: parseInt(e.target.value) || 0 }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-start-date">Date de début</Label>
+                    <Input 
+                      id="edit-start-date" 
+                      type="date"
+                      value={editFormData.startDate}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-end-date">Date de fin</Label>
+                    <Input 
+                      id="edit-end-date" 
+                      type="date"
+                      value={editFormData.endDate}
+                      onChange={(e) => {
+                        setEditFormData(prev => ({ ...prev, endDate: e.target.value }));
+                        if (editFormErrors.endDate) setEditFormErrors(prev => { const n = {...prev}; delete n.endDate; return n; });
+                      }}
+                      className={editFormErrors.endDate ? "border-destructive" : ""}
+                    />
+                    {editFormErrors.endDate && <p className="text-xs text-destructive">{editFormErrors.endDate}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-target">Objectif production (tonnes)</Label>
+                    <Input 
+                      id="edit-target" 
+                      type="number"
+                      value={editFormData.targetProduction || ''}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, targetProduction: parseFloat(e.target.value) || 0 }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-budget">Budget total (FCFA)</Label>
+                    <Input 
+                      id="edit-budget" 
+                      type="number"
+                      value={editFormData.budgetTotal || ''}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, budgetTotal: parseFloat(e.target.value) || 0 }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button variant="outline" className="flex-1" onClick={() => setShowEditCampagneDialog(false)}>
+                    Annuler
+                  </Button>
+                  <Button className="flex-1 bg-gradient-to-r from-primary to-accent" onClick={handleEditCampagne}>
+                    Enregistrer les modifications
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog Clôturer la campagne */}
+          <Dialog open={showCloseCampagneDialog} onOpenChange={setShowCloseCampagneDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Clôturer la campagne</DialogTitle>
+                <DialogDescription>
+                  Êtes-vous sûr de vouloir clôturer la campagne "{activeCampagne?.name}" ?
+                  Cette action marquera la campagne comme terminée.
+                </DialogDescription>
+              </DialogHeader>
+              
+              {activeCampagne && (
+                <div className="space-y-3 p-4 bg-muted rounded-lg">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Production réalisée</span>
+                    <span className="font-semibold">{campagneStats?.totalProduction?.toLocaleString() || 0} tonnes</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Objectif</span>
+                    <span className="font-semibold">{Number(activeCampagne.target_production || 0).toLocaleString()} tonnes</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Taux de réalisation</span>
+                    <span className="font-semibold">
+                      {activeCampagne.target_production && campagneStats?.totalProduction 
+                        ? Math.round((campagneStats.totalProduction / Number(activeCampagne.target_production)) * 100)
+                        : 0}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t pt-2">
+                    <span className="text-muted-foreground">Revenus totaux</span>
+                    <span className="font-semibold text-green-600">{(campagneStats?.totalRevenue || 0).toLocaleString()} FCFA</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setShowCloseCampagneDialog(false)}>
+                  Annuler
+                </Button>
+                <Button variant="destructive" className="flex-1" onClick={handleCloseCampagne}>
+                  Confirmer la clôture
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>
