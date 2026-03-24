@@ -31,7 +31,9 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  DollarSign
+  DollarSign,
+  Pencil,
+  XCircle
 } from "lucide-react";
 import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
 import { CardGridSkeleton } from "@/components/LoadingSkeletons/CardGridSkeleton";
