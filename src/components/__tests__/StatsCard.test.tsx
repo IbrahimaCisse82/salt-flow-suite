@@ -46,7 +46,7 @@ describe('StatsCard', () => {
 
     const changeElement = getByText('-5% vs last month');
     expect(changeElement).toBeInTheDocument();
-    expect(changeElement).toHaveClass('text-red-600');
+    expect(changeElement).toHaveClass('text-destructive');
   });
 
   it('should apply gradient class when gradient prop is true', () => {
