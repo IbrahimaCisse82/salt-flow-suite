@@ -53,15 +53,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     queryFn: async () => {
       if (!user?.id) return { profile: null, tenant: null };
 
-      const { data: profilesData, error: profileError } = await supabase
-        .rpc('get_profiles_with_roles')
-        .eq('id', user.id)
-        .maybeSingle();
+      // Call the RPC function - it returns an array of profiles
+      const { data: profilesArray, error: profileError } = await supabase
+        .rpc('get_profiles_with_roles');
 
       if (profileError) {
         logger.error('Error loading profile:', profileError);
         throw profileError;
       }
+
+      // Find the current user's profile in the returned array
+      const profilesData = profilesArray?.find((p: any) => p.id === user.id) ?? null;
+
       if (!profilesData) {
         logger.warn('No profile found for user:', user.id);
         return { profile: null, tenant: null };

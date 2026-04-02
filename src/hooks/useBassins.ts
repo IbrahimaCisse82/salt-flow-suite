@@ -29,14 +29,16 @@ export const useBassins = () => {
   const resolveTenantId = async (): Promise<string | null> => {
     if (currentTenantId) return currentTenantId;
 
-    const { data: refreshedProfile, error } = await supabase
-      .rpc('get_profiles_with_roles')
-      .maybeSingle();
+    const { data: profilesArray, error } = await supabase
+      .rpc('get_profiles_with_roles');
 
     if (error) {
       console.error('Error refreshing tenant context:', error);
       return null;
     }
+
+    // Find the current user's profile in the returned array
+    const refreshedProfile = profilesArray?.find((p: { id: string }) => p.id === user?.id) ?? null;
 
     return refreshedProfile?.tenant_id ?? null;
   };
