@@ -2337,6 +2337,13 @@ export type Database = {
             referencedRelation: "production_records"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "quality_tests_tested_by_fkey"
+            columns: ["tested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       sale_items: {
