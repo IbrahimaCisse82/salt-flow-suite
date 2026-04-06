@@ -40,13 +40,22 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useScheduledReports, ReportType, ReportFrequency } from "@/hooks/useScheduledReports";
+import type jsPDFType from "jspdf";
+
 // Lazy-loaded to reduce initial bundle size (~415KB)
-const loadPdfLibs = async () => {
-  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
-    import("jspdf"),
-    import("jspdf-autotable"),
-  ]);
-  return { jsPDF, autoTable };
+let _jsPDF: typeof import("jspdf").default | null = null;
+let _autoTable: typeof import("jspdf-autotable").default | null = null;
+
+const ensurePdfLibs = async () => {
+  if (!_jsPDF || !_autoTable) {
+    const [jspdfMod, autoTableMod] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+    _jsPDF = jspdfMod.default;
+    _autoTable = autoTableMod.default;
+  }
+  return { jsPDF: _jsPDF, autoTable: _autoTable };
 };
 
 import {
