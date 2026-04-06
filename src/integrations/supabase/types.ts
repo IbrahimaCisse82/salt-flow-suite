@@ -1674,7 +1674,13 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           email: string
+          full_name: string | null
           id: string
+          is_active: boolean | null
+          notification_preferences: Json | null
+          phone: string | null
+          security_preferences: Json | null
+          tenant_id: string | null
           updated_at: string | null
           username: string | null
         }
@@ -1682,7 +1688,13 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           email: string
+          full_name?: string | null
           id: string
+          is_active?: boolean | null
+          notification_preferences?: Json | null
+          phone?: string | null
+          security_preferences?: Json | null
+          tenant_id?: string | null
           updated_at?: string | null
           username?: string | null
         }
@@ -1690,11 +1702,25 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           email?: string
+          full_name?: string | null
           id?: string
+          is_active?: boolean | null
+          notification_preferences?: Json | null
+          phone?: string | null
+          security_preferences?: Json | null
+          tenant_id?: string | null
           updated_at?: string | null
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {
