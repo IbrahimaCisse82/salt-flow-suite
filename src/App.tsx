@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 import { MobileBottomNav } from "./components/Layout/MobileBottomNav";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
 import { usePageTracking } from "./hooks/usePageTracking";
 import { useRealtimeNotifications } from "./hooks/useRealtimeNotifications";
@@ -147,7 +148,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <AuthAwareShell>
-            <Routes>
+             <Routes>
               {/* Public routes — Auth is eagerly loaded for instant login/logout */}
               <Route path="/auth" element={<Auth />} />
               <Route path="/install" element={<Suspense fallback={<MinimalLoader />}><Install /></Suspense>} />
@@ -155,37 +156,37 @@ const App = () => (
               <Route path="/admin/setup" element={<Suspense fallback={<MinimalLoader />}><AdminSetup /></Suspense>} />
 
               {/* Dashboard routes — use DashboardSkeleton */}
-              <Route path="/" element={<RoleProtectedRoute><Suspense fallback={<DashboardLoader />}><Index /></Suspense></RoleProtectedRoute>} />
-              <Route path="/admin" element={<RoleProtectedRoute><Suspense fallback={<DashboardLoader />}><AdminDashboard /></Suspense></RoleProtectedRoute>} />
+              <Route path="/" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<DashboardLoader />}><Index /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/admin" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<DashboardLoader />}><AdminDashboard /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
 
               {/* Data-heavy table routes */}
-              <Route path="/bassins" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><Bassins /></Suspense></RoleProtectedRoute>} />
-              <Route path="/production" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><Production /></Suspense></RoleProtectedRoute>} />
-              <Route path="/stocks" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><Stocks /></Suspense></RoleProtectedRoute>} />
-              <Route path="/equipes" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><Equipes /></Suspense></RoleProtectedRoute>} />
-              <Route path="/commercial" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><Commercial /></Suspense></RoleProtectedRoute>} />
-              <Route path="/achats" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><Achats /></Suspense></RoleProtectedRoute>} />
-              <Route path="/comptabilite" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><Comptabilite /></Suspense></RoleProtectedRoute>} />
-              <Route path="/comptabilite/grand-livre" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><ComptaGrandLivre /></Suspense></RoleProtectedRoute>} />
-              <Route path="/comptabilite/rapprochement" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><ComptaRapprochement /></Suspense></RoleProtectedRoute>} />
-              <Route path="/comptabilite/operations-diverses" element={<RoleProtectedRoute><Suspense fallback={<FormLoader />}><ComptaOperationsDiverses /></Suspense></RoleProtectedRoute>} />
-              <Route path="/comptabilite/cloture" element={<RoleProtectedRoute><Suspense fallback={<FormLoader />}><ComptaClotureExercice /></Suspense></RoleProtectedRoute>} />
-              <Route path="/comptabilite/immobilisations" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><ComptaImmobilisations /></Suspense></RoleProtectedRoute>} />
-              <Route path="/admin/tenants" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><AdminTenants /></Suspense></RoleProtectedRoute>} />
-              <Route path="/admin/users" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><AdminUserManagement /></Suspense></RoleProtectedRoute>} />
-              <Route path="/admin/roles" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><AdminRoles /></Suspense></RoleProtectedRoute>} />
-              <Route path="/admin/chart-of-accounts" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><AdminChartOfAccounts /></Suspense></RoleProtectedRoute>} />
-              <Route path="/admin/expense-types" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><AdminExpenseTypes /></Suspense></RoleProtectedRoute>} />
-              <Route path="/admin/monitoring" element={<RoleProtectedRoute><Suspense fallback={<DashboardLoader />}><AdminMonitoring /></Suspense></RoleProtectedRoute>} />
-              <Route path="/admin/audit-logs" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><AdminAuditLogs /></Suspense></RoleProtectedRoute>} />
-              <Route path="/admin/settings" element={<RoleProtectedRoute><Suspense fallback={<FormLoader />}><AdminSettings /></Suspense></RoleProtectedRoute>} />
-              <Route path="/admin/email-templates" element={<RoleProtectedRoute><Suspense fallback={<FormLoader />}><AdminEmailTemplates /></Suspense></RoleProtectedRoute>} />
+              <Route path="/bassins" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><Bassins /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/production" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><Production /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/stocks" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><Stocks /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/equipes" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><Equipes /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/commercial" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><Commercial /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/achats" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><Achats /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/comptabilite" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><Comptabilite /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/comptabilite/grand-livre" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><ComptaGrandLivre /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/comptabilite/rapprochement" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><ComptaRapprochement /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/comptabilite/operations-diverses" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<FormLoader />}><ComptaOperationsDiverses /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/comptabilite/cloture" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<FormLoader />}><ComptaClotureExercice /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/comptabilite/immobilisations" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><ComptaImmobilisations /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/admin/tenants" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><AdminTenants /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/admin/users" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><AdminUserManagement /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/admin/roles" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><AdminRoles /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/admin/chart-of-accounts" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><AdminChartOfAccounts /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/admin/expense-types" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><AdminExpenseTypes /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/admin/monitoring" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<DashboardLoader />}><AdminMonitoring /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/admin/audit-logs" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><AdminAuditLogs /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/admin/settings" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<FormLoader />}><AdminSettings /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/admin/email-templates" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<FormLoader />}><AdminEmailTemplates /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
 
               {/* Other protected routes */}
-              <Route path="/campagne" element={<RoleProtectedRoute><Suspense fallback={<DashboardLoader />}><Campagne /></Suspense></RoleProtectedRoute>} />
-              <Route path="/rapports" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><Rapports /></Suspense></RoleProtectedRoute>} />
-              <Route path="/parametres" element={<RoleProtectedRoute><Suspense fallback={<FormLoader />}><Parametres /></Suspense></RoleProtectedRoute>} />
-              <Route path="/utilisateurs" element={<RoleProtectedRoute><Suspense fallback={<TableLoader />}><GestionUtilisateurs /></Suspense></RoleProtectedRoute>} />
+              <Route path="/campagne" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<DashboardLoader />}><Campagne /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/rapports" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><Rapports /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/parametres" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<FormLoader />}><Parametres /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
+              <Route path="/utilisateurs" element={<RoleProtectedRoute><ErrorBoundary><Suspense fallback={<TableLoader />}><GestionUtilisateurs /></Suspense></ErrorBoundary></RoleProtectedRoute>} />
               <Route path="/gestion-utilisateurs" element={<Navigate to="/utilisateurs" replace />} />
 
               {/* 404 */}

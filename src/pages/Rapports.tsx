@@ -40,8 +40,24 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useScheduledReports, ReportType, ReportFrequency } from "@/hooks/useScheduledReports";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import type jsPDFType from "jspdf";
+
+// Lazy-loaded to reduce initial bundle size (~415KB)
+let _jsPDF: typeof import("jspdf").default | null = null;
+let _autoTable: typeof import("jspdf-autotable").default | null = null;
+
+const ensurePdfLibs = async () => {
+  if (!_jsPDF || !_autoTable) {
+    const [jspdfMod, autoTableMod] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+    _jsPDF = jspdfMod.default;
+    _autoTable = autoTableMod.default;
+  }
+  return { jsPDF: _jsPDF, autoTable: _autoTable };
+};
+
 import {
   FileText,
   Download,
@@ -122,7 +138,7 @@ const loadLogoBase64 = async (): Promise<string | null> => {
 
 /** Add standardized header with logo to a PDF report */
 const addReportHeader = (
-  doc: jsPDF, 
+  doc: jsPDFType, 
   title: string, 
   logoBase64: string | null, 
   headerColor: [number, number, number] = [30, 30, 40]
@@ -257,6 +273,7 @@ const Rapports = () => {
   const generateCampaignReport = async () => {
     setGeneratingReport("campagne");
     try {
+      const { jsPDF, autoTable } = await ensurePdfLibs();
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       const logoBase64 = await loadLogoBase64();
@@ -348,6 +365,7 @@ const Rapports = () => {
   const generateFinancialReport = async () => {
     setGeneratingReport("financier");
     try {
+      const { jsPDF, autoTable } = await ensurePdfLibs();
       const doc = new jsPDF();
       const logoBase64 = await loadLogoBase64();
       addReportHeader(doc, "États Financiers SYSCOHADA", logoBase64);
@@ -413,6 +431,7 @@ const Rapports = () => {
   const generateProductionReport = async () => {
     setGeneratingReport("production");
     try {
+      const { jsPDF, autoTable } = await ensurePdfLibs();
       const doc = new jsPDF();
       const logoBase64 = await loadLogoBase64();
       addReportHeader(doc, "Analyse de Production", logoBase64, [249, 115, 22]);
@@ -474,6 +493,7 @@ const Rapports = () => {
   const generateHRReport = async () => {
     setGeneratingReport("rh");
     try {
+      const { jsPDF, autoTable } = await ensurePdfLibs();
       const doc = new jsPDF();
       const logoBase64 = await loadLogoBase64();
       addReportHeader(doc, "Performance Ressources Humaines", logoBase64, [168, 85, 247]);
@@ -531,6 +551,7 @@ const Rapports = () => {
   const generateCommercialReport = async () => {
     setGeneratingReport("commercial");
     try {
+      const { jsPDF, autoTable } = await ensurePdfLibs();
       const doc = new jsPDF();
       const logoBase64 = await loadLogoBase64();
       addReportHeader(doc, "Analyse Commerciale", logoBase64, [37, 99, 235]);
