@@ -273,6 +273,7 @@ const Rapports = () => {
   const generateCampaignReport = async () => {
     setGeneratingReport("campagne");
     try {
+      const { jsPDF, autoTable } = await ensurePdfLibs();
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       const logoBase64 = await loadLogoBase64();
@@ -364,6 +365,7 @@ const Rapports = () => {
   const generateFinancialReport = async () => {
     setGeneratingReport("financier");
     try {
+      const { jsPDF, autoTable } = await ensurePdfLibs();
       const doc = new jsPDF();
       const logoBase64 = await loadLogoBase64();
       addReportHeader(doc, "États Financiers SYSCOHADA", logoBase64);
@@ -429,6 +431,7 @@ const Rapports = () => {
   const generateProductionReport = async () => {
     setGeneratingReport("production");
     try {
+      const { jsPDF, autoTable } = await ensurePdfLibs();
       const doc = new jsPDF();
       const logoBase64 = await loadLogoBase64();
       addReportHeader(doc, "Analyse de Production", logoBase64, [249, 115, 22]);
@@ -490,6 +493,7 @@ const Rapports = () => {
   const generateHRReport = async () => {
     setGeneratingReport("rh");
     try {
+      const { jsPDF, autoTable } = await ensurePdfLibs();
       const doc = new jsPDF();
       const logoBase64 = await loadLogoBase64();
       addReportHeader(doc, "Performance Ressources Humaines", logoBase64, [168, 85, 247]);
@@ -547,6 +551,7 @@ const Rapports = () => {
   const generateCommercialReport = async () => {
     setGeneratingReport("commercial");
     try {
+      const { jsPDF, autoTable } = await ensurePdfLibs();
       const doc = new jsPDF();
       const logoBase64 = await loadLogoBase64();
       addReportHeader(doc, "Analyse Commerciale", logoBase64, [37, 99, 235]);
