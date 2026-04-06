@@ -41,10 +41,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useScheduledReports, ReportType, ReportFrequency } from "@/hooks/useScheduledReports";
 // Lazy-loaded to reduce initial bundle size (~415KB)
-const loadJsPDF = () => import("jspdf").then(m => m.default);
-const loadAutoTable = () => import("jspdf-autotable").then(m => m.default);
-
-type jsPDF = InstanceType<Awaited<ReturnType<typeof loadJsPDF>> extends new (...args: any[]) => infer R ? new (...args: any[]) => R : never>;
+const loadPdfLibs = async () => {
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+  ]);
+  return { jsPDF, autoTable };
+};
 
 import {
   FileText,
