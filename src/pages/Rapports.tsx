@@ -138,7 +138,7 @@ const loadLogoBase64 = async (): Promise<string | null> => {
 
 /** Add standardized header with logo to a PDF report */
 const addReportHeader = (
-  doc: jsPDF, 
+  doc: jsPDFType, 
   title: string, 
   logoBase64: string | null, 
   headerColor: [number, number, number] = [30, 30, 40]
