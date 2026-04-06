@@ -40,8 +40,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useScheduledReports, ReportType, ReportFrequency } from "@/hooks/useScheduledReports";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+// Lazy-loaded to reduce initial bundle size (~415KB)
+const loadJsPDF = () => import("jspdf").then(m => m.default);
+const loadAutoTable = () => import("jspdf-autotable").then(m => m.default);
+
+type jsPDF = InstanceType<Awaited<ReturnType<typeof loadJsPDF>> extends new (...args: any[]) => infer R ? new (...args: any[]) => R : never>;
+
 import {
   FileText,
   Download,
