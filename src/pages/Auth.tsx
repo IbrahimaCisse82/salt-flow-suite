@@ -31,7 +31,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${saltMarshesBg})` }}>
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-background/85" />
       <Card className="w-full max-w-md relative z-10">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
