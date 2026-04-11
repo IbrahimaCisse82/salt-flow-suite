@@ -1,43 +1,46 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { toast } from 'sonner';
 
 /**
- * Listens to real-time changes on user_roles for the current user
- * and invalidates the profile cache + reloads when the role changes.
+ * Polls user_roles periodically to detect role changes.
+ * (Realtime on user_roles is disabled for security — no cross-tenant leak.)
  */
 export const useRoleListener = (userId: string | undefined) => {
   const queryClient = useQueryClient();
+  const lastRoleRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel('user-role-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'user_roles',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          logger.info('Role changed, invalidating cache and refetching profile');
-          queryClient.invalidateQueries({ queryKey: ['profile-with-tenant-role'] });
-          toast.info('Votre rôle a été modifié', {
-            description: 'Rechargement de la page pour appliquer les changements...',
-            duration: 3000,
-          });
-          setTimeout(() => window.location.reload(), 1000);
-        }
-      )
-      .subscribe();
+    // Seed the ref with current role
+    const fetchRole = async () => {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-    return () => {
-      supabase.removeChannel(channel);
+      const currentRole = data?.role ?? null;
+
+      if (lastRoleRef.current !== null && currentRole !== lastRoleRef.current) {
+        logger.info('Role changed detected via polling, refetching profile');
+        queryClient.invalidateQueries({ queryKey: ['profile-with-tenant-role'] });
+        toast.info('Votre rôle a été modifié', {
+          description: 'Rechargement de la page pour appliquer les changements...',
+          duration: 3000,
+        });
+        setTimeout(() => window.location.reload(), 1500);
+      }
+
+      lastRoleRef.current = currentRole;
     };
+
+    fetchRole();
+    const interval = setInterval(fetchRole, 30_000); // Poll every 30s
+
+    return () => clearInterval(interval);
   }, [userId, queryClient]);
 };
