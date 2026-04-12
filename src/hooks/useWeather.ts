@@ -29,15 +29,6 @@ export const useWeather = (lat?: number, lon?: number) => {
         throw new Error('Coordonnées manquantes');
       }
 
-      // Use supabase.functions.invoke for automatic auth token
-      const { data, error } = await supabase.functions.invoke('get-weather', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        body: undefined,
-      });
-
-      // supabase.functions.invoke doesn't support query params natively,
-      // so we use fetch with the user's session token
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
 
