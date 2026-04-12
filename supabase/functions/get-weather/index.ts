@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-// Open-Meteo API - free, no API key required
 const OPEN_METEO_BASE = 'https://api.open-meteo.com/v1';
 
 serve(async (req) => {
@@ -13,27 +13,62 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const lat = url.searchParams.get('lat');
-    const lon = url.searchParams.get('lon');
+    // ── Auth check ──
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    if (!lat || !lon) {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Session invalide' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ── Input validation ──
+    const url = new URL(req.url);
+    const latStr = url.searchParams.get('lat');
+    const lonStr = url.searchParams.get('lon');
+
+    if (!latStr || !lonStr) {
       return new Response(
         JSON.stringify({ error: 'Latitude et longitude requises' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Current weather + hourly forecast
-    const weatherUrl = `${OPEN_METEO_BASE}/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,surface_pressure,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto&forecast_days=2`;
+    const lat = parseFloat(latStr);
+    const lon = parseFloat(lonStr);
+
+    if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return new Response(
+        JSON.stringify({ error: 'Coordonnées invalides (lat: -90..90, lon: -180..180)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ── Fetch weather data with sanitized params ──
+    const weatherUrl = `${OPEN_METEO_BASE}/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current=temperature_2m,relative_humidity_2m,apparent_temperature,surface_pressure,wind_speed_10m,weather_code&hourly=temperature_2m,weather_code&daily=sunrise,sunset&timezone=auto&forecast_days=2`;
 
     const weatherResponse = await fetch(weatherUrl);
 
     if (!weatherResponse.ok) {
-      console.error('Open-Meteo API error:', await weatherResponse.text());
+      await weatherResponse.text(); // consume body
       return new Response(
         JSON.stringify({ error: 'Erreur lors de la récupération des données météo' }),
-        { status: weatherResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -41,7 +76,6 @@ serve(async (req) => {
     const current = data.current;
     const daily = data.daily;
 
-    // Map WMO weather codes to descriptions and icons
     const getWeatherInfo = (code: number) => {
       const map: Record<number, { description: string; icon: string }> = {
         0: { description: 'Ciel dégagé', icon: '01d' },
@@ -70,12 +104,9 @@ serve(async (req) => {
     };
 
     const currentInfo = getWeatherInfo(current.weather_code);
-
-    // Get sunrise/sunset as timestamps
     const sunriseTs = Math.floor(new Date(daily.sunrise[0]).getTime() / 1000);
     const sunsetTs = Math.floor(new Date(daily.sunset[0]).getTime() / 1000);
 
-    // Build hourly forecast (next 8 * 3h slots = 24h)
     const now = new Date();
     const currentHourIndex = data.hourly.time.findIndex((t: string) => new Date(t) >= now);
     const forecastSlots = [];
@@ -110,9 +141,8 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in get-weather function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'Une erreur interne est survenue' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

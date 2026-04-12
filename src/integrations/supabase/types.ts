@@ -456,6 +456,118 @@ export type Database = {
           },
         ]
       }
+      cost_center_entries: {
+        Row: {
+          amount: number
+          cost_center_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          entry_date: string
+          id: string
+          tenant_id: string
+          transaction_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          cost_center_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          entry_date?: string
+          id?: string
+          tenant_id: string
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          cost_center_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          entry_date?: string
+          id?: string
+          tenant_id?: string
+          transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_center_entries_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_center_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_center_entries_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cost_centers: {
+        Row: {
+          bassin_id: string | null
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          bassin_id?: string | null
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          bassin_id?: string | null
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_centers_bassin_id_fkey"
+            columns: ["bassin_id"]
+            isOneToOne: false
+            referencedRelation: "bassins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_centers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cost_per_ton: {
         Row: {
           autres_couts: number | null
