@@ -14,6 +14,270 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          account_name: string
+          account_number: string | null
+          account_type: Database["public"]["Enums"]["cash_account_type"]
+          bank_name: string | null
+          chart_account_id: string | null
+          created_at: string
+          currency: string
+          current_balance: number
+          iban: string | null
+          id: string
+          initial_balance: number
+          is_active: boolean
+          notes: string | null
+          swift: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_name: string
+          account_number?: string | null
+          account_type: Database["public"]["Enums"]["cash_account_type"]
+          bank_name?: string | null
+          chart_account_id?: string | null
+          created_at?: string
+          currency?: string
+          current_balance?: number
+          iban?: string | null
+          id?: string
+          initial_balance?: number
+          is_active?: boolean
+          notes?: string | null
+          swift?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string | null
+          account_type?: Database["public"]["Enums"]["cash_account_type"]
+          bank_name?: string | null
+          chart_account_id?: string | null
+          created_at?: string
+          currency?: string
+          current_balance?: number
+          iban?: string | null
+          id?: string
+          initial_balance?: number
+          is_active?: boolean
+          notes?: string | null
+          swift?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_chart_account_id_fkey"
+            columns: ["chart_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bassins: {
+        Row: {
+          address: string | null
+          capacity_tonnes: number | null
+          code: string | null
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          notes: string | null
+          status: Database["public"]["Enums"]["bassin_status"]
+          surface_m2: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          capacity_tonnes?: number | null
+          code?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["bassin_status"]
+          surface_m2?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          capacity_tonnes?: number | null
+          code?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["bassin_status"]
+          surface_m2?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      campagnes: {
+        Row: {
+          actual_production_tonnes: number
+          budget: number
+          closed_at: string | null
+          closed_by: string | null
+          code: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          spent_amount: number
+          start_date: string
+          status: Database["public"]["Enums"]["campagne_status"]
+          target_production_tonnes: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          actual_production_tonnes?: number
+          budget?: number
+          closed_at?: string | null
+          closed_by?: string | null
+          code?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          spent_amount?: number
+          start_date: string
+          status?: Database["public"]["Enums"]["campagne_status"]
+          target_production_tonnes?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          actual_production_tonnes?: number
+          budget?: number
+          closed_at?: string | null
+          closed_by?: string | null
+          code?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          spent_amount?: number
+          start_date?: string
+          status?: Database["public"]["Enums"]["campagne_status"]
+          target_production_tonnes?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      chart_of_accounts: {
+        Row: {
+          account_class: number
+          account_name: string
+          account_number: string
+          account_type: Database["public"]["Enums"]["account_type"]
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          parent_account_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_class: number
+          account_name: string
+          account_number: string
+          account_type: Database["public"]["Enums"]["account_type"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          parent_account_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_class?: number
+          account_name?: string
+          account_number?: string
+          account_type?: Database["public"]["Enums"]["account_type"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          parent_account_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_of_accounts_parent_account_id_fkey"
+            columns: ["parent_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_types: {
+        Row: {
+          created_at: string
+          default_account_id: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_account_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_account_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_types_default_account_id_fkey"
+            columns: ["default_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -158,8 +422,13 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      seed_chart_of_accounts: {
+        Args: { _tenant_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
+      account_type: "actif" | "passif" | "charge" | "produit" | "capitaux"
       app_role:
         | "gerant"
         | "chef_production"
@@ -168,6 +437,9 @@ export type Database = {
         | "rh"
         | "magasinier"
         | "admin"
+      bassin_status: "actif" | "inactif" | "maintenance" | "recolte"
+      campagne_status: "planifiee" | "en_cours" | "cloturee" | "annulee"
+      cash_account_type: "banque" | "caisse" | "mobile_money"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -295,6 +567,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_type: ["actif", "passif", "charge", "produit", "capitaux"],
       app_role: [
         "gerant",
         "chef_production",
@@ -304,6 +577,9 @@ export const Constants = {
         "magasinier",
         "admin",
       ],
+      bassin_status: ["actif", "inactif", "maintenance", "recolte"],
+      campagne_status: ["planifiee", "en_cours", "cloturee", "annulee"],
+      cash_account_type: ["banque", "caisse", "mobile_money"],
     },
   },
 } as const
