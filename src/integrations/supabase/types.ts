@@ -270,6 +270,66 @@ export type Database = {
         }
         Relationships: []
       }
+      depreciation_schedule: {
+        Row: {
+          accumulated_amount: number
+          created_at: string
+          depreciation_amount: number
+          fixed_asset_id: string
+          id: string
+          is_posted: boolean
+          net_book_value: number
+          period_end: string
+          period_start: string
+          posted_at: string | null
+          tenant_id: string
+          transaction_id: string | null
+        }
+        Insert: {
+          accumulated_amount?: number
+          created_at?: string
+          depreciation_amount?: number
+          fixed_asset_id: string
+          id?: string
+          is_posted?: boolean
+          net_book_value?: number
+          period_end: string
+          period_start: string
+          posted_at?: string | null
+          tenant_id: string
+          transaction_id?: string | null
+        }
+        Update: {
+          accumulated_amount?: number
+          created_at?: string
+          depreciation_amount?: number
+          fixed_asset_id?: string
+          id?: string
+          is_posted?: boolean
+          net_book_value?: number
+          period_end?: string
+          period_start?: string
+          posted_at?: string | null
+          tenant_id?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "depreciation_schedule_fixed_asset_id_fkey"
+            columns: ["fixed_asset_id"]
+            isOneToOne: false
+            referencedRelation: "fixed_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "depreciation_schedule_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           created_at: string
@@ -361,6 +421,287 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fiscal_periods: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          fiscal_year_id: string
+          id: string
+          period_end: string
+          period_number: number
+          period_start: string
+          status: Database["public"]["Enums"]["fiscal_period_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          fiscal_year_id: string
+          id?: string
+          period_end: string
+          period_number: number
+          period_start: string
+          status?: Database["public"]["Enums"]["fiscal_period_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          fiscal_year_id?: string
+          id?: string
+          period_end?: string
+          period_number?: number
+          period_start?: string
+          status?: Database["public"]["Enums"]["fiscal_period_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_periods_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fiscal_years: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          end_date: string
+          id: string
+          start_date: string
+          status: Database["public"]["Enums"]["fiscal_period_status"]
+          tenant_id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          end_date: string
+          id?: string
+          start_date: string
+          status?: Database["public"]["Enums"]["fiscal_period_status"]
+          tenant_id: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["fiscal_period_status"]
+          tenant_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      fixed_assets: {
+        Row: {
+          account_id: string | null
+          account_number: string | null
+          accumulated_depreciation: number
+          acquisition_cost: number
+          acquisition_date: string
+          asset_code: string | null
+          asset_name: string
+          category: string | null
+          created_at: string
+          depreciation_method: string
+          disposal_date: string | null
+          disposal_value: number | null
+          id: string
+          net_book_value: number
+          notes: string | null
+          residual_value: number
+          status: Database["public"]["Enums"]["fixed_asset_status"]
+          tenant_id: string
+          updated_at: string
+          useful_life_years: number
+        }
+        Insert: {
+          account_id?: string | null
+          account_number?: string | null
+          accumulated_depreciation?: number
+          acquisition_cost?: number
+          acquisition_date: string
+          asset_code?: string | null
+          asset_name: string
+          category?: string | null
+          created_at?: string
+          depreciation_method?: string
+          disposal_date?: string | null
+          disposal_value?: number | null
+          id?: string
+          net_book_value?: number
+          notes?: string | null
+          residual_value?: number
+          status?: Database["public"]["Enums"]["fixed_asset_status"]
+          tenant_id: string
+          updated_at?: string
+          useful_life_years?: number
+        }
+        Update: {
+          account_id?: string | null
+          account_number?: string | null
+          accumulated_depreciation?: number
+          acquisition_cost?: number
+          acquisition_date?: string
+          asset_code?: string | null
+          asset_name?: string
+          category?: string | null
+          created_at?: string
+          depreciation_method?: string
+          disposal_date?: string | null
+          disposal_value?: number | null
+          id?: string
+          net_book_value?: number
+          notes?: string | null
+          residual_value?: number
+          status?: Database["public"]["Enums"]["fixed_asset_status"]
+          tenant_id?: string
+          updated_at?: string
+          useful_life_years?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixed_assets_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          account_id: string
+          account_number: string | null
+          created_at: string
+          created_by: string | null
+          credit: number
+          debit: number
+          description: string | null
+          entry_date: string
+          fiscal_period_id: string | null
+          id: string
+          is_locked: boolean
+          journal_code: string
+          reference: string | null
+          tenant_id: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          account_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          credit?: number
+          debit?: number
+          description?: string | null
+          entry_date?: string
+          fiscal_period_id?: string | null
+          id?: string
+          is_locked?: boolean
+          journal_code?: string
+          reference?: string | null
+          tenant_id: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          account_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          credit?: number
+          debit?: number
+          description?: string | null
+          entry_date?: string
+          fiscal_period_id?: string | null
+          id?: string
+          is_locked?: boolean
+          journal_code?: string
+          reference?: string | null
+          tenant_id?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_fiscal_period_id_fkey"
+            columns: ["fiscal_period_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          table_name: string
+          tenant_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          table_name: string
+          tenant_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          table_name?: string
+          tenant_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       payroll_payments: {
         Row: {
@@ -635,6 +976,138 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_lines: {
+        Row: {
+          account_id: string
+          created_at: string
+          credit: number
+          debit: number
+          description: string | null
+          id: string
+          line_order: number
+          tenant_id: string
+          transaction_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string | null
+          id?: string
+          line_order?: number
+          tenant_id: string
+          transaction_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string | null
+          id?: string
+          line_order?: number
+          tenant_id?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_lines_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          account_id: string | null
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          fiscal_period_id: string | null
+          id: string
+          journal_code: string | null
+          notes: string | null
+          reference: string | null
+          source_id: string | null
+          source_table: string | null
+          status: Database["public"]["Enums"]["transaction_status"]
+          tenant_id: string
+          transaction_date: string
+          transaction_type: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          fiscal_period_id?: string | null
+          id?: string
+          journal_code?: string | null
+          notes?: string | null
+          reference?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          tenant_id: string
+          transaction_date?: string
+          transaction_type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          fiscal_period_id?: string | null
+          id?: string
+          journal_code?: string | null
+          notes?: string | null
+          reference?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          tenant_id?: string
+          transaction_date?: string
+          transaction_type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_fiscal_period_id_fkey"
+            columns: ["fiscal_period_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -704,7 +1177,20 @@ export type Database = {
       campagne_status: "planifiee" | "en_cours" | "cloturee" | "annulee"
       cash_account_type: "banque" | "caisse" | "mobile_money"
       employee_type: "permanent" | "saisonnier" | "journalier"
+      fiscal_period_status: "open" | "closed" | "locked"
+      fixed_asset_status: "active" | "disposed" | "scrapped"
       payment_status: "pending" | "paid" | "cancelled"
+      transaction_status: "draft" | "validated" | "cancelled"
+      transaction_type:
+        | "vente"
+        | "achat"
+        | "paiement"
+        | "encaissement"
+        | "od"
+        | "paie"
+        | "amortissement"
+        | "cloture"
+        | "transfert"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -847,7 +1333,21 @@ export const Constants = {
       campagne_status: ["planifiee", "en_cours", "cloturee", "annulee"],
       cash_account_type: ["banque", "caisse", "mobile_money"],
       employee_type: ["permanent", "saisonnier", "journalier"],
+      fiscal_period_status: ["open", "closed", "locked"],
+      fixed_asset_status: ["active", "disposed", "scrapped"],
       payment_status: ["pending", "paid", "cancelled"],
+      transaction_status: ["draft", "validated", "cancelled"],
+      transaction_type: [
+        "vente",
+        "achat",
+        "paiement",
+        "encaissement",
+        "od",
+        "paie",
+        "amortissement",
+        "cloture",
+        "transfert",
+      ],
     },
   },
 } as const
