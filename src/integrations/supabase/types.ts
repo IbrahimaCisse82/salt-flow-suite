@@ -237,6 +237,90 @@ export type Database = {
           },
         ]
       }
+      daily_workers: {
+        Row: {
+          created_at: string
+          daily_rate: number | null
+          full_name: string
+          id: string
+          is_active: boolean
+          phone: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_rate?: number | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_rate?: number | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          email: string | null
+          employee_number: string | null
+          employee_type: Database["public"]["Enums"]["employee_type"]
+          full_name: string
+          hire_date: string | null
+          id: string
+          is_active: boolean
+          phone: string | null
+          position: string | null
+          salary: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          employee_number?: string | null
+          employee_type?: Database["public"]["Enums"]["employee_type"]
+          full_name: string
+          hire_date?: string | null
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          position?: string | null
+          salary?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          employee_number?: string | null
+          employee_type?: Database["public"]["Enums"]["employee_type"]
+          full_name?: string
+          hire_date?: string | null
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          position?: string | null
+          salary?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expense_types: {
         Row: {
           created_at: string
@@ -274,6 +358,85 @@ export type Database = {
             columns: ["default_account_id"]
             isOneToOne: false
             referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_payments: {
+        Row: {
+          account_id: string | null
+          amount: number
+          created_at: string
+          created_by: string | null
+          daily_worker_id: string | null
+          employee_id: string | null
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          period_end: string | null
+          period_start: string | null
+          reference: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          daily_worker_id?: string | null
+          employee_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          reference?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          daily_worker_id?: string | null
+          employee_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          reference?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_payments_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_payments_daily_worker_id_fkey"
+            columns: ["daily_worker_id"]
+            isOneToOne: false
+            referencedRelation: "daily_workers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_payments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -324,6 +487,105 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      team_attendance: {
+        Row: {
+          attendance_date: string
+          calculated_amount: number
+          created_at: string
+          daily_rate: number
+          employee_id: string
+          hours_worked: number
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          team_id: string
+          tenant_id: string
+          updated_at: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          attendance_date: string
+          calculated_amount?: number
+          created_at?: string
+          daily_rate?: number
+          employee_id: string
+          hours_worked?: number
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          team_id: string
+          tenant_id: string
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          attendance_date?: string
+          calculated_amount?: number
+          created_at?: string
+          daily_rate?: number
+          employee_id?: string
+          hours_worked?: number
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          team_id?: string
+          tenant_id?: string
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_attendance_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          team_lead_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          team_lead_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          team_lead_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       tenants: {
         Row: {
@@ -437,9 +699,12 @@ export type Database = {
         | "rh"
         | "magasinier"
         | "admin"
+      attendance_status: "pending" | "validated" | "paid"
       bassin_status: "actif" | "inactif" | "maintenance" | "recolte"
       campagne_status: "planifiee" | "en_cours" | "cloturee" | "annulee"
       cash_account_type: "banque" | "caisse" | "mobile_money"
+      employee_type: "permanent" | "saisonnier" | "journalier"
+      payment_status: "pending" | "paid" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -577,9 +842,12 @@ export const Constants = {
         "magasinier",
         "admin",
       ],
+      attendance_status: ["pending", "validated", "paid"],
       bassin_status: ["actif", "inactif", "maintenance", "recolte"],
       campagne_status: ["planifiee", "en_cours", "cloturee", "annulee"],
       cash_account_type: ["banque", "caisse", "mobile_money"],
+      employee_type: ["permanent", "saisonnier", "journalier"],
+      payment_status: ["pending", "paid", "cancelled"],
     },
   },
 } as const
