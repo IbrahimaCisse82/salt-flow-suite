@@ -1658,6 +1658,7 @@ export type Database = {
         | "rh"
         | "magasinier"
         | "admin"
+        | "qualite"
       attendance_status: "pending" | "validated" | "paid"
       bassin_status: "actif" | "inactif" | "maintenance" | "recolte"
       campagne_status: "planifiee" | "en_cours" | "cloturee" | "annulee"
@@ -1823,6 +1824,7 @@ export const Constants = {
         "rh",
         "magasinier",
         "admin",
+        "qualite",
       ],
       attendance_status: ["pending", "validated", "paid"],
       bassin_status: ["actif", "inactif", "maintenance", "recolte"],
