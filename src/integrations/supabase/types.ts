@@ -588,6 +588,96 @@ export type Database = {
           },
         ]
       }
+      inventory_items: {
+        Row: {
+          category: string | null
+          cmp: number
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          quantity: number
+          reorder_level: number
+          reserved_quantity: number
+          sku: string | null
+          tenant_id: string
+          unit_cost: number
+          unit_of_measure: string
+          updated_at: string
+          warehouse_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          cmp?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          quantity?: number
+          reorder_level?: number
+          reserved_quantity?: number
+          sku?: string | null
+          tenant_id: string
+          unit_cost?: number
+          unit_of_measure?: string
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          cmp?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          quantity?: number
+          reorder_level?: number
+          reserved_quantity?: number
+          sku?: string | null
+          tenant_id?: string
+          unit_cost?: number
+          unit_of_measure?: string
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Relationships: []
+      }
+      inventory_valuations: {
+        Row: {
+          cmp: number
+          created_at: string
+          id: string
+          inventory_item_id: string
+          quantity: number
+          snapshot_date: string
+          tenant_id: string
+          total_value: number
+        }
+        Insert: {
+          cmp?: number
+          created_at?: string
+          id?: string
+          inventory_item_id: string
+          quantity?: number
+          snapshot_date: string
+          tenant_id: string
+          total_value?: number
+        }
+        Update: {
+          cmp?: number
+          created_at?: string
+          id?: string
+          inventory_item_id?: string
+          quantity?: number
+          snapshot_date?: string
+          tenant_id?: string
+          total_value?: number
+        }
+        Relationships: []
+      }
       journal_entries: {
         Row: {
           account_id: string
@@ -828,6 +918,369 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      purchase_notifications: {
+        Row: {
+          actioned_at: string | null
+          actioned_by: string | null
+          created_at: string
+          id: string
+          is_actioned: boolean
+          is_read: boolean
+          message: string | null
+          notification_type: string
+          purchase_order_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          actioned_at?: string | null
+          actioned_by?: string | null
+          created_at?: string
+          id?: string
+          is_actioned?: boolean
+          is_read?: boolean
+          message?: string | null
+          notification_type: string
+          purchase_order_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          actioned_at?: string | null
+          actioned_by?: string | null
+          created_at?: string
+          id?: string
+          is_actioned?: boolean
+          is_read?: boolean
+          message?: string | null
+          notification_type?: string
+          purchase_order_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      purchase_order_items: {
+        Row: {
+          created_at: string
+          description: string
+          expense_type_id: string | null
+          id: string
+          inventory_item_id: string | null
+          purchase_order_id: string
+          quantity: number
+          received_quantity: number
+          tenant_id: string
+          total_price: number
+          unit_of_measure: string
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          expense_type_id?: string | null
+          id?: string
+          inventory_item_id?: string | null
+          purchase_order_id: string
+          quantity?: number
+          received_quantity?: number
+          tenant_id: string
+          total_price?: number
+          unit_of_measure?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          expense_type_id?: string | null
+          id?: string
+          inventory_item_id?: string | null
+          purchase_order_id?: string
+          quantity?: number
+          received_quantity?: number
+          tenant_id?: string
+          total_price?: number
+          unit_of_measure?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      purchase_orders: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          campagne_id: string | null
+          created_at: string
+          created_by: string | null
+          delivery_date: string | null
+          expected_delivery_date: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          order_number: string
+          received_at: string | null
+          received_by: string | null
+          status: Database["public"]["Enums"]["po_status"]
+          subtotal: number
+          supplier_id: string | null
+          tax_amount: number
+          tenant_id: string
+          total_amount: number
+          total_paid: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          campagne_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          delivery_date?: string | null
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number: string
+          received_at?: string | null
+          received_by?: string | null
+          status?: Database["public"]["Enums"]["po_status"]
+          subtotal?: number
+          supplier_id?: string | null
+          tax_amount?: number
+          tenant_id: string
+          total_amount?: number
+          total_paid?: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          campagne_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          delivery_date?: string | null
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number?: string
+          received_at?: string | null
+          received_by?: string | null
+          status?: Database["public"]["Enums"]["po_status"]
+          subtotal?: number
+          supplier_id?: string | null
+          tax_amount?: number
+          tenant_id?: string
+          total_amount?: number
+          total_paid?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      purchase_payments: {
+        Row: {
+          account_id: string | null
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string
+          payment_type: Database["public"]["Enums"]["purchase_payment_type"]
+          processed_by: string | null
+          purchase_order_id: string
+          tenant_id: string
+          transaction_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          payment_type?: Database["public"]["Enums"]["purchase_payment_type"]
+          processed_by?: string | null
+          purchase_order_id: string
+          tenant_id: string
+          transaction_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          payment_type?: Database["public"]["Enums"]["purchase_payment_type"]
+          processed_by?: string | null
+          purchase_order_id?: string
+          tenant_id?: string
+          transaction_id?: string | null
+        }
+        Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          inventory_item_id: string | null
+          item_name: string
+          movement_type: Database["public"]["Enums"]["stock_movement_type"]
+          new_quantity: number
+          notes: string | null
+          previous_quantity: number
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          tenant_id: string
+          unit_cost: number
+          unit_of_measure: string
+          warehouse: string | null
+          warehouse_from: string | null
+          warehouse_to: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_item_id?: string | null
+          item_name: string
+          movement_type: Database["public"]["Enums"]["stock_movement_type"]
+          new_quantity?: number
+          notes?: string | null
+          previous_quantity?: number
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id: string
+          unit_cost?: number
+          unit_of_measure?: string
+          warehouse?: string | null
+          warehouse_from?: string | null
+          warehouse_to?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_item_id?: string | null
+          item_name?: string
+          movement_type?: Database["public"]["Enums"]["stock_movement_type"]
+          new_quantity?: number
+          notes?: string | null
+          previous_quantity?: number
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id?: string
+          unit_cost?: number
+          unit_of_measure?: string
+          warehouse?: string | null
+          warehouse_from?: string | null
+          warehouse_to?: string | null
+        }
+        Relationships: []
+      }
+      stock_reservations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          inventory_item_id: string
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          released_at: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_item_id: string
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          released_at?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_item_id?: string
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          released_at?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          payment_terms: string | null
+          phone: string | null
+          rating: number | null
+          registration_number: string | null
+          supplier_type: Database["public"]["Enums"]["supplier_type"]
+          tax_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          rating?: number | null
+          registration_number?: string | null
+          supplier_type?: Database["public"]["Enums"]["supplier_type"]
+          tax_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          rating?: number | null
+          registration_number?: string | null
+          supplier_type?: Database["public"]["Enums"]["supplier_type"]
+          tax_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       team_attendance: {
         Row: {
@@ -1140,6 +1593,39 @@ export type Database = {
           },
         ]
       }
+      warehouses: {
+        Row: {
+          address: string | null
+          code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1180,6 +1666,16 @@ export type Database = {
       fiscal_period_status: "open" | "closed" | "locked"
       fixed_asset_status: "active" | "disposed" | "scrapped"
       payment_status: "pending" | "paid" | "cancelled"
+      po_status:
+        | "draft"
+        | "pending"
+        | "approved"
+        | "partial"
+        | "received"
+        | "cancelled"
+      purchase_payment_type: "advance" | "payment" | "refund"
+      stock_movement_type: "entry" | "exit" | "adjustment" | "transfer"
+      supplier_type: "fourniture" | "prestataire" | "transporteur"
       transaction_status: "draft" | "validated" | "cancelled"
       transaction_type:
         | "vente"
@@ -1336,6 +1832,17 @@ export const Constants = {
       fiscal_period_status: ["open", "closed", "locked"],
       fixed_asset_status: ["active", "disposed", "scrapped"],
       payment_status: ["pending", "paid", "cancelled"],
+      po_status: [
+        "draft",
+        "pending",
+        "approved",
+        "partial",
+        "received",
+        "cancelled",
+      ],
+      purchase_payment_type: ["advance", "payment", "refund"],
+      stock_movement_type: ["entry", "exit", "adjustment", "transfer"],
+      supplier_type: ["fourniture", "prestataire", "transporteur"],
       transaction_status: ["draft", "validated", "cancelled"],
       transaction_type: [
         "vente",
