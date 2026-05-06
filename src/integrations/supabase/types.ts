@@ -222,6 +222,7 @@ export type Database = {
       }
       campagnes: {
         Row: {
+          actual_production: number | null
           actual_production_tonnes: number
           budget: number
           budget_total: number | null
@@ -243,6 +244,7 @@ export type Database = {
           year: number | null
         }
         Insert: {
+          actual_production?: number | null
           actual_production_tonnes?: number
           budget?: number
           budget_total?: number | null
@@ -264,6 +266,7 @@ export type Database = {
           year?: number | null
         }
         Update: {
+          actual_production?: number | null
           actual_production_tonnes?: number
           budget?: number
           budget_total?: number | null
@@ -1106,6 +1109,7 @@ export type Database = {
       production_records: {
         Row: {
           bassin_id: string | null
+          batch_number: string | null
           campagne_id: string | null
           cost_per_ton: number
           created_at: string
@@ -1115,16 +1119,20 @@ export type Database = {
           humidity_percent: number | null
           id: string
           notes: string | null
+          production_date: string | null
           quality_grade: string | null
+          quantity: number | null
           quantity_tonnes: number
           salt_type: string
           status: string
           team_id: string | null
           tenant_id: string
+          traceability_code: string | null
           updated_at: string
         }
         Insert: {
           bassin_id?: string | null
+          batch_number?: string | null
           campagne_id?: string | null
           cost_per_ton?: number
           created_at?: string
@@ -1134,16 +1142,20 @@ export type Database = {
           humidity_percent?: number | null
           id?: string
           notes?: string | null
+          production_date?: string | null
           quality_grade?: string | null
+          quantity?: number | null
           quantity_tonnes?: number
           salt_type?: string
           status?: string
           team_id?: string | null
           tenant_id: string
+          traceability_code?: string | null
           updated_at?: string
         }
         Update: {
           bassin_id?: string | null
+          batch_number?: string | null
           campagne_id?: string | null
           cost_per_ton?: number
           created_at?: string
@@ -1153,12 +1165,15 @@ export type Database = {
           humidity_percent?: number | null
           id?: string
           notes?: string | null
+          production_date?: string | null
           quality_grade?: string | null
+          quantity?: number | null
           quantity_tonnes?: number
           salt_type?: string
           status?: string
           team_id?: string | null
           tenant_id?: string
+          traceability_code?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1256,6 +1271,10 @@ export type Database = {
           expense_type_id: string | null
           id: string
           inventory_item_id: string | null
+          is_received: boolean
+          item_category: string | null
+          item_name: string | null
+          line_total: number | null
           purchase_order_id: string
           quantity: number
           received_quantity: number
@@ -1271,6 +1290,10 @@ export type Database = {
           expense_type_id?: string | null
           id?: string
           inventory_item_id?: string | null
+          is_received?: boolean
+          item_category?: string | null
+          item_name?: string | null
+          line_total?: number | null
           purchase_order_id: string
           quantity?: number
           received_quantity?: number
@@ -1286,6 +1309,10 @@ export type Database = {
           expense_type_id?: string | null
           id?: string
           inventory_item_id?: string | null
+          is_received?: boolean
+          item_category?: string | null
+          item_name?: string | null
+          line_total?: number | null
           purchase_order_id?: string
           quantity?: number
           received_quantity?: number
@@ -2181,7 +2208,7 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: Json
       }
-      post_depreciation: { Args: { _schedule_id: string }; Returns: Json }
+      post_depreciation: { Args: { p_schedule_id: string }; Returns: Json }
       seed_chart_of_accounts: {
         Args: { _tenant_id: string }
         Returns: undefined
@@ -2219,6 +2246,7 @@ export type Database = {
         | "partial"
         | "received"
         | "cancelled"
+        | "pending_approval"
       purchase_payment_type: "advance" | "payment" | "refund"
       quality_status: "pending" | "approved" | "rejected"
       sale_status: "draft" | "confirmed" | "delivered" | "cancelled"
@@ -2399,6 +2427,7 @@ export const Constants = {
         "partial",
         "received",
         "cancelled",
+        "pending_approval",
       ],
       purchase_payment_type: ["advance", "payment", "refund"],
       quality_status: ["pending", "approved", "rejected"],
