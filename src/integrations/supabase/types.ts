@@ -82,11 +82,14 @@ export type Database = {
       bassins: {
         Row: {
           address: string | null
+          area: number | null
           capacity_tonnes: number | null
           code: string | null
           created_at: string
           id: string
+          is_active: boolean
           latitude: number | null
+          location: string | null
           longitude: number | null
           name: string
           notes: string | null
@@ -97,11 +100,14 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          area?: number | null
           capacity_tonnes?: number | null
           code?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
           latitude?: number | null
+          location?: string | null
           longitude?: number | null
           name: string
           notes?: string | null
@@ -112,11 +118,14 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          area?: number | null
           capacity_tonnes?: number | null
           code?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
           latitude?: number | null
+          location?: string | null
           longitude?: number | null
           name?: string
           notes?: string | null
@@ -215,6 +224,7 @@ export type Database = {
         Row: {
           actual_production_tonnes: number
           budget: number
+          budget_total: number | null
           closed_at: string | null
           closed_by: string | null
           code: string | null
@@ -226,6 +236,7 @@ export type Database = {
           spent_amount: number
           start_date: string
           status: Database["public"]["Enums"]["campagne_status"]
+          target_production: number | null
           target_production_tonnes: number | null
           tenant_id: string
           updated_at: string
@@ -234,6 +245,7 @@ export type Database = {
         Insert: {
           actual_production_tonnes?: number
           budget?: number
+          budget_total?: number | null
           closed_at?: string | null
           closed_by?: string | null
           code?: string | null
@@ -245,6 +257,7 @@ export type Database = {
           spent_amount?: number
           start_date: string
           status?: Database["public"]["Enums"]["campagne_status"]
+          target_production?: number | null
           target_production_tonnes?: number | null
           tenant_id: string
           updated_at?: string
@@ -253,6 +266,7 @@ export type Database = {
         Update: {
           actual_production_tonnes?: number
           budget?: number
+          budget_total?: number | null
           closed_at?: string | null
           closed_by?: string | null
           code?: string | null
@@ -264,6 +278,7 @@ export type Database = {
           spent_amount?: number
           start_date?: string
           status?: Database["public"]["Enums"]["campagne_status"]
+          target_production?: number | null
           target_production_tonnes?: number | null
           tenant_id?: string
           updated_at?: string
@@ -2185,7 +2200,12 @@ export type Database = {
         | "qualite"
       attendance_status: "pending" | "validated" | "paid"
       bassin_status: "actif" | "inactif" | "maintenance" | "recolte"
-      campagne_status: "planifiee" | "en_cours" | "cloturee" | "annulee"
+      campagne_status:
+        | "planifiee"
+        | "en_cours"
+        | "cloturee"
+        | "annulee"
+        | "active"
       cash_account_type: "banque" | "caisse" | "mobile_money"
       client_type: "local" | "export" | "particulier"
       employee_type: "permanent" | "saisonnier" | "journalier"
@@ -2359,7 +2379,13 @@ export const Constants = {
       ],
       attendance_status: ["pending", "validated", "paid"],
       bassin_status: ["actif", "inactif", "maintenance", "recolte"],
-      campagne_status: ["planifiee", "en_cours", "cloturee", "annulee"],
+      campagne_status: [
+        "planifiee",
+        "en_cours",
+        "cloturee",
+        "annulee",
+        "active",
+      ],
       cash_account_type: ["banque", "caisse", "mobile_money"],
       client_type: ["local", "export", "particulier"],
       employee_type: ["permanent", "saisonnier", "journalier"],
