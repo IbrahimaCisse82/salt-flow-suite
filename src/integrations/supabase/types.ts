@@ -19,6 +19,7 @@ export type Database = {
           account_name: string
           account_number: string | null
           account_type: Database["public"]["Enums"]["cash_account_type"]
+          balance: number | null
           bank_name: string | null
           chart_account_id: string | null
           created_at: string
@@ -37,6 +38,7 @@ export type Database = {
           account_name: string
           account_number?: string | null
           account_type: Database["public"]["Enums"]["cash_account_type"]
+          balance?: number | null
           bank_name?: string | null
           chart_account_id?: string | null
           created_at?: string
@@ -55,6 +57,7 @@ export type Database = {
           account_name?: string
           account_number?: string | null
           account_type?: Database["public"]["Enums"]["cash_account_type"]
+          balance?: number | null
           bank_name?: string | null
           chart_account_id?: string | null
           created_at?: string
@@ -78,6 +81,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      admin_settings: {
+        Row: {
+          created_at: string
+          id: string
+          setting_key: string
+          setting_value: Json | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          setting_key: string
+          setting_value?: Json | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          setting_key?: string
+          setting_value?: Json | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       bassins: {
         Row: {
@@ -1176,7 +1206,29 @@ export type Database = {
           traceability_code?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "production_records_bassin_id_fkey"
+            columns: ["bassin_id"]
+            isOneToOne: false
+            referencedRelation: "bassins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1277,6 +1329,7 @@ export type Database = {
           line_total: number | null
           purchase_order_id: string
           quantity: number
+          received_notes: string | null
           received_quantity: number
           tenant_id: string
           total_price: number
@@ -1296,6 +1349,7 @@ export type Database = {
           line_total?: number | null
           purchase_order_id: string
           quantity?: number
+          received_notes?: string | null
           received_quantity?: number
           tenant_id: string
           total_price?: number
@@ -1315,6 +1369,7 @@ export type Database = {
           line_total?: number | null
           purchase_order_id?: string
           quantity?: number
+          received_notes?: string | null
           received_quantity?: number
           tenant_id?: string
           total_price?: number
@@ -1551,6 +1606,7 @@ export type Database = {
       }
       sale_items: {
         Row: {
+          amount_ht: number | null
           created_at: string
           description: string
           id: string
@@ -1564,8 +1620,11 @@ export type Database = {
           total_price: number
           unit_of_measure: string
           unit_price: number
+          warehouse_id: string | null
+          warehouse_name: string | null
         }
         Insert: {
+          amount_ht?: number | null
           created_at?: string
           description: string
           id?: string
@@ -1579,8 +1638,11 @@ export type Database = {
           total_price?: number
           unit_of_measure?: string
           unit_price?: number
+          warehouse_id?: string | null
+          warehouse_name?: string | null
         }
         Update: {
+          amount_ht?: number | null
           created_at?: string
           description?: string
           id?: string
@@ -1594,8 +1656,18 @@ export type Database = {
           total_price?: number
           unit_of_measure?: string
           unit_price?: number
+          warehouse_id?: string | null
+          warehouse_name?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sales: {
         Row: {
@@ -1670,7 +1742,22 @@ export type Database = {
           total_paid?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sales_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stock_movements: {
         Row: {
@@ -2249,9 +2336,19 @@ export type Database = {
         | "pending_approval"
       purchase_payment_type: "advance" | "payment" | "refund"
       quality_status: "pending" | "approved" | "rejected"
-      sale_status: "draft" | "confirmed" | "delivered" | "cancelled"
+      sale_status:
+        | "draft"
+        | "confirmed"
+        | "delivered"
+        | "cancelled"
+        | "invoiced"
+        | "completed"
       stock_movement_type: "entry" | "exit" | "adjustment" | "transfer"
-      supplier_type: "fourniture" | "prestataire" | "transporteur"
+      supplier_type:
+        | "fourniture"
+        | "prestataire"
+        | "transporteur"
+        | "fournisseur"
       transaction_status: "draft" | "validated" | "cancelled"
       transaction_type:
         | "vente"
@@ -2431,9 +2528,21 @@ export const Constants = {
       ],
       purchase_payment_type: ["advance", "payment", "refund"],
       quality_status: ["pending", "approved", "rejected"],
-      sale_status: ["draft", "confirmed", "delivered", "cancelled"],
+      sale_status: [
+        "draft",
+        "confirmed",
+        "delivered",
+        "cancelled",
+        "invoiced",
+        "completed",
+      ],
       stock_movement_type: ["entry", "exit", "adjustment", "transfer"],
-      supplier_type: ["fourniture", "prestataire", "transporteur"],
+      supplier_type: [
+        "fourniture",
+        "prestataire",
+        "transporteur",
+        "fournisseur",
+      ],
       transaction_status: ["draft", "validated", "cancelled"],
       transaction_type: [
         "vente",
