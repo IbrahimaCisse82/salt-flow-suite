@@ -2396,15 +2396,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_active: {
+        Args: { p_user_id: string }
+        Returns: {
+          tenant_active: boolean
+          tenant_name: string
+          user_active: boolean
+        }[]
+      }
       generate_trial_balance: {
-        Args: { p_end_date?: string; p_start_date?: string }
+        Args: {
+          p_end_date?: string
+          p_start_date?: string
+          p_tenant_id?: string
+        }
         Returns: {
           account_name: string
           account_number: string
-          balance: number
-          total_credit: number
-          total_debit: number
+          account_type: string
+          closing_balance: number
+          opening_balance: number
+          period_credit: number
+          period_debit: number
         }[]
+      }
+      get_account_balance: {
+        Args: {
+          p_account_number: string
+          p_as_of_date?: string
+          p_tenant_id: string
+        }
+        Returns: number
       }
       get_profiles_with_roles: {
         Args: never

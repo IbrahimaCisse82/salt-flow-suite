@@ -184,7 +184,7 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
         .from('transactions')
         .insert({
           tenant_id: profile.tenant_id,
-          transaction_type: 'divers',
+          transaction_type: 'od',
           journal_code: journalCode,
           transaction_date: date,
           amount: totalDebit,
@@ -200,6 +200,7 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
       const journalEntries = lines
         .filter(line => line.accountId && (parseFloat(line.debit) > 0 || parseFloat(line.credit) > 0))
         .map(line => ({
+          tenant_id: profile.tenant_id,
           transaction_id: transaction.id,
           account_id: line.accountId,
           account_number: line.accountNumber || null,
