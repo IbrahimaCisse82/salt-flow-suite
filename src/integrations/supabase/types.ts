@@ -927,6 +927,7 @@ export type Database = {
       journal_entries: {
         Row: {
           account_id: string
+          account_name: string | null
           account_number: string | null
           created_at: string
           created_by: string | null
@@ -945,6 +946,7 @@ export type Database = {
         }
         Insert: {
           account_id: string
+          account_name?: string | null
           account_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -963,6 +965,7 @@ export type Database = {
         }
         Update: {
           account_id?: string
+          account_name?: string | null
           account_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -1746,6 +1749,7 @@ export type Database = {
       }
       sales: {
         Row: {
+          amount_paid: number | null
           campagne_id: string | null
           can_be_delivered: boolean
           client_id: string | null
@@ -1770,6 +1774,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          amount_paid?: number | null
           campagne_id?: string | null
           can_be_delivered?: boolean
           client_id?: string | null
@@ -1794,6 +1799,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          amount_paid?: number | null
           campagne_id?: string | null
           can_be_delivered?: boolean
           client_id?: string | null
@@ -2390,6 +2396,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_trial_balance: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: {
+          account_name: string
+          account_number: string
+          balance: number
+          total_credit: number
+          total_debit: number
+        }[]
+      }
       get_profiles_with_roles: {
         Args: never
         Returns: {
