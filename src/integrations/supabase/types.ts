@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      accountant_notifications: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string | null
+          notification_type: string
+          reference_id: string | null
+          tenant_id: string
+          title: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          notification_type: string
+          reference_id?: string | null
+          tenant_id: string
+          title: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          notification_type?: string
+          reference_id?: string | null
+          tenant_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       accounts: {
         Row: {
           account_name: string
@@ -1009,6 +1045,45 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_history: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          metadata: Json | null
+          notification_type: string
+          status: string
+          tenant_id: string
+          title: string
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          notification_type: string
+          status?: string
+          tenant_id: string
+          title: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          notification_type?: string
+          status?: string
+          tenant_id?: string
+          title?: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           account_id: string | null
@@ -1759,6 +1834,51 @@ export type Database = {
           },
         ]
       }
+      scheduled_reports: {
+        Row: {
+          config: Json | null
+          created_at: string
+          created_by: string | null
+          frequency: string
+          id: string
+          is_active: boolean
+          last_sent_at: string | null
+          next_run_at: string | null
+          recipients: string[]
+          report_type: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          created_by?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_run_at?: string | null
+          recipients?: string[]
+          report_type: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          created_by?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_run_at?: string | null
+          recipients?: string[]
+          report_type?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stock_movements: {
         Row: {
           created_at: string
@@ -2125,6 +2245,7 @@ export type Database = {
           description: string | null
           fiscal_period_id: string | null
           id: string
+          is_validated: boolean
           journal_code: string | null
           notes: string | null
           reference: string | null
@@ -2146,6 +2267,7 @@ export type Database = {
           description?: string | null
           fiscal_period_id?: string | null
           id?: string
+          is_validated?: boolean
           journal_code?: string | null
           notes?: string | null
           reference?: string | null
@@ -2167,6 +2289,7 @@ export type Database = {
           description?: string | null
           fiscal_period_id?: string | null
           id?: string
+          is_validated?: boolean
           journal_code?: string | null
           notes?: string | null
           reference?: string | null
