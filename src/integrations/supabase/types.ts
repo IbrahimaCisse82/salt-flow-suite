@@ -2396,6 +2396,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_active: {
+        Args: { p_user_id: string }
+        Returns: {
+          tenant_active: boolean
+          tenant_name: string
+          user_active: boolean
+        }[]
+      }
       generate_trial_balance: {
         Args: {
           p_end_date?: string
