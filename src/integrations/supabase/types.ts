@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      accountant_notifications: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string | null
+          notification_type: string
+          reference_id: string | null
+          tenant_id: string
+          title: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          notification_type: string
+          reference_id?: string | null
+          tenant_id: string
+          title: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          notification_type?: string
+          reference_id?: string | null
+          tenant_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       accounts: {
         Row: {
           account_name: string
@@ -891,6 +927,7 @@ export type Database = {
       journal_entries: {
         Row: {
           account_id: string
+          account_name: string | null
           account_number: string | null
           created_at: string
           created_by: string | null
@@ -909,6 +946,7 @@ export type Database = {
         }
         Insert: {
           account_id: string
+          account_name?: string | null
           account_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -927,6 +965,7 @@ export type Database = {
         }
         Update: {
           account_id?: string
+          account_name?: string | null
           account_number?: string | null
           created_at?: string
           created_by?: string | null
@@ -1005,6 +1044,45 @@ export type Database = {
           record_id?: string
           table_name?: string
           tenant_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      notification_history: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          metadata: Json | null
+          notification_type: string
+          status: string
+          tenant_id: string
+          title: string
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          notification_type: string
+          status?: string
+          tenant_id: string
+          title: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          notification_type?: string
+          status?: string
+          tenant_id?: string
+          title?: string
+          url?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -1671,6 +1749,7 @@ export type Database = {
       }
       sales: {
         Row: {
+          amount_paid: number | null
           campagne_id: string | null
           can_be_delivered: boolean
           client_id: string | null
@@ -1695,6 +1774,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          amount_paid?: number | null
           campagne_id?: string | null
           can_be_delivered?: boolean
           client_id?: string | null
@@ -1719,6 +1799,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          amount_paid?: number | null
           campagne_id?: string | null
           can_be_delivered?: boolean
           client_id?: string | null
@@ -1758,6 +1839,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      scheduled_reports: {
+        Row: {
+          config: Json | null
+          created_at: string
+          created_by: string | null
+          frequency: string
+          id: string
+          is_active: boolean
+          last_sent_at: string | null
+          next_run_at: string | null
+          recipients: string[]
+          report_type: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          created_by?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_run_at?: string | null
+          recipients?: string[]
+          report_type: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          created_by?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_run_at?: string | null
+          recipients?: string[]
+          report_type?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       stock_movements: {
         Row: {
@@ -2125,6 +2251,7 @@ export type Database = {
           description: string | null
           fiscal_period_id: string | null
           id: string
+          is_validated: boolean
           journal_code: string | null
           notes: string | null
           reference: string | null
@@ -2146,6 +2273,7 @@ export type Database = {
           description?: string | null
           fiscal_period_id?: string | null
           id?: string
+          is_validated?: boolean
           journal_code?: string | null
           notes?: string | null
           reference?: string | null
@@ -2167,6 +2295,7 @@ export type Database = {
           description?: string | null
           fiscal_period_id?: string | null
           id?: string
+          is_validated?: boolean
           journal_code?: string | null
           notes?: string | null
           reference?: string | null
@@ -2267,6 +2396,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_trial_balance: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: {
+          account_name: string
+          account_number: string
+          balance: number
+          total_credit: number
+          total_debit: number
+        }[]
+      }
       get_profiles_with_roles: {
         Args: never
         Returns: {
