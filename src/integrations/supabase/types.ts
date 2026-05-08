@@ -149,9 +149,11 @@ export type Database = {
         Row: {
           address: string | null
           area: number | null
+          bassin_type: string | null
           capacity_tonnes: number | null
           code: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           is_active: boolean
           latitude: number | null
@@ -167,9 +169,11 @@ export type Database = {
         Insert: {
           address?: string | null
           area?: number | null
+          bassin_type?: string | null
           capacity_tonnes?: number | null
           code?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_active?: boolean
           latitude?: number | null
@@ -185,9 +189,11 @@ export type Database = {
         Update: {
           address?: string | null
           area?: number | null
+          bassin_type?: string | null
           capacity_tonnes?: number | null
           code?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_active?: boolean
           latitude?: number | null
@@ -2474,7 +2480,13 @@ export type Database = {
         | "admin"
         | "qualite"
       attendance_status: "pending" | "validated" | "paid"
-      bassin_status: "actif" | "inactif" | "maintenance" | "recolte"
+      bassin_status:
+        | "actif"
+        | "inactif"
+        | "maintenance"
+        | "recolte"
+        | "active"
+        | "repos"
       campagne_status:
         | "planifiee"
         | "en_cours"
@@ -2664,7 +2676,14 @@ export const Constants = {
         "qualite",
       ],
       attendance_status: ["pending", "validated", "paid"],
-      bassin_status: ["actif", "inactif", "maintenance", "recolte"],
+      bassin_status: [
+        "actif",
+        "inactif",
+        "maintenance",
+        "recolte",
+        "active",
+        "repos",
+      ],
       campagne_status: [
         "planifiee",
         "en_cours",
