@@ -121,7 +121,9 @@ export type Database = {
       admin_settings: {
         Row: {
           created_at: string
+          description: string | null
           id: string
+          is_public: boolean | null
           setting_key: string
           setting_value: Json | null
           tenant_id: string
@@ -129,7 +131,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
+          is_public?: boolean | null
           setting_key: string
           setting_value?: Json | null
           tenant_id: string
@@ -137,7 +141,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
+          is_public?: boolean | null
           setting_key?: string
           setting_value?: Json | null
           tenant_id?: string
@@ -424,6 +430,7 @@ export type Database = {
           created_at: string
           credit_limit: number
           current_balance: number
+          deleted_at: string | null
           email: string | null
           id: string
           is_active: boolean
@@ -445,6 +452,7 @@ export type Database = {
           created_at?: string
           credit_limit?: number
           current_balance?: number
+          deleted_at?: string | null
           email?: string | null
           id?: string
           is_active?: boolean
@@ -466,6 +474,7 @@ export type Database = {
           created_at?: string
           credit_limit?: number
           current_balance?: number
+          deleted_at?: string | null
           email?: string | null
           id?: string
           is_active?: boolean
@@ -1465,11 +1474,14 @@ export type Database = {
       }
       purchase_orders: {
         Row: {
+          amount_ht: number | null
           approved_at: string | null
           approved_by: string | null
           campagne_id: string | null
+          campagne_phase: string | null
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           delivery_date: string | null
           expected_delivery_date: string | null
           expense_category: string | null
@@ -1488,14 +1500,19 @@ export type Database = {
           tenant_id: string
           total_amount: number
           total_paid: number
+          tva_amount: number | null
+          tva_rate: number | null
           updated_at: string
         }
         Insert: {
+          amount_ht?: number | null
           approved_at?: string | null
           approved_by?: string | null
           campagne_id?: string | null
+          campagne_phase?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           delivery_date?: string | null
           expected_delivery_date?: string | null
           expense_category?: string | null
@@ -1514,14 +1531,19 @@ export type Database = {
           tenant_id: string
           total_amount?: number
           total_paid?: number
+          tva_amount?: number | null
+          tva_rate?: number | null
           updated_at?: string
         }
         Update: {
+          amount_ht?: number | null
           approved_at?: string | null
           approved_by?: string | null
           campagne_id?: string | null
+          campagne_phase?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           delivery_date?: string | null
           expected_delivery_date?: string | null
           expense_category?: string | null
@@ -1540,6 +1562,8 @@ export type Database = {
           tenant_id?: string
           total_amount?: number
           total_paid?: number
+          tva_amount?: number | null
+          tva_rate?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -2153,6 +2177,7 @@ export type Database = {
         Row: {
           address: string | null
           city: string | null
+          contact_email: string | null
           country: string | null
           created_at: string
           email: string | null
@@ -2163,11 +2188,13 @@ export type Database = {
           phone: string | null
           settings: Json | null
           slug: string | null
+          subdomain: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
           city?: string | null
+          contact_email?: string | null
           country?: string | null
           created_at?: string
           email?: string | null
@@ -2178,11 +2205,13 @@ export type Database = {
           phone?: string | null
           settings?: Json | null
           slug?: string | null
+          subdomain?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
           city?: string | null
+          contact_email?: string | null
           country?: string | null
           created_at?: string
           email?: string | null
@@ -2193,6 +2222,7 @@ export type Database = {
           phone?: string | null
           settings?: Json | null
           slug?: string | null
+          subdomain?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -2399,7 +2429,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      budget_commitment_summary: {
+        Row: {
+          alert_level: number | null
+          budgeted_amount: number | null
+          campagne_id: string | null
+          committed_amount: number | null
+          engagement_rate: number | null
+          expense_category: string | null
+          phase: string | null
+          remaining_to_commit: number | null
+          tenant_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_user_active: {
@@ -2437,8 +2480,10 @@ export type Database = {
       get_profiles_with_roles: {
         Args: never
         Returns: {
+          avatar_url: string
           email: string
           full_name: string
+          id: string
           is_active: boolean
           phone: string
           roles: string[]
