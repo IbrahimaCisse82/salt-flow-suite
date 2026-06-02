@@ -89,7 +89,7 @@ export const useCostPerTon = () => {
     mutationFn: async (params: CalculateCostParams): Promise<CostPerTonData> => {
       if (!tenant_id) throw new Error("Tenant ID requis");
 
-      const { data, error } = await supabase.rpc("calculate_cost_per_ton", {
+      const { data, error } = await ((supabase as any).rpc("calculate_cost_per_ton", {
         p_tenant_id: tenant_id,
         p_period_start: params.period_start,
         p_period_end: params.period_end,
