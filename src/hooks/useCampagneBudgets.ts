@@ -34,11 +34,13 @@ export const useCampagneBudgets = (campagneId?: string) => {
       phase: string;
       budgeted_amount: number;
     }) => {
+      if (!profile?.tenant_id) throw new Error("Tenant ID manquant");
       const { error } = await supabase
         .from('campagne_phase_budgets')
-        .upsert(budgetData, {
-          onConflict: 'campagne_id,phase'
-        });
+        .upsert(
+          { ...budgetData, tenant_id: profile.tenant_id },
+          { onConflict: 'campagne_id,phase' }
+        );
       
       if (error) throw error;
     },

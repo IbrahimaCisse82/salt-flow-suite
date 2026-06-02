@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as _supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+
+// cast pour bypasser les types stricts (account_type/account_class)
+const supabase = _supabase as any;
 
 export interface ChartAccount {
   id: string;
