@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as _supabase } from "@/integrations/supabase/client";
 import { useTenantId } from "./useTenantId";
 import { useToast } from "./use-toast";
+
+// cost_per_ton table & calculate_cost_per_ton RPC are not in generated Supabase types yet
+const supabase = _supabase as any;
 
 // Types pour le coût de revient
 export interface CostPerTonData {
