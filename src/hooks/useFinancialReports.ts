@@ -1,8 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as _supabase } from "@/integrations/supabase/client";
 import { useTenantId } from "./useTenantId";
 import { useToast } from "./use-toast";
 import type { Json } from "@/integrations/supabase/types";
+
+// financial_reports table / generate_balance_sheet RPC pas encore typés dans Supabase
+const supabase = _supabase as any;
 
 // Types pour les rapports financiers
 export interface BalanceSheetData {
