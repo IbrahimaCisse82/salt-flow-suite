@@ -72,10 +72,10 @@ export function SuppliersTable() {
         await updateSupplier.mutateAsync({
           id: editingSupplier.id,
           ...formData,
-        });
+        } as any);
         toast({ title: "Fournisseur modifié", description: "Les modifications ont été enregistrées" });
       } else {
-        await createSupplier.mutateAsync(formData);
+        await createSupplier.mutateAsync(formData as any);
         toast({ title: "Fournisseur créé", description: `${formData.name} a été ajouté avec succès` });
       }
       setDialogOpen(false);
