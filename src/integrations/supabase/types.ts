@@ -2504,7 +2504,12 @@ export type Database = {
         Returns: boolean
       }
       link_profile_to_tenant: {
-        Args: { _tenant_id: string; _user_id: string }
+        Args: {
+          _email?: string
+          _full_name?: string
+          _tenant_id: string
+          _user_id: string
+        }
         Returns: Json
       }
       post_depreciation: { Args: { p_schedule_id: string }; Returns: Json }
