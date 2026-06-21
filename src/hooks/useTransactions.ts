@@ -114,7 +114,7 @@ export const useTransactions = () => {
   const validateTransaction = useMutation({
     mutationFn: async (transactionId: string) => {
       const { data, error } = await supabase.rpc("validate_transaction", {
-        p_transaction_id: transactionId,
+        _id: transactionId,
       });
       if (error) throw error;
       return data;
@@ -133,7 +133,7 @@ export const useTransactions = () => {
   const validateTransactionsBulk = useMutation({
     mutationFn: async (transactionIds: string[]) => {
       const { data, error } = await supabase.rpc("validate_transactions_bulk", {
-        p_transaction_ids: transactionIds,
+        _ids: transactionIds,
       });
       if (error) throw error;
       return data;
