@@ -274,6 +274,7 @@ export const InvoiceTemplateSelector = () => {
         .from("admin_settings")
         .upsert(
           {
+            tenant_id: tenant.id,
             setting_key: `invoice_style_${tenant.id}`,
             setting_value: JSON.stringify(style),
             description: "Style de facture par défaut",
