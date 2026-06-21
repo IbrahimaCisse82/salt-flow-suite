@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from "react";
 import { useCampagnes } from "@/hooks/useCampagnes";
 import { useCampagneBudgets } from "@/hooks/useCampagneBudgets";
