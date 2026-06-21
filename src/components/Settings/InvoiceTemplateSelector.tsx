@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -274,6 +273,7 @@ export const InvoiceTemplateSelector = () => {
         .from("admin_settings")
         .upsert(
           {
+            tenant_id: tenant.id,
             setting_key: `invoice_style_${tenant.id}`,
             setting_value: JSON.stringify(style),
             description: "Style de facture par défaut",
