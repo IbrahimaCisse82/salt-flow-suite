@@ -811,6 +811,7 @@ export type Database = {
           residual_value: number
           status: Database["public"]["Enums"]["fixed_asset_status"]
           tenant_id: string
+          total_depreciated: number | null
           updated_at: string
           useful_life_years: number
         }
@@ -833,6 +834,7 @@ export type Database = {
           residual_value?: number
           status?: Database["public"]["Enums"]["fixed_asset_status"]
           tenant_id: string
+          total_depreciated?: number | null
           updated_at?: string
           useful_life_years?: number
         }
@@ -855,6 +857,7 @@ export type Database = {
           residual_value?: number
           status?: Database["public"]["Enums"]["fixed_asset_status"]
           tenant_id?: string
+          total_depreciated?: number | null
           updated_at?: string
           useful_life_years?: number
         }
@@ -876,6 +879,7 @@ export type Database = {
           id: string
           is_active: boolean
           item_category: string | null
+          item_name: string | null
           name: string
           notes: string | null
           quantity: number
@@ -883,6 +887,7 @@ export type Database = {
           reorder_level: number
           reserved_quantity: number
           sku: string | null
+          storage_location: string | null
           tenant_id: string
           unit_cost: number
           unit_of_measure: string
@@ -896,6 +901,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           item_category?: string | null
+          item_name?: string | null
           name: string
           notes?: string | null
           quantity?: number
@@ -903,6 +909,7 @@ export type Database = {
           reorder_level?: number
           reserved_quantity?: number
           sku?: string | null
+          storage_location?: string | null
           tenant_id: string
           unit_cost?: number
           unit_of_measure?: string
@@ -916,6 +923,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           item_category?: string | null
+          item_name?: string | null
           name?: string
           notes?: string | null
           quantity?: number
@@ -923,6 +931,7 @@ export type Database = {
           reorder_level?: number
           reserved_quantity?: number
           sku?: string | null
+          storage_location?: string | null
           tenant_id?: string
           unit_cost?: number
           unit_of_measure?: string
@@ -930,6 +939,103 @@ export type Database = {
           warehouse_id?: string | null
         }
         Relationships: []
+      }
+      inventory_valuation_layers: {
+        Row: {
+          created_at: string
+          id: string
+          inventory_item_id: string
+          layer_date: string
+          movement_type: string
+          quantity: number
+          reference_id: string | null
+          remaining_quantity: number
+          source_type: string | null
+          tenant_id: string
+          total_cost: number
+          unit_cost: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inventory_item_id: string
+          layer_date?: string
+          movement_type: string
+          quantity: number
+          reference_id?: string | null
+          remaining_quantity: number
+          source_type?: string | null
+          tenant_id: string
+          total_cost?: number
+          unit_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inventory_item_id?: string
+          layer_date?: string
+          movement_type?: string
+          quantity?: number
+          reference_id?: string | null
+          remaining_quantity?: number
+          source_type?: string | null
+          tenant_id?: string
+          total_cost?: number
+          unit_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_valuation_layers_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_valuation_snapshots: {
+        Row: {
+          cmp: number
+          created_at: string
+          id: string
+          inventory_item_id: string
+          quantity_on_hand: number
+          snapshot_date: string
+          tenant_id: string
+          total_value: number
+        }
+        Insert: {
+          cmp?: number
+          created_at?: string
+          id?: string
+          inventory_item_id: string
+          quantity_on_hand?: number
+          snapshot_date?: string
+          tenant_id: string
+          total_value?: number
+        }
+        Update: {
+          cmp?: number
+          created_at?: string
+          id?: string
+          inventory_item_id?: string
+          quantity_on_hand?: number
+          snapshot_date?: string
+          tenant_id?: string
+          total_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_valuation_snapshots_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inventory_valuations: {
         Row: {
@@ -1095,6 +1201,8 @@ export type Database = {
           message: string | null
           metadata: Json | null
           notification_type: string
+          reference_id: string | null
+          sent_at: string | null
           status: string
           tenant_id: string
           title: string
@@ -1107,6 +1215,8 @@ export type Database = {
           message?: string | null
           metadata?: Json | null
           notification_type: string
+          reference_id?: string | null
+          sent_at?: string | null
           status?: string
           tenant_id: string
           title: string
@@ -1119,6 +1229,8 @@ export type Database = {
           message?: string | null
           metadata?: Json | null
           notification_type?: string
+          reference_id?: string | null
+          sent_at?: string | null
           status?: string
           tenant_id?: string
           title?: string
@@ -1179,12 +1291,17 @@ export type Database = {
         Row: {
           account_id: string | null
           amount: number
+          attendance_id: string | null
+          balance_due: number
           created_at: string
           created_by: string | null
           daily_worker_id: string | null
           employee_id: string | null
           id: string
           notes: string | null
+          paid_amount: number
+          paid_to: string | null
+          payment_account_id: string | null
           payment_date: string
           payment_method: string | null
           period_end: string | null
@@ -1197,12 +1314,17 @@ export type Database = {
         Insert: {
           account_id?: string | null
           amount?: number
+          attendance_id?: string | null
+          balance_due?: number
           created_at?: string
           created_by?: string | null
           daily_worker_id?: string | null
           employee_id?: string | null
           id?: string
           notes?: string | null
+          paid_amount?: number
+          paid_to?: string | null
+          payment_account_id?: string | null
           payment_date?: string
           payment_method?: string | null
           period_end?: string | null
@@ -1215,12 +1337,17 @@ export type Database = {
         Update: {
           account_id?: string | null
           amount?: number
+          attendance_id?: string | null
+          balance_due?: number
           created_at?: string
           created_by?: string | null
           daily_worker_id?: string | null
           employee_id?: string | null
           id?: string
           notes?: string | null
+          paid_amount?: number
+          paid_to?: string | null
+          payment_account_id?: string | null
           payment_date?: string
           payment_method?: string | null
           period_end?: string | null
@@ -1239,6 +1366,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "payroll_payments_attendance_id_fkey"
+            columns: ["attendance_id"]
+            isOneToOne: false
+            referencedRelation: "team_attendance"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payroll_payments_daily_worker_id_fkey"
             columns: ["daily_worker_id"]
             isOneToOne: false
@@ -1250,6 +1384,13 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_payments_payment_account_id_fkey"
+            columns: ["payment_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -2600,6 +2741,10 @@ export type Database = {
           user_active: boolean
         }[]
       }
+      create_valuation_snapshot: {
+        Args: { p_snapshot_date?: string }
+        Returns: Json
+      }
       generate_trial_balance: {
         Args: {
           p_end_date?: string
@@ -2717,6 +2862,7 @@ export type Database = {
         | "cancelled"
         | "invoiced"
         | "completed"
+        | "pending"
       stock_movement_type: "entry" | "exit" | "adjustment" | "transfer"
       supplier_type:
         | "fourniture"
@@ -2922,6 +3068,7 @@ export const Constants = {
         "cancelled",
         "invoiced",
         "completed",
+        "pending",
       ],
       stock_movement_type: ["entry", "exit", "adjustment", "transfer"],
       supplier_type: [
