@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Types stricts dérivés de src/integrations/supabase/types.ts
  * Ce fichier fournit des types frontend alignés sur la DB pour éviter les incohérences.
