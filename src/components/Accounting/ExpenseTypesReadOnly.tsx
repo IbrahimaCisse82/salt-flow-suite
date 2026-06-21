@@ -33,7 +33,7 @@ export const ExpenseTypesReadOnly = () => {
         .from('expense_types')
         .select(`
           *,
-          account:chart_of_accounts(account_number, account_name)
+          account:chart_of_accounts!default_account_id(account_number, account_name)
         `)
         .eq('is_active', true)
         .order('syscohada_category')
