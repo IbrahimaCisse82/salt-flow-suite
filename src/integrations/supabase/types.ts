@@ -644,6 +644,8 @@ export type Database = {
       }
       expense_types: {
         Row: {
+          account_id: string | null
+          account_number: string | null
           created_at: string
           default_account_id: string | null
           description: string | null
@@ -656,6 +658,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_id?: string | null
+          account_number?: string | null
           created_at?: string
           default_account_id?: string | null
           description?: string | null
@@ -668,6 +672,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_id?: string | null
+          account_number?: string | null
           created_at?: string
           default_account_id?: string | null
           description?: string | null
@@ -680,6 +686,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "expense_types_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "expense_types_default_account_id_fkey"
             columns: ["default_account_id"]
@@ -1842,6 +1855,7 @@ export type Database = {
       }
       sales: {
         Row: {
+          amount_ht: number
           amount_paid: number | null
           batch_number: string | null
           campagne_id: string | null
@@ -1849,29 +1863,39 @@ export type Database = {
           client_id: string | null
           created_at: string
           created_by: string | null
+          customer_name: string | null
+          delivered: boolean
           delivered_at: string | null
           delivered_by: string | null
           delivery_date: string | null
+          discount: number
           id: string
           invoice_number: string | null
           is_export: boolean
           notes: string | null
+          order_number: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           quantity: number | null
           sale_date: string
           sale_number: string
+          sale_status: Database["public"]["Enums"]["sale_status"]
           salt_type: string | null
           status: Database["public"]["Enums"]["sale_status"]
+          stock_updated: boolean
           subtotal: number
           tax_amount: number
           tenant_id: string
           total_amount: number
           total_paid: number
           traceability_code: string | null
+          tva_amount: number
+          tva_rate: number
           unit_price: number | null
           updated_at: string
+          warehouse_id: string | null
         }
         Insert: {
+          amount_ht?: number
           amount_paid?: number | null
           batch_number?: string | null
           campagne_id?: string | null
@@ -1879,29 +1903,39 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          customer_name?: string | null
+          delivered?: boolean
           delivered_at?: string | null
           delivered_by?: string | null
           delivery_date?: string | null
+          discount?: number
           id?: string
           invoice_number?: string | null
           is_export?: boolean
           notes?: string | null
+          order_number?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           quantity?: number | null
           sale_date?: string
           sale_number: string
+          sale_status?: Database["public"]["Enums"]["sale_status"]
           salt_type?: string | null
           status?: Database["public"]["Enums"]["sale_status"]
+          stock_updated?: boolean
           subtotal?: number
           tax_amount?: number
           tenant_id: string
           total_amount?: number
           total_paid?: number
           traceability_code?: string | null
+          tva_amount?: number
+          tva_rate?: number
           unit_price?: number | null
           updated_at?: string
+          warehouse_id?: string | null
         }
         Update: {
+          amount_ht?: number
           amount_paid?: number | null
           batch_number?: string | null
           campagne_id?: string | null
@@ -1909,27 +1943,36 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          customer_name?: string | null
+          delivered?: boolean
           delivered_at?: string | null
           delivered_by?: string | null
           delivery_date?: string | null
+          discount?: number
           id?: string
           invoice_number?: string | null
           is_export?: boolean
           notes?: string | null
+          order_number?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           quantity?: number | null
           sale_date?: string
           sale_number?: string
+          sale_status?: Database["public"]["Enums"]["sale_status"]
           salt_type?: string | null
           status?: Database["public"]["Enums"]["sale_status"]
+          stock_updated?: boolean
           subtotal?: number
           tax_amount?: number
           tenant_id?: string
           total_amount?: number
           total_paid?: number
           traceability_code?: string | null
+          tva_amount?: number
+          tva_rate?: number
           unit_price?: number | null
           updated_at?: string
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -1944,6 +1987,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -2366,6 +2416,7 @@ export type Database = {
         Row: {
           account_id: string | null
           amount: number
+          campagne_id: string | null
           campagne_phase: string | null
           created_at: string
           created_by: string | null
@@ -2389,6 +2440,7 @@ export type Database = {
         Insert: {
           account_id?: string | null
           amount?: number
+          campagne_id?: string | null
           campagne_phase?: string | null
           created_at?: string
           created_by?: string | null
@@ -2412,6 +2464,7 @@ export type Database = {
         Update: {
           account_id?: string | null
           amount?: number
+          campagne_id?: string | null
           campagne_phase?: string | null
           created_at?: string
           created_by?: string | null
@@ -2438,6 +2491,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
             referencedColumns: ["id"]
           },
           {
@@ -2680,6 +2740,8 @@ export type Database = {
         | "encaissement_client"
         | "autre"
         | "depense"
+        | "recette"
+        | "salaire"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2885,6 +2947,8 @@ export const Constants = {
         "encaissement_client",
         "autre",
         "depense",
+        "recette",
+        "salaire",
       ],
     },
   },
