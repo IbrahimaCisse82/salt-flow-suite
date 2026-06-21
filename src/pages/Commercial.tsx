@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
