@@ -1,4 +1,3 @@
-// @ts-nocheck
  import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
  import { supabase } from "@/integrations/supabase/client";
  import { useTenantId } from "./useTenantId";
@@ -43,15 +42,6 @@ export interface CreatePurchaseOrderInput {
   depreciation_method?: string;
 }
  
- const generateOrderNumber = (): string => {
-   const date = new Date();
-   const year = date.getFullYear();
-   const month = String(date.getMonth() + 1).padStart(2, "0");
-   const day = String(date.getDate()).padStart(2, "0");
-   const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-   return `PO-${year}${month}${day}-${random}`;
- };
- 
  export const usePurchaseOrders = () => {
    const queryClient = useQueryClient();
    const tenant_id = useTenantId();
@@ -93,7 +83,6 @@ export interface CreatePurchaseOrderInput {
  
       const orderData: any = {
         tenant_id,
-        order_number: generateOrderNumber(),
         supplier_id: input.supplier_id,
         order_date: input.order_date || new Date().toISOString().split("T")[0],
         expected_delivery_date: input.expected_delivery_date,
