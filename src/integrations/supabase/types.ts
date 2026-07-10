@@ -591,6 +591,38 @@ export type Database = {
           },
         ]
       }
+      document_sequences: {
+        Row: {
+          doc_type: string
+          last_number: number
+          tenant_id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          doc_type: string
+          last_number?: number
+          tenant_id: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          doc_type?: string
+          last_number?: number
+          tenant_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_sequences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           created_at: string
@@ -2804,6 +2836,7 @@ export type Database = {
         }
         Returns: Json
       }
+      next_document_number: { Args: { p_doc_type: string }; Returns: string }
       post_depreciation: { Args: { p_schedule_id: string }; Returns: Json }
       seed_chart_of_accounts: {
         Args: { _tenant_id: string }
