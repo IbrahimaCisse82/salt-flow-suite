@@ -911,6 +911,7 @@ export type Database = {
           id: string
           is_active: boolean
           item_category: string | null
+          item_code: string | null
           item_name: string | null
           name: string
           notes: string | null
@@ -933,6 +934,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           item_category?: string | null
+          item_code?: string | null
           item_name?: string | null
           name: string
           notes?: string | null
@@ -955,6 +957,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           item_category?: string | null
+          item_code?: string | null
           item_name?: string | null
           name?: string
           notes?: string | null
@@ -979,12 +982,14 @@ export type Database = {
           inventory_item_id: string
           layer_date: string
           movement_type: string
+          notes: string | null
           quantity: number
           reference_id: string | null
           remaining_quantity: number
           source_type: string | null
           tenant_id: string
           total_cost: number
+          total_value: number | null
           unit_cost: number
           updated_at: string
         }
@@ -994,12 +999,14 @@ export type Database = {
           inventory_item_id: string
           layer_date?: string
           movement_type: string
+          notes?: string | null
           quantity: number
           reference_id?: string | null
           remaining_quantity: number
           source_type?: string | null
           tenant_id: string
           total_cost?: number
+          total_value?: number | null
           unit_cost?: number
           updated_at?: string
         }
@@ -1009,12 +1016,14 @@ export type Database = {
           inventory_item_id?: string
           layer_date?: string
           movement_type?: string
+          notes?: string | null
           quantity?: number
           reference_id?: string | null
           remaining_quantity?: number
           source_type?: string | null
           tenant_id?: string
           total_cost?: number
+          total_value?: number | null
           unit_cost?: number
           updated_at?: string
         }
@@ -1658,6 +1667,7 @@ export type Database = {
           item_description: string | null
           item_name: string | null
           line_total: number | null
+          notes: string | null
           purchase_order_id: string
           quantity: number
           received_notes: string | null
@@ -1679,6 +1689,7 @@ export type Database = {
           item_description?: string | null
           item_name?: string | null
           line_total?: number | null
+          notes?: string | null
           purchase_order_id: string
           quantity?: number
           received_notes?: string | null
@@ -1700,6 +1711,7 @@ export type Database = {
           item_description?: string | null
           item_name?: string | null
           line_total?: number | null
+          notes?: string | null
           purchase_order_id?: string
           quantity?: number
           received_notes?: string | null
@@ -1910,6 +1922,7 @@ export type Database = {
           color_grade: string | null
           created_at: string
           grain_size: string | null
+          humidity_level: number | null
           humidity_percent: number | null
           id: string
           notes: string | null
@@ -1928,6 +1941,7 @@ export type Database = {
           color_grade?: string | null
           created_at?: string
           grain_size?: string | null
+          humidity_level?: number | null
           humidity_percent?: number | null
           id?: string
           notes?: string | null
@@ -1946,6 +1960,7 @@ export type Database = {
           color_grade?: string | null
           created_at?: string
           grain_size?: string | null
+          humidity_level?: number | null
           humidity_percent?: number | null
           id?: string
           notes?: string | null
