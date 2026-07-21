@@ -1581,6 +1581,7 @@ export type Database = {
         Row: {
           actioned_at: string | null
           actioned_by: string | null
+          amount: number | null
           created_at: string
           id: string
           is_actioned: boolean
@@ -1588,11 +1589,16 @@ export type Database = {
           message: string | null
           notification_type: string
           purchase_order_id: string | null
+          read_at: string | null
+          target_role: string | null
+          target_user_id: string | null
           tenant_id: string
+          title: string | null
         }
         Insert: {
           actioned_at?: string | null
           actioned_by?: string | null
+          amount?: number | null
           created_at?: string
           id?: string
           is_actioned?: boolean
@@ -1600,11 +1606,16 @@ export type Database = {
           message?: string | null
           notification_type: string
           purchase_order_id?: string | null
+          read_at?: string | null
+          target_role?: string | null
+          target_user_id?: string | null
           tenant_id: string
+          title?: string | null
         }
         Update: {
           actioned_at?: string | null
           actioned_by?: string | null
+          amount?: number | null
           created_at?: string
           id?: string
           is_actioned?: boolean
@@ -1612,9 +1623,21 @@ export type Database = {
           message?: string | null
           notification_type?: string
           purchase_order_id?: string | null
+          read_at?: string | null
+          target_role?: string | null
+          target_user_id?: string | null
           tenant_id?: string
+          title?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "purchase_notifications_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       purchase_order_history: {
         Row: {
@@ -1821,7 +1844,15 @@ export type Database = {
           tva_rate?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       purchase_payments: {
         Row: {
@@ -2456,13 +2487,63 @@ export type Database = {
           },
         ]
       }
+      team_members: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          joined_at: string
+          role: string | null
+          team_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          joined_at?: string
+          role?: string | null
+          team_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          joined_at?: string
+          role?: string | null
+          team_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           created_at: string
           description: string | null
+          efficiency_rate: number
           id: string
           is_active: boolean
+          leader_id: string | null
           name: string
+          production_target: number
+          sector: string | null
+          status: string
           team_lead_id: string | null
           tenant_id: string
           updated_at: string
@@ -2470,9 +2551,14 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          efficiency_rate?: number
           id?: string
           is_active?: boolean
+          leader_id?: string | null
           name: string
+          production_target?: number
+          sector?: string | null
+          status?: string
           team_lead_id?: string | null
           tenant_id: string
           updated_at?: string
@@ -2480,14 +2566,27 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          efficiency_rate?: number
           id?: string
           is_active?: boolean
+          leader_id?: string | null
           name?: string
+          production_target?: number
+          sector?: string | null
+          status?: string
           team_lead_id?: string | null
           tenant_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teams_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tenants: {
         Row: {
