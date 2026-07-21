@@ -2600,9 +2600,13 @@ export type Database = {
           id: string
           is_active: boolean
           logo_url: string | null
+          manager_name: string | null
           name: string
+          ninea: string | null
           onboarding_completed: boolean
+          onboarding_step: string | null
           phone: string | null
+          rccm: string | null
           settings: Json | null
           slug: string | null
           subdomain: string | null
@@ -2619,9 +2623,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           logo_url?: string | null
+          manager_name?: string | null
           name: string
+          ninea?: string | null
           onboarding_completed?: boolean
+          onboarding_step?: string | null
           phone?: string | null
+          rccm?: string | null
           settings?: Json | null
           slug?: string | null
           subdomain?: string | null
@@ -2638,9 +2646,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           logo_url?: string | null
+          manager_name?: string | null
           name?: string
+          ninea?: string | null
           onboarding_completed?: boolean
+          onboarding_step?: string | null
           phone?: string | null
+          rccm?: string | null
           settings?: Json | null
           slug?: string | null
           subdomain?: string | null
