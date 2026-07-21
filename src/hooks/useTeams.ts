@@ -253,6 +253,7 @@ export const useTeams = () => {
       const { error } = await supabase
         .from("team_members")
         .insert({
+          tenant_id: tenantId!,
           team_id: payload.team_id,
           employee_id: payload.employee_id,
           role: payload.role ?? null,
