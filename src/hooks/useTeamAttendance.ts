@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -28,7 +27,8 @@ export interface TeamAttendance {
   };
 }
 
-export const useTeamAttendance = (filters?: { status?: string; teamId?: string; dateFrom?: string; dateTo?: string }) => {
+type AttendanceStatus = 'pending' | 'validated' | 'paid';
+export const useTeamAttendance = (filters?: { status?: AttendanceStatus; teamId?: string; dateFrom?: string; dateTo?: string }) => {
   return useQuery({
     queryKey: ['team-attendance', filters],
     queryFn: async () => {

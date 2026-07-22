@@ -55,7 +55,7 @@ export const TeamAttendanceList = ({ teams }: TeamAttendanceListProps) => {
 
   const { data: attendances = [], isLoading } = useTeamAttendance({
     teamId: filterTeamId || undefined,
-    status: filterStatus || undefined,
+    status: (filterStatus || undefined) as 'pending' | 'validated' | 'paid' | undefined,
     dateFrom: filterDateFrom || undefined,
     dateTo: filterDateTo || undefined,
   });
