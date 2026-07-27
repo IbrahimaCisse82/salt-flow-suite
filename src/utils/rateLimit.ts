@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Rate Limiting Utility
  * Prevents abuse by limiting the number of requests per time window
