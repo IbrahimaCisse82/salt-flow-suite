@@ -62,7 +62,7 @@ const ClotureExercice = () => {
     mutationFn: async () => {
       if (!profile?.tenant_id) throw new Error("Tenant non trouvé");
 
-      const { data, error } = await supabase.rpc("close_fiscal_year", {
+      const { data, error } = await (supabase.rpc as any)("close_fiscal_year", {
         p_tenant_id: profile.tenant_id,
         p_fiscal_year_end: fiscalYearEnd,
         p_description: `Clôture exercice ${selectedYear}`,
@@ -87,7 +87,7 @@ const ClotureExercice = () => {
     mutationFn: async () => {
       if (!profile?.tenant_id) throw new Error("Tenant non trouvé");
 
-      const { data, error } = await supabase.rpc("allocate_result", {
+      const { data, error } = await (supabase.rpc as any)("allocate_result", {
         p_tenant_id: profile.tenant_id,
         p_fiscal_year_end: fiscalYearEnd,
         p_reserve_legale: Number(reserveLegale) || 0,
