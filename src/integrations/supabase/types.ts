@@ -61,6 +61,7 @@ export type Database = {
           created_at: string
           currency: string
           current_balance: number
+          deleted_at: string | null
           iban: string | null
           id: string
           initial_balance: number
@@ -80,6 +81,7 @@ export type Database = {
           created_at?: string
           currency?: string
           current_balance?: number
+          deleted_at?: string | null
           iban?: string | null
           id?: string
           initial_balance?: number
@@ -99,6 +101,7 @@ export type Database = {
           created_at?: string
           currency?: string
           current_balance?: number
+          deleted_at?: string | null
           iban?: string | null
           id?: string
           initial_balance?: number
@@ -121,6 +124,7 @@ export type Database = {
       admin_settings: {
         Row: {
           created_at: string
+          deleted_at: string | null
           description: string | null
           id: string
           is_public: boolean | null
@@ -131,6 +135,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           is_public?: boolean | null
@@ -141,6 +146,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           is_public?: boolean | null
@@ -309,6 +315,7 @@ export type Database = {
           closed_by: string | null
           code: string | null
           created_at: string
+          deleted_at: string | null
           end_date: string | null
           id: string
           name: string
@@ -333,6 +340,7 @@ export type Database = {
           closed_by?: string | null
           code?: string | null
           created_at?: string
+          deleted_at?: string | null
           end_date?: string | null
           id?: string
           name: string
@@ -357,6 +365,7 @@ export type Database = {
           closed_by?: string | null
           code?: string | null
           created_at?: string
+          deleted_at?: string | null
           end_date?: string | null
           id?: string
           name?: string
@@ -380,6 +389,7 @@ export type Database = {
           account_number: string
           account_type: Database["public"]["Enums"]["account_type"]
           created_at: string
+          deleted_at: string | null
           description: string | null
           id: string
           is_active: boolean
@@ -394,6 +404,7 @@ export type Database = {
           account_number: string
           account_type: Database["public"]["Enums"]["account_type"]
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
@@ -408,6 +419,7 @@ export type Database = {
           account_number?: string
           account_type?: Database["public"]["Enums"]["account_type"]
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
@@ -499,6 +511,7 @@ export type Database = {
         Row: {
           created_at: string
           daily_rate: number | null
+          deleted_at: string | null
           full_name: string
           id: string
           is_active: boolean
@@ -509,6 +522,7 @@ export type Database = {
         Insert: {
           created_at?: string
           daily_rate?: number | null
+          deleted_at?: string | null
           full_name: string
           id?: string
           is_active?: boolean
@@ -519,6 +533,7 @@ export type Database = {
         Update: {
           created_at?: string
           daily_rate?: number | null
+          deleted_at?: string | null
           full_name?: string
           id?: string
           is_active?: boolean
@@ -623,6 +638,45 @@ export type Database = {
           },
         ]
       }
+      domain_events: {
+        Row: {
+          aggregate_id: string
+          aggregate_type: string
+          created_by: string | null
+          event_type: string
+          id: string
+          occurred_at: string
+          payload: Json
+          processed_at: string | null
+          processing_error: string | null
+          tenant_id: string
+        }
+        Insert: {
+          aggregate_id: string
+          aggregate_type: string
+          created_by?: string | null
+          event_type: string
+          id?: string
+          occurred_at?: string
+          payload?: Json
+          processed_at?: string | null
+          processing_error?: string | null
+          tenant_id: string
+        }
+        Update: {
+          aggregate_id?: string
+          aggregate_type?: string
+          created_by?: string | null
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          payload?: Json
+          processed_at?: string | null
+          processing_error?: string | null
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           created_at: string
@@ -680,6 +734,7 @@ export type Database = {
           account_number: string | null
           created_at: string
           default_account_id: string | null
+          deleted_at: string | null
           description: string | null
           id: string
           is_active: boolean
@@ -694,6 +749,7 @@ export type Database = {
           account_number?: string | null
           created_at?: string
           default_account_id?: string | null
+          deleted_at?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
@@ -708,6 +764,7 @@ export type Database = {
           account_number?: string | null
           created_at?: string
           default_account_id?: string | null
+          deleted_at?: string | null
           description?: string | null
           id?: string
           is_active?: boolean
@@ -834,6 +891,7 @@ export type Database = {
           asset_name: string
           category: string | null
           created_at: string
+          deleted_at: string | null
           depreciation_method: string
           disposal_date: string | null
           disposal_value: number | null
@@ -857,6 +915,7 @@ export type Database = {
           asset_name: string
           category?: string | null
           created_at?: string
+          deleted_at?: string | null
           depreciation_method?: string
           disposal_date?: string | null
           disposal_value?: number | null
@@ -880,6 +939,7 @@ export type Database = {
           asset_name?: string
           category?: string | null
           created_at?: string
+          deleted_at?: string | null
           depreciation_method?: string
           disposal_date?: string | null
           disposal_value?: number | null
@@ -908,6 +968,7 @@ export type Database = {
           category: string | null
           cmp: number
           created_at: string
+          deleted_at: string | null
           id: string
           is_active: boolean
           item_category: string | null
@@ -931,6 +992,7 @@ export type Database = {
           category?: string | null
           cmp?: number
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_active?: boolean
           item_category?: string | null
@@ -954,6 +1016,7 @@ export type Database = {
           category?: string | null
           cmp?: number
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_active?: boolean
           item_category?: string | null
@@ -1337,6 +1400,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           daily_worker_id: string | null
+          deleted_at: string | null
           employee_id: string | null
           id: string
           notes: string | null
@@ -1360,6 +1424,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           daily_worker_id?: string | null
+          deleted_at?: string | null
           employee_id?: string | null
           id?: string
           notes?: string | null
@@ -1383,6 +1448,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           daily_worker_id?: string | null
+          deleted_at?: string | null
           employee_id?: string | null
           id?: string
           notes?: string | null
@@ -1444,6 +1510,7 @@ export type Database = {
           cost_per_ton: number
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           estimated_value: number
           harvest_date: string
           humidity_percent: number | null
@@ -1467,6 +1534,7 @@ export type Database = {
           cost_per_ton?: number
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           estimated_value?: number
           harvest_date?: string
           humidity_percent?: number | null
@@ -1490,6 +1558,7 @@ export type Database = {
           cost_per_ton?: number
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           estimated_value?: number
           harvest_date?: string
           humidity_percent?: number | null
@@ -1904,6 +1973,7 @@ export type Database = {
           certificate_number: string
           client_id: string | null
           created_at: string
+          deleted_at: string | null
           expiry_date: string | null
           id: string
           issued_by: string | null
@@ -1919,6 +1989,7 @@ export type Database = {
           certificate_number: string
           client_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           expiry_date?: string | null
           id?: string
           issued_by?: string | null
@@ -1934,6 +2005,7 @@ export type Database = {
           certificate_number?: string
           client_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           expiry_date?: string | null
           id?: string
           issued_by?: string | null
@@ -1952,6 +2024,7 @@ export type Database = {
           batch_number: string | null
           color_grade: string | null
           created_at: string
+          deleted_at: string | null
           grain_size: string | null
           humidity_level: number | null
           humidity_percent: number | null
@@ -1971,6 +2044,7 @@ export type Database = {
           batch_number?: string | null
           color_grade?: string | null
           created_at?: string
+          deleted_at?: string | null
           grain_size?: string | null
           humidity_level?: number | null
           humidity_percent?: number | null
@@ -1990,6 +2064,7 @@ export type Database = {
           batch_number?: string | null
           color_grade?: string | null
           created_at?: string
+          deleted_at?: string | null
           grain_size?: string | null
           humidity_level?: number | null
           humidity_percent?: number | null
@@ -2011,6 +2086,7 @@ export type Database = {
         Row: {
           amount_ht: number | null
           created_at: string
+          deleted_at: string | null
           description: string
           id: string
           inventory_item_id: string | null
@@ -2029,6 +2105,7 @@ export type Database = {
         Insert: {
           amount_ht?: number | null
           created_at?: string
+          deleted_at?: string | null
           description: string
           id?: string
           inventory_item_id?: string | null
@@ -2047,6 +2124,7 @@ export type Database = {
         Update: {
           amount_ht?: number | null
           created_at?: string
+          deleted_at?: string | null
           description?: string
           id?: string
           inventory_item_id?: string | null
@@ -2083,6 +2161,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_name: string | null
+          deleted_at: string | null
           delivered: boolean
           delivered_at: string | null
           delivered_by: string | null
@@ -2123,6 +2202,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_name?: string | null
+          deleted_at?: string | null
           delivered?: boolean
           delivered_at?: string | null
           delivered_by?: string | null
@@ -2163,6 +2243,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_name?: string | null
+          deleted_at?: string | null
           delivered?: boolean
           delivered_at?: string | null
           delivered_by?: string | null
@@ -2222,6 +2303,7 @@ export type Database = {
           config: Json | null
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           frequency: string
           id: string
           is_active: boolean
@@ -2236,6 +2318,7 @@ export type Database = {
           config?: Json | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           frequency?: string
           id?: string
           is_active?: boolean
@@ -2250,6 +2333,7 @@ export type Database = {
           config?: Json | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           frequency?: string
           id?: string
           is_active?: boolean
@@ -2369,6 +2453,7 @@ export type Database = {
           address: string | null
           contact_person: string | null
           created_at: string
+          deleted_at: string | null
           email: string | null
           id: string
           is_active: boolean
@@ -2387,6 +2472,7 @@ export type Database = {
           address?: string | null
           contact_person?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           id?: string
           is_active?: boolean
@@ -2405,6 +2491,7 @@ export type Database = {
           address?: string | null
           contact_person?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           id?: string
           is_active?: boolean
@@ -2535,6 +2622,7 @@ export type Database = {
       teams: {
         Row: {
           created_at: string
+          deleted_at: string | null
           description: string | null
           efficiency_rate: number
           id: string
@@ -2550,6 +2638,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           efficiency_rate?: number
           id?: string
@@ -2565,6 +2654,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           efficiency_rate?: number
           id?: string
@@ -2845,6 +2935,7 @@ export type Database = {
           address: string | null
           code: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           is_active: boolean
           name: string
@@ -2855,6 +2946,7 @@ export type Database = {
           address?: string | null
           code?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -2865,6 +2957,7 @@ export type Database = {
           address?: string | null
           code?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_active?: boolean
           name?: string
@@ -2902,6 +2995,16 @@ export type Database = {
       create_valuation_snapshot: {
         Args: { p_snapshot_date?: string }
         Returns: Json
+      }
+      emit_domain_event: {
+        Args: {
+          _aggregate_id: string
+          _aggregate_type: string
+          _event_type: string
+          _payload?: Json
+          _tenant_id: string
+        }
+        Returns: string
       }
       generate_trial_balance: {
         Args: {
@@ -2942,6 +3045,13 @@ export type Database = {
         }[]
       }
       get_user_tenant_id: { Args: { _user_id: string }; Returns: string }
+      has_any_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

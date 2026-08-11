@@ -191,7 +191,7 @@ const Immobilisations = () => {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        disposedAssets.map((a) => (
+                        disposedAssets.map((a: any) => (
                           <TableRow key={a.id}>
                             <TableCell className="font-medium">{a.asset_name}</TableCell>
                             <TableCell>

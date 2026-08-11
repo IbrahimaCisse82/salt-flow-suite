@@ -71,7 +71,7 @@ export async function subscribeToPushNotifications(userId: string): Promise<bool
     });
 
     // Sauvegarder l'abonnement dans la base de données
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('push_subscriptions')
       .upsert([{
         user_id: userId,
@@ -111,7 +111,7 @@ export async function unsubscribeFromPushNotifications(): Promise<boolean> {
     }
 
     // Supprimer de la base de données
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('push_subscriptions')
       .delete()
       .eq('endpoint', subscription.endpoint);
