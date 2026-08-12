@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { GeneralLedger } from "@/components/Accounting/GeneralLedger";
 import { AccountingFlowDiagram } from "@/components/Accounting/AccountingFlowDiagram";
 import { LedgerAuditLog } from "@/components/Accounting/LedgerAuditLog";
+import { ShadowEntriesPanel } from "@/components/Accounting/ShadowEntriesPanel";
 
 const GrandLivre = () => {
   const { isOpen } = useSidebar();
@@ -18,6 +19,7 @@ const GrandLivre = () => {
         <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto">
           <Breadcrumbs />
           <AccountingFlowDiagram />
+          <ShadowEntriesPanel />
           <GeneralLedger />
           <LedgerAuditLog />
         </main>
