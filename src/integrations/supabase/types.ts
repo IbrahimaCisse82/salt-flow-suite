@@ -50,6 +50,83 @@ export type Database = {
         }
         Relationships: []
       }
+      accounting_config: {
+        Row: {
+          activated_at: string | null
+          created_at: string
+          posting_mode: string
+          shadow_since: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          created_at?: string
+          posting_mode?: string
+          shadow_since?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          created_at?: string
+          posting_mode?: string
+          shadow_since?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_shadow_entries: {
+        Row: {
+          created_at: string
+          description: string | null
+          entry_date: string
+          event_type: string
+          id: string
+          journal_code: string
+          lines: Json
+          source_id: string | null
+          source_table: string | null
+          tenant_id: string
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          entry_date: string
+          event_type: string
+          id?: string
+          journal_code: string
+          lines: Json
+          source_id?: string | null
+          source_table?: string | null
+          tenant_id: string
+          total_amount?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          entry_date?: string
+          event_type?: string
+          id?: string
+          journal_code?: string
+          lines?: Json
+          source_id?: string | null
+          source_table?: string | null
+          tenant_id?: string
+          total_amount?: number
+        }
+        Relationships: []
+      }
       accounts: {
         Row: {
           account_name: string
@@ -3073,6 +3150,20 @@ export type Database = {
         Returns: Json
       }
       next_document_number: { Args: { p_doc_type: string }; Returns: string }
+      post_accounting_entry: {
+        Args: {
+          _description: string
+          _entry_date: string
+          _event_type: string
+          _journal: string
+          _lines: Json
+          _source_id: string
+          _source_table: string
+          _tenant_id: string
+          _tx_type?: Database["public"]["Enums"]["transaction_type"]
+        }
+        Returns: string
+      }
       post_depreciation: { Args: { p_schedule_id: string }; Returns: Json }
       process_stock_movement: {
         Args: {
@@ -3087,6 +3178,10 @@ export type Database = {
           p_warehouse_to?: string
         }
         Returns: Json
+      }
+      resolve_account: {
+        Args: { _name?: string; _number: string; _tenant_id: string }
+        Returns: string
       }
       seed_chart_of_accounts: {
         Args: { _tenant_id: string }
