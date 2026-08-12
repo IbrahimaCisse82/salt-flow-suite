@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,9 +86,8 @@ export const ShadowEntriesPanel = () => {
             </TableHeader>
             <TableBody>
               {entries.map((e) => (
-                <>
+                <Fragment key={e.id}>
                   <TableRow
-                    key={e.id}
                     className="cursor-pointer"
                     onClick={() => setExpanded(expanded === e.id ? null : e.id)}
                   >
@@ -107,7 +106,7 @@ export const ShadowEntriesPanel = () => {
                     <TableCell className="text-right font-medium">{formatFCFA(e.total_amount)}</TableCell>
                   </TableRow>
                   {expanded === e.id && (
-                    <TableRow key={`${e.id}-lines`}>
+                    <TableRow>
                       <TableCell colSpan={5} className="bg-muted/40">
                         <div className="space-y-1 text-sm">
                           <p className="text-muted-foreground">{e.description}</p>
@@ -123,7 +122,7 @@ export const ShadowEntriesPanel = () => {
                       </TableCell>
                     </TableRow>
                   )}
-                </>
+                </Fragment>
               ))}
             </TableBody>
           </Table>
