@@ -37,10 +37,18 @@ serve(async (req) => {
       );
     }
 
-    // ── Input validation ──
+    // ── Input validation (accepts query params or JSON body) ──
     const url = new URL(req.url);
-    const latStr = url.searchParams.get('lat');
-    const lonStr = url.searchParams.get('lon');
+    let latStr = url.searchParams.get('lat');
+    let lonStr = url.searchParams.get('lon');
+
+    if (!latStr || !lonStr) {
+      const body = await req.json().catch(() => null);
+      if (body && typeof body === 'object') {
+        latStr = body.lat != null ? String(body.lat) : latStr;
+        lonStr = body.lon != null ? String(body.lon) : lonStr;
+      }
+    }
 
     if (!latStr || !lonStr) {
       return new Response(
