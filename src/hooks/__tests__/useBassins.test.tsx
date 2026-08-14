@@ -1,8 +1,9 @@
-// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import * as AuthContext from '@/contexts/AuthContext';
+import { useBassins } from '../useBassins';
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(),
@@ -22,7 +23,7 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return ({ children }: { children: React.ReactNode }) => (
+  return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
@@ -40,7 +41,6 @@ describe('useBassins', () => {
       loading: false,
     } as any);
 
-    const { useBassins } = require('../useBassins');
     const { result } = renderHook(() => useBassins(), {
       wrapper: createWrapper(),
     });

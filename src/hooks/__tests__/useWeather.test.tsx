@@ -1,8 +1,17 @@
-// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { useWeather } from '../useWeather';
+import { supabase } from '@/integrations/supabase/client';
+
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    functions: { invoke: vi.fn() },
+  },
+}));
+
+const invoke = vi.mocked(supabase.functions.invoke);
 
 const waitFor = async (callback: () => void, timeout = 3000) => {
   const startTime = Date.now();
@@ -17,13 +26,11 @@ const waitFor = async (callback: () => void, timeout = 3000) => {
   callback();
 };
 
-global.fetch = vi.fn();
-
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return ({ children }: { children: React.ReactNode }) => (
+  return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>
@@ -60,10 +67,7 @@ describe('useWeather', () => {
       forecast: [],
     };
 
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockWeatherData,
-    } as Response);
+    invoke.mockResolvedValueOnce({ data: mockWeatherData, error: null } as never);
 
     const { result } = renderHook(() => useWeather(45.5, -73.5), {
       wrapper: createWrapper(),
@@ -77,10 +81,7 @@ describe('useWeather', () => {
   });
 
   it('should handle fetch errors', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-    } as Response);
+    invoke.mockResolvedValueOnce({ data: null, error: new Error('boom') } as never);
 
     const { result } = renderHook(() => useWeather(45.5, -73.5), {
       wrapper: createWrapper(),
@@ -97,21 +98,18 @@ describe('useWeather', () => {
     });
 
     expect(result.current.isLoading).toBe(false);
-    expect(fetch).not.toHaveBeenCalled();
+    expect(invoke).not.toHaveBeenCalled();
   });
 
   it('should refetch data periodically', async () => {
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: async () => ({ current: {}, forecast: [] }),
-    } as Response);
+    invoke.mockResolvedValue({ data: { current: {}, forecast: [] }, error: null } as never);
 
     renderHook(() => useWeather(45.5, -73.5), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalled();
+      expect(invoke).toHaveBeenCalled();
     });
   });
 });

@@ -38,10 +38,20 @@ export function sanitizeRichText(dirty: string): string {
  * SECURITY: Strip ALL HTML tags
  */
 export function stripAllHtml(text: string): string {
-  return DOMPurify.sanitize(text, {
+  if (!text) return '';
+  // 1. Remove executable elements with their content
+  const withoutExecutable = text.replace(
+    /<(script|style|iframe|object|embed)\b[^>]*>[\s\S]*?<\/\1\s*>/gi,
+    ''
+  );
+  // 2. DOMPurify pass (defense in depth)
+  const sanitized = DOMPurify.sanitize(withoutExecutable, {
     ALLOWED_TAGS: [],
     ALLOWED_ATTR: [],
+    KEEP_CONTENT: true,
   });
+  // 3. Guarantee no residual markup regardless of DOM implementation
+  return sanitized.replace(/<[^>]*>/g, '');
 }
 
 /**

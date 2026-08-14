@@ -72,6 +72,12 @@ describe('RateLimiter', () => {
 });
 
 describe('withRateLimit', () => {
+  beforeEach(() => {
+    rateLimiter.clear('test');
+    rateLimiter.clear('key-1');
+    rateLimiter.clear('key-2');
+  });
+
   it('should allow function execution within limit', () => {
     const fn = vi.fn((x: number) => x * 2);
     const config = { maxRequests: 2, windowMs: 1000 };
