@@ -29,30 +29,18 @@ export const useWeather = (lat?: number, lon?: number) => {
         throw new Error('Coordonnées manquantes');
       }
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
+      const { data, error } = await supabase.functions.invoke<WeatherData>('get-weather', {
+        body: { lat, lon },
+      });
 
-      if (!token) {
-        throw new Error('Session requise pour accéder à la météo');
+      if (error) {
+        throw new Error(error.message || 'Erreur lors de la récupération de la météo');
+      }
+      if (!data) {
+        throw new Error('Aucune donnée météo disponible');
       }
 
-      const response = await fetch(
-        `https://mwxybozfksdxrsipywlh.supabase.co/functions/v1/get-weather?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errBody = await response.json().catch(() => ({}));
-        throw new Error(errBody.error || 'Erreur lors de la récupération de la météo');
-      }
-
-      return response.json();
+      return data;
     },
     enabled: !!lat && !!lon,
     refetchInterval: 30 * 60 * 1000,
