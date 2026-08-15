@@ -31,6 +31,11 @@ export const OfflineSyncIndicator = () => {
             <>
               <WifiOff className="h-4 w-4" />
               <span className="hidden sm:inline">Hors ligne</span>
+              {pendingCount > 0 && (
+                <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                  {pendingCount}
+                </Badge>
+              )}
             </>
           ) : isSyncing ? (
             <>
