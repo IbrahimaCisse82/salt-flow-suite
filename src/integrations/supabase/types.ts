@@ -868,6 +868,48 @@ export type Database = {
           },
         ]
       }
+      financial_reports: {
+        Row: {
+          created_at: string
+          data: Json
+          deleted_at: string | null
+          generated_by: string | null
+          id: string
+          period_end: string | null
+          period_start: string | null
+          report_type: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          deleted_at?: string | null
+          generated_by?: string | null
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          report_type: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          deleted_at?: string | null
+          generated_by?: string | null
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          report_type?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fiscal_periods: {
         Row: {
           closed_at: string | null
@@ -1815,8 +1857,10 @@ export type Database = {
           created_at: string
           id: string
           metadata: Json | null
+          new_amount: number | null
           new_status: string | null
           notes: string | null
+          previous_amount: number | null
           previous_status: string | null
           purchase_order_id: string
           tenant_id: string
@@ -1829,8 +1873,10 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json | null
+          new_amount?: number | null
           new_status?: string | null
           notes?: string | null
+          previous_amount?: number | null
           previous_status?: string | null
           purchase_order_id: string
           tenant_id?: string
@@ -1843,8 +1889,10 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json | null
+          new_amount?: number | null
           new_status?: string | null
           notes?: string | null
+          previous_amount?: number | null
           previous_status?: string | null
           purchase_order_id?: string
           tenant_id?: string
@@ -1947,6 +1995,9 @@ export type Database = {
           previous_total: number | null
           received_at: string | null
           received_by: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
           requires_reapproval: boolean
           status: Database["public"]["Enums"]["po_status"]
           subtotal: number
@@ -1979,6 +2030,9 @@ export type Database = {
           previous_total?: number | null
           received_at?: string | null
           received_by?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           requires_reapproval?: boolean
           status?: Database["public"]["Enums"]["po_status"]
           subtotal?: number
@@ -2011,6 +2065,9 @@ export type Database = {
           previous_total?: number | null
           received_at?: string | null
           received_by?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           requires_reapproval?: boolean
           status?: Database["public"]["Enums"]["po_status"]
           subtotal?: number
@@ -3329,6 +3386,9 @@ export type Database = {
         | "pending_approval"
         | "rejected"
         | "partially_received"
+        | "modified"
+        | "partially_paid"
+        | "paid"
       purchase_payment_type: "advance" | "payment" | "refund"
       quality_status: "pending" | "approved" | "rejected"
       sale_status:
@@ -3534,6 +3594,9 @@ export const Constants = {
         "pending_approval",
         "rejected",
         "partially_received",
+        "modified",
+        "partially_paid",
+        "paid",
       ],
       purchase_payment_type: ["advance", "payment", "refund"],
       quality_status: ["pending", "approved", "rejected"],
