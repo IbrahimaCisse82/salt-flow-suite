@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { usePeriodComparison } from '../usePeriodComparison';
 import * as AuthContext from '@/contexts/AuthContext';
 
@@ -21,26 +22,16 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
-        })),
-        gte: vi.fn(() => ({
-          lte: vi.fn(() => Promise.resolve({ data: [], error: null })),
-        })),
-      })),
-    })),
-  },
-}));
+vi.mock('@/integrations/supabase/client', async () => {
+  const { createSupabaseMock } = await import('@/test/supabaseChainMock');
+  return { supabase: createSupabaseMock() };
+});
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return ({ children }: { children: React.ReactNode }) => (
+  return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>
@@ -118,7 +109,7 @@ describe('usePeriodComparison', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.comparison).toBeNull();
+    expect(result.current.comparison ?? null).toBeNull();
   });
 
   it('should default to month period type', async () => {

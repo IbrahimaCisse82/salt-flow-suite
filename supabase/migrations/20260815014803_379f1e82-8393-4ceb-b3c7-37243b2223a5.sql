@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.set_team_member_tenant() FROM PUBLIC, anon, authenticated;

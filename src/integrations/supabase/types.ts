@@ -34,7 +34,7 @@ export type Database = {
           message?: string | null
           notification_type: string
           reference_id?: string | null
-          tenant_id: string
+          tenant_id?: string
           title: string
         }
         Update: {
@@ -64,7 +64,7 @@ export type Database = {
           created_at?: string
           posting_mode?: string
           shadow_since?: string
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -109,7 +109,7 @@ export type Database = {
           lines: Json
           source_id?: string | null
           source_table?: string | null
-          tenant_id: string
+          tenant_id?: string
           total_amount?: number
         }
         Update: {
@@ -165,7 +165,7 @@ export type Database = {
           is_active?: boolean
           notes?: string | null
           swift?: string | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -218,7 +218,7 @@ export type Database = {
           is_public?: boolean | null
           setting_key: string
           setting_value?: Json | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -272,7 +272,7 @@ export type Database = {
           notes?: string | null
           status?: Database["public"]["Enums"]["bassin_status"]
           surface_m2?: number | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -319,7 +319,7 @@ export type Database = {
           notes?: string | null
           phase?: string
           spent_amount?: number
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -362,7 +362,7 @@ export type Database = {
           phase: string
           spent_amount?: number
           start_date?: string | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -428,7 +428,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["campagne_status"]
           target_production?: number | null
           target_production_tonnes?: number | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
           year?: number | null
         }
@@ -487,7 +487,7 @@ export type Database = {
           is_active?: boolean
           is_system?: boolean
           parent_account_id?: string | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -557,7 +557,7 @@ export type Database = {
           phone?: string | null
           registration_number?: string | null
           tax_id?: string | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -604,7 +604,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           phone?: string | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -648,7 +648,7 @@ export type Database = {
           period_end: string
           period_start: string
           posted_at?: string | null
-          tenant_id: string
+          tenant_id?: string
           transaction_id?: string | null
         }
         Update: {
@@ -694,7 +694,7 @@ export type Database = {
         Insert: {
           doc_type: string
           last_number?: number
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
           year: number
         }
@@ -738,7 +738,7 @@ export type Database = {
           payload?: Json
           processed_at?: string | null
           processing_error?: string | null
-          tenant_id: string
+          tenant_id?: string
         }
         Update: {
           aggregate_id?: string
@@ -784,7 +784,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           salary?: number | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -833,7 +833,7 @@ export type Database = {
           name: string
           observations?: string | null
           syscohada_category?: string | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -868,6 +868,48 @@ export type Database = {
           },
         ]
       }
+      financial_reports: {
+        Row: {
+          created_at: string
+          data: Json
+          deleted_at: string | null
+          generated_by: string | null
+          id: string
+          period_end: string | null
+          period_start: string | null
+          report_type: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          deleted_at?: string | null
+          generated_by?: string | null
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          report_type: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          deleted_at?: string | null
+          generated_by?: string | null
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          report_type?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fiscal_periods: {
         Row: {
           closed_at: string | null
@@ -892,7 +934,7 @@ export type Database = {
           period_number: number
           period_start: string
           status?: Database["public"]["Enums"]["fiscal_period_status"]
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -939,7 +981,7 @@ export type Database = {
           id?: string
           start_date: string
           status?: Database["public"]["Enums"]["fiscal_period_status"]
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
           year: number
         }
@@ -1001,7 +1043,7 @@ export type Database = {
           notes?: string | null
           residual_value?: number
           status?: Database["public"]["Enums"]["fixed_asset_status"]
-          tenant_id: string
+          tenant_id?: string
           total_depreciated?: number | null
           updated_at?: string
           useful_life_years?: number
@@ -1046,11 +1088,14 @@ export type Database = {
           cmp: number
           created_at: string
           deleted_at: string | null
+          description: string | null
           id: string
           is_active: boolean
           item_category: string | null
           item_code: string | null
           item_name: string | null
+          last_purchase_date: string | null
+          last_purchase_price: number
           name: string
           notes: string | null
           quantity: number
@@ -1060,6 +1105,7 @@ export type Database = {
           sku: string | null
           storage_location: string | null
           tenant_id: string
+          total_stock_value: number | null
           unit_cost: number
           unit_of_measure: string
           updated_at: string
@@ -1070,12 +1116,15 @@ export type Database = {
           cmp?: number
           created_at?: string
           deleted_at?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean
           item_category?: string | null
           item_code?: string | null
           item_name?: string | null
-          name: string
+          last_purchase_date?: string | null
+          last_purchase_price?: number
+          name?: string
           notes?: string | null
           quantity?: number
           quantity_on_hand?: number | null
@@ -1083,7 +1132,8 @@ export type Database = {
           reserved_quantity?: number
           sku?: string | null
           storage_location?: string | null
-          tenant_id: string
+          tenant_id?: string
+          total_stock_value?: number | null
           unit_cost?: number
           unit_of_measure?: string
           updated_at?: string
@@ -1094,11 +1144,14 @@ export type Database = {
           cmp?: number
           created_at?: string
           deleted_at?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean
           item_category?: string | null
           item_code?: string | null
           item_name?: string | null
+          last_purchase_date?: string | null
+          last_purchase_price?: number
           name?: string
           notes?: string | null
           quantity?: number
@@ -1108,6 +1161,7 @@ export type Database = {
           sku?: string | null
           storage_location?: string | null
           tenant_id?: string
+          total_stock_value?: number | null
           unit_cost?: number
           unit_of_measure?: string
           updated_at?: string
@@ -1144,7 +1198,7 @@ export type Database = {
           reference_id?: string | null
           remaining_quantity: number
           source_type?: string | null
-          tenant_id: string
+          tenant_id?: string
           total_cost?: number
           total_value?: number | null
           unit_cost?: number
@@ -1195,7 +1249,7 @@ export type Database = {
           inventory_item_id: string
           quantity_on_hand?: number
           snapshot_date?: string
-          tenant_id: string
+          tenant_id?: string
           total_value?: number
         }
         Update: {
@@ -1236,7 +1290,7 @@ export type Database = {
           inventory_item_id: string
           quantity?: number
           snapshot_date: string
-          tenant_id: string
+          tenant_id?: string
           total_value?: number
         }
         Update: {
@@ -1286,7 +1340,7 @@ export type Database = {
           is_locked?: boolean
           journal_code?: string
           reference?: string | null
-          tenant_id: string
+          tenant_id?: string
           transaction_id?: string | null
           updated_at?: string
         }
@@ -1357,7 +1411,7 @@ export type Database = {
           old_data?: Json | null
           record_id: string
           table_name: string
-          tenant_id: string
+          tenant_id?: string
           user_id?: string | null
         }
         Update: {
@@ -1399,7 +1453,7 @@ export type Database = {
           reference_id?: string | null
           sent_at?: string | null
           status?: string
-          tenant_id: string
+          tenant_id?: string
           title: string
           url?: string | null
           user_id?: string | null
@@ -1448,7 +1502,7 @@ export type Database = {
           payment_method?: string
           reference?: string | null
           sale_id?: string | null
-          tenant_id: string
+          tenant_id?: string
           transaction_id?: string | null
         }
         Update: {
@@ -1488,6 +1542,8 @@ export type Database = {
           payment_method: string | null
           period_end: string | null
           period_start: string | null
+          processed_by: string | null
+          receiver_signature: string | null
           reference: string | null
           status: Database["public"]["Enums"]["payment_status"]
           tenant_id: string
@@ -1512,9 +1568,11 @@ export type Database = {
           payment_method?: string | null
           period_end?: string | null
           period_start?: string | null
+          processed_by?: string | null
+          receiver_signature?: string | null
           reference?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -1536,6 +1594,8 @@ export type Database = {
           payment_method?: string | null
           period_end?: string | null
           period_start?: string | null
+          processed_by?: string | null
+          receiver_signature?: string | null
           reference?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           tenant_id?: string
@@ -1603,6 +1663,7 @@ export type Database = {
           tenant_id: string
           traceability_code: string | null
           updated_at: string
+          warehouse_id: string | null
         }
         Insert: {
           bassin_id?: string | null
@@ -1624,9 +1685,10 @@ export type Database = {
           salt_type?: string
           status?: string
           team_id?: string | null
-          tenant_id: string
+          tenant_id?: string
           traceability_code?: string | null
           updated_at?: string
+          warehouse_id?: string | null
         }
         Update: {
           bassin_id?: string | null
@@ -1651,6 +1713,7 @@ export type Database = {
           tenant_id?: string
           traceability_code?: string | null
           updated_at?: string
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -1684,7 +1747,9 @@ export type Database = {
           full_name: string | null
           id: string
           is_active: boolean
+          notification_preferences: Json
           phone: string | null
+          security_preferences: Json
           tenant_id: string | null
           updated_at: string
           user_id: string
@@ -1696,7 +1761,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_active?: boolean
+          notification_preferences?: Json
           phone?: string | null
+          security_preferences?: Json
           tenant_id?: string | null
           updated_at?: string
           user_id: string
@@ -1708,7 +1775,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_active?: boolean
+          notification_preferences?: Json
           phone?: string | null
+          security_preferences?: Json
           tenant_id?: string | null
           updated_at?: string
           user_id?: string
@@ -1755,7 +1824,7 @@ export type Database = {
           read_at?: string | null
           target_role?: string | null
           target_user_id?: string | null
-          tenant_id: string
+          tenant_id?: string
           title?: string | null
         }
         Update: {
@@ -1787,37 +1856,49 @@ export type Database = {
       }
       purchase_order_history: {
         Row: {
-          action: string
+          action: string | null
+          action_by: string | null
+          action_type: string | null
           changed_by: string | null
           created_at: string
           id: string
           metadata: Json | null
+          new_amount: number | null
           new_status: string | null
           notes: string | null
+          previous_amount: number | null
           previous_status: string | null
           purchase_order_id: string
           tenant_id: string
         }
         Insert: {
-          action: string
+          action?: string | null
+          action_by?: string | null
+          action_type?: string | null
           changed_by?: string | null
           created_at?: string
           id?: string
           metadata?: Json | null
+          new_amount?: number | null
           new_status?: string | null
           notes?: string | null
+          previous_amount?: number | null
           previous_status?: string | null
           purchase_order_id: string
-          tenant_id: string
+          tenant_id?: string
         }
         Update: {
-          action?: string
+          action?: string | null
+          action_by?: string | null
+          action_type?: string | null
           changed_by?: string | null
           created_at?: string
           id?: string
           metadata?: Json | null
+          new_amount?: number | null
           new_status?: string | null
           notes?: string | null
+          previous_amount?: number | null
           previous_status?: string | null
           purchase_order_id?: string
           tenant_id?: string
@@ -1827,7 +1908,7 @@ export type Database = {
       purchase_order_items: {
         Row: {
           created_at: string
-          description: string
+          description: string | null
           expense_type_id: string | null
           id: string
           inventory_item_id: string | null
@@ -1839,6 +1920,8 @@ export type Database = {
           notes: string | null
           purchase_order_id: string
           quantity: number
+          received_at: string | null
+          received_by: string | null
           received_notes: string | null
           received_quantity: number
           tenant_id: string
@@ -1849,7 +1932,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          description: string
+          description?: string | null
           expense_type_id?: string | null
           id?: string
           inventory_item_id?: string | null
@@ -1861,9 +1944,11 @@ export type Database = {
           notes?: string | null
           purchase_order_id: string
           quantity?: number
+          received_at?: string | null
+          received_by?: string | null
           received_notes?: string | null
           received_quantity?: number
-          tenant_id: string
+          tenant_id?: string
           total_price?: number
           unit_of_measure?: string
           unit_price?: number
@@ -1871,7 +1956,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          description?: string
+          description?: string | null
           expense_type_id?: string | null
           id?: string
           inventory_item_id?: string | null
@@ -1883,6 +1968,8 @@ export type Database = {
           notes?: string | null
           purchase_order_id?: string
           quantity?: number
+          received_at?: string | null
+          received_by?: string | null
           received_notes?: string | null
           received_quantity?: number
           tenant_id?: string
@@ -1914,6 +2001,9 @@ export type Database = {
           previous_total: number | null
           received_at: string | null
           received_by: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
           requires_reapproval: boolean
           status: Database["public"]["Enums"]["po_status"]
           subtotal: number
@@ -1946,12 +2036,15 @@ export type Database = {
           previous_total?: number | null
           received_at?: string | null
           received_by?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           requires_reapproval?: boolean
           status?: Database["public"]["Enums"]["po_status"]
           subtotal?: number
           supplier_id?: string | null
           tax_amount?: number
-          tenant_id: string
+          tenant_id?: string
           total_amount?: number
           total_paid?: number
           tva_amount?: number | null
@@ -1978,6 +2071,9 @@ export type Database = {
           previous_total?: number | null
           received_at?: string | null
           received_by?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           requires_reapproval?: boolean
           status?: Database["public"]["Enums"]["po_status"]
           subtotal?: number
@@ -2026,7 +2122,7 @@ export type Database = {
           payment_type?: Database["public"]["Enums"]["purchase_payment_type"]
           processed_by?: string | null
           purchase_order_id: string
-          tenant_id: string
+          tenant_id?: string
           transaction_id?: string | null
         }
         Update: {
@@ -2075,7 +2171,7 @@ export type Database = {
           pdf_url?: string | null
           production_record_id?: string | null
           quality_test_id?: string | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -2106,10 +2202,12 @@ export type Database = {
           humidity_level: number | null
           humidity_percent: number | null
           id: string
+          impurities_level: number | null
           notes: string | null
           production_record_id: string | null
           purity_percent: number | null
           quality_grade: string | null
+          quality_status: Database["public"]["Enums"]["quality_status"]
           salt_purity: number | null
           status: Database["public"]["Enums"]["quality_status"]
           tenant_id: string
@@ -2126,13 +2224,15 @@ export type Database = {
           humidity_level?: number | null
           humidity_percent?: number | null
           id?: string
+          impurities_level?: number | null
           notes?: string | null
           production_record_id?: string | null
           purity_percent?: number | null
           quality_grade?: string | null
+          quality_status?: Database["public"]["Enums"]["quality_status"]
           salt_purity?: number | null
           status?: Database["public"]["Enums"]["quality_status"]
-          tenant_id: string
+          tenant_id?: string
           test_date?: string
           tested_by?: string | null
           updated_at?: string
@@ -2146,10 +2246,12 @@ export type Database = {
           humidity_level?: number | null
           humidity_percent?: number | null
           id?: string
+          impurities_level?: number | null
           notes?: string | null
           production_record_id?: string | null
           purity_percent?: number | null
           quality_grade?: string | null
+          quality_status?: Database["public"]["Enums"]["quality_status"]
           salt_purity?: number | null
           status?: Database["public"]["Enums"]["quality_status"]
           tenant_id?: string
@@ -2157,14 +2259,29 @@ export type Database = {
           tested_by?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quality_tests_production_record_id_fkey"
+            columns: ["production_record_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_tests_tested_by_fkey"
+            columns: ["tested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       sale_items: {
         Row: {
           amount_ht: number | null
           created_at: string
           deleted_at: string | null
-          description: string
+          description: string | null
           id: string
           inventory_item_id: string | null
           production_record_id: string | null
@@ -2183,7 +2300,7 @@ export type Database = {
           amount_ht?: number | null
           created_at?: string
           deleted_at?: string | null
-          description: string
+          description?: string | null
           id?: string
           inventory_item_id?: string | null
           production_record_id?: string | null
@@ -2191,7 +2308,7 @@ export type Database = {
           quantity?: number
           sale_id: string
           salt_type?: string | null
-          tenant_id: string
+          tenant_id?: string
           total_price?: number
           unit_of_measure?: string
           unit_price?: number
@@ -2202,7 +2319,7 @@ export type Database = {
           amount_ht?: number | null
           created_at?: string
           deleted_at?: string | null
-          description?: string
+          description?: string | null
           id?: string
           inventory_item_id?: string | null
           production_record_id?: string | null
@@ -2300,7 +2417,7 @@ export type Database = {
           stock_updated?: boolean
           subtotal?: number
           tax_amount?: number
-          tenant_id: string
+          tenant_id?: string
           total_amount?: number
           total_paid?: number
           traceability_code?: string | null
@@ -2381,13 +2498,18 @@ export type Database = {
           created_at: string
           created_by: string | null
           deleted_at: string | null
+          end_date: string | null
           frequency: string
           id: string
           is_active: boolean
+          last_run_at: string | null
           last_sent_at: string | null
           next_run_at: string | null
+          recipient_emails: string[]
           recipients: string[]
           report_type: string
+          schedule_time: string
+          start_date: string
           tenant_id: string
           updated_at: string
         }
@@ -2396,14 +2518,19 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          end_date?: string | null
           frequency?: string
           id?: string
           is_active?: boolean
+          last_run_at?: string | null
           last_sent_at?: string | null
           next_run_at?: string | null
+          recipient_emails?: string[]
           recipients?: string[]
           report_type: string
-          tenant_id: string
+          schedule_time?: string
+          start_date?: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -2411,13 +2538,18 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          end_date?: string | null
           frequency?: string
           id?: string
           is_active?: boolean
+          last_run_at?: string | null
           last_sent_at?: string | null
           next_run_at?: string | null
+          recipient_emails?: string[]
           recipients?: string[]
           report_type?: string
+          schedule_time?: string
+          start_date?: string
           tenant_id?: string
           updated_at?: string
         }
@@ -2457,7 +2589,7 @@ export type Database = {
           quantity?: number
           reference_id?: string | null
           reference_type?: string | null
-          tenant_id: string
+          tenant_id?: string
           unit_cost?: number
           unit_of_measure?: string
           warehouse?: string | null
@@ -2509,7 +2641,7 @@ export type Database = {
           reference_type?: string | null
           released_at?: string | null
           status?: string
-          tenant_id: string
+          tenant_id?: string
         }
         Update: {
           created_at?: string
@@ -2561,7 +2693,7 @@ export type Database = {
           registration_number?: string | null
           supplier_type?: Database["public"]["Enums"]["supplier_type"]
           tax_id?: string | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -2613,7 +2745,7 @@ export type Database = {
           notes?: string | null
           status?: Database["public"]["Enums"]["attendance_status"]
           team_id: string
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
           validated_at?: string | null
           validated_by?: string | null
@@ -2668,7 +2800,7 @@ export type Database = {
           joined_at?: string
           role?: string | null
           team_id: string
-          tenant_id: string
+          tenant_id?: string
         }
         Update: {
           created_at?: string
@@ -2726,7 +2858,7 @@ export type Database = {
           sector?: string | null
           status?: string
           team_lead_id?: string | null
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -2847,7 +2979,7 @@ export type Database = {
           description?: string | null
           id?: string
           line_order?: number
-          tenant_id: string
+          tenant_id?: string
           transaction_id: string
         }
         Update: {
@@ -2920,7 +3052,7 @@ export type Database = {
           source_id?: string | null
           source_table?: string | null
           status?: Database["public"]["Enums"]["transaction_status"]
-          tenant_id: string
+          tenant_id?: string
           transaction_date?: string
           transaction_type?: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
@@ -3027,7 +3159,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -3187,6 +3319,35 @@ export type Database = {
         Args: { _tenant_id: string }
         Returns: undefined
       }
+      update_own_profile: {
+        Args: {
+          _avatar_url?: string
+          _full_name?: string
+          _notification_preferences?: Json
+          _phone?: string
+          _security_preferences?: Json
+        }
+        Returns: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean
+          notification_preferences: Json
+          phone: string | null
+          security_preferences: Json
+          tenant_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       validate_transaction: { Args: { _id: string }; Returns: Json }
       validate_transactions_bulk: { Args: { _ids: string[] }; Returns: Json }
     }
@@ -3220,7 +3381,7 @@ export type Database = {
       employee_type: "permanent" | "saisonnier" | "journalier"
       fiscal_period_status: "open" | "closed" | "locked"
       fixed_asset_status: "active" | "disposed" | "scrapped"
-      payment_status: "pending" | "paid" | "cancelled"
+      payment_status: "pending" | "paid" | "cancelled" | "partial"
       po_status:
         | "draft"
         | "pending"
@@ -3231,6 +3392,9 @@ export type Database = {
         | "pending_approval"
         | "rejected"
         | "partially_received"
+        | "modified"
+        | "partially_paid"
+        | "paid"
       purchase_payment_type: "advance" | "payment" | "refund"
       quality_status: "pending" | "approved" | "rejected"
       sale_status:
@@ -3425,7 +3589,7 @@ export const Constants = {
       employee_type: ["permanent", "saisonnier", "journalier"],
       fiscal_period_status: ["open", "closed", "locked"],
       fixed_asset_status: ["active", "disposed", "scrapped"],
-      payment_status: ["pending", "paid", "cancelled"],
+      payment_status: ["pending", "paid", "cancelled", "partial"],
       po_status: [
         "draft",
         "pending",
@@ -3436,6 +3600,9 @@ export const Constants = {
         "pending_approval",
         "rejected",
         "partially_received",
+        "modified",
+        "partially_paid",
+        "paid",
       ],
       purchase_payment_type: ["advance", "payment", "refund"],
       quality_status: ["pending", "approved", "rejected"],

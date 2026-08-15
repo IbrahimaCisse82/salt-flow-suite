@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { useTenant } from '../useTenant';
 import * as AuthContext from '@/contexts/AuthContext';
 
@@ -10,20 +11,10 @@ vi.mock('@/contexts/AuthContext', () => ({
 }));
 
 // Mock Supabase client
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => Promise.resolve({ data: null, error: null })),
-        })),
-      })),
-      update: vi.fn(() => ({
-        eq: vi.fn(() => Promise.resolve({ error: null })),
-      })),
-    })),
-  },
-}));
+vi.mock('@/integrations/supabase/client', async () => {
+  const { createSupabaseMock } = await import('@/test/supabaseChainMock');
+  return { supabase: createSupabaseMock() };
+});
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -31,7 +22,7 @@ const createWrapper = () => {
       queries: { retry: false },
     },
   });
-  return ({ children }: { children: React.ReactNode }) => (
+  return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
@@ -41,7 +32,7 @@ describe('useTenant', () => {
     vi.clearAllMocks();
   });
 
-  it('should return tenant details when tenant exists', () => {
+  it('should return tenant details when tenant exists', async () => {
     vi.mocked(AuthContext.useAuth).mockReturnValue({
       tenant: { id: 'tenant-123', name: 'Test Tenant' },
       profile: null,
@@ -53,7 +44,7 @@ describe('useTenant', () => {
       wrapper: createWrapper(),
     });
 
-    expect(result.current.isLoading).toBeDefined();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.tenantDetails).toBeDefined();
   });
 

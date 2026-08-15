@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { WeatherWidget } from '../WeatherWidget';
 import * as useWeather from '@/hooks/useWeather';
 
@@ -12,7 +13,7 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return ({ children }: { children: React.ReactNode }) => (
+  return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>
@@ -38,11 +39,12 @@ describe('WeatherWidget', () => {
       data: undefined,
       isLoading: false,
       isError: true,
+      error: new Error('boom'),
     } as any);
 
     const { getByText } = render(<WeatherWidget latitude={45.5} longitude={-73.5} />, { wrapper: createWrapper() });
     
-    expect(getByText(/erreur/i)).toBeInTheDocument();
+    expect(getByText(/impossible de charger les données météo/i)).toBeInTheDocument();
   });
 
   it('should render weather data', () => {
@@ -69,19 +71,19 @@ describe('WeatherWidget', () => {
 
     const { getByText } = render(<WeatherWidget latitude={45.5} longitude={-73.5} />, { wrapper: createWrapper() });
     
-    expect(getByText('25°')).toBeInTheDocument();
+    expect(getByText('25°C')).toBeInTheDocument();
     expect(getByText(/ciel dégagé/i)).toBeInTheDocument();
   });
 
-  it('should not render without coordinates', () => {
+  it('should show a placeholder without coordinates', () => {
     vi.mocked(useWeather.useWeather).mockReturnValue({
       data: undefined,
       isLoading: false,
       isError: false,
     } as any);
 
-    const { container } = render(<WeatherWidget />, { wrapper: createWrapper() });
-    
-    expect(container.textContent).toBe('');
+    const { getByText } = render(<WeatherWidget />, { wrapper: createWrapper() });
+
+    expect(getByText(/aucune localisation configurée/i)).toBeInTheDocument();
   });
 });
