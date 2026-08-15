@@ -1052,6 +1052,7 @@ export type Database = {
           item_category: string | null
           item_code: string | null
           item_name: string | null
+          last_purchase_date: string | null
           name: string
           notes: string | null
           quantity: number
@@ -1078,6 +1079,7 @@ export type Database = {
           item_category?: string | null
           item_code?: string | null
           item_name?: string | null
+          last_purchase_date?: string | null
           name?: string
           notes?: string | null
           quantity?: number
@@ -1104,6 +1106,7 @@ export type Database = {
           item_category?: string | null
           item_code?: string | null
           item_name?: string | null
+          last_purchase_date?: string | null
           name?: string
           notes?: string | null
           quantity?: number
@@ -2138,6 +2141,7 @@ export type Database = {
           production_record_id: string | null
           purity_percent: number | null
           quality_grade: string | null
+          quality_status: Database["public"]["Enums"]["quality_status"]
           salt_purity: number | null
           status: Database["public"]["Enums"]["quality_status"]
           tenant_id: string
@@ -2159,6 +2163,7 @@ export type Database = {
           production_record_id?: string | null
           purity_percent?: number | null
           quality_grade?: string | null
+          quality_status?: Database["public"]["Enums"]["quality_status"]
           salt_purity?: number | null
           status?: Database["public"]["Enums"]["quality_status"]
           tenant_id?: string
@@ -2180,6 +2185,7 @@ export type Database = {
           production_record_id?: string | null
           purity_percent?: number | null
           quality_grade?: string | null
+          quality_status?: Database["public"]["Enums"]["quality_status"]
           salt_purity?: number | null
           status?: Database["public"]["Enums"]["quality_status"]
           tenant_id?: string
@@ -2187,14 +2193,22 @@ export type Database = {
           tested_by?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quality_tests_production_record_id_fkey"
+            columns: ["production_record_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sale_items: {
         Row: {
           amount_ht: number | null
           created_at: string
           deleted_at: string | null
-          description: string
+          description: string | null
           id: string
           inventory_item_id: string | null
           production_record_id: string | null
@@ -2213,7 +2227,7 @@ export type Database = {
           amount_ht?: number | null
           created_at?: string
           deleted_at?: string | null
-          description: string
+          description?: string | null
           id?: string
           inventory_item_id?: string | null
           production_record_id?: string | null
@@ -2232,7 +2246,7 @@ export type Database = {
           amount_ht?: number | null
           created_at?: string
           deleted_at?: string | null
-          description?: string
+          description?: string | null
           id?: string
           inventory_item_id?: string | null
           production_record_id?: string | null
@@ -2416,8 +2430,11 @@ export type Database = {
           is_active: boolean
           last_sent_at: string | null
           next_run_at: string | null
+          recipient_emails: string[]
           recipients: string[]
           report_type: string
+          schedule_time: string
+          start_date: string
           tenant_id: string
           updated_at: string
         }
@@ -2431,8 +2448,11 @@ export type Database = {
           is_active?: boolean
           last_sent_at?: string | null
           next_run_at?: string | null
+          recipient_emails?: string[]
           recipients?: string[]
           report_type: string
+          schedule_time?: string
+          start_date?: string
           tenant_id?: string
           updated_at?: string
         }
@@ -2446,8 +2466,11 @@ export type Database = {
           is_active?: boolean
           last_sent_at?: string | null
           next_run_at?: string | null
+          recipient_emails?: string[]
           recipients?: string[]
           report_type?: string
+          schedule_time?: string
+          start_date?: string
           tenant_id?: string
           updated_at?: string
         }
