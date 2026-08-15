@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
+import type { ReactNode } from 'react';
 import { BassinOverview } from '../BassinOverview';
 import * as useBassins from '@/hooks/useBassins';
 
@@ -13,7 +14,7 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return ({ children }: { children: React.ReactNode }) => (
+  return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
         {children}
@@ -29,9 +30,10 @@ describe('BassinOverview', () => {
       isLoading: true,
     } as any);
 
-    const { getByText } = render(<BassinOverview />, { wrapper: createWrapper() });
-    
-    expect(getByText(/chargement/i)).toBeInTheDocument();
+    const { container } = render(<BassinOverview />, { wrapper: createWrapper() });
+
+    // Loading is rendered as skeleton placeholders
+    expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThan(0);
   });
 
   it('should render empty state when no bassins', () => {
