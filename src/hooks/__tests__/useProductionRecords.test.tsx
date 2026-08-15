@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useProductionRecords } from '../useProductionRecords';
@@ -28,7 +28,7 @@ describe('useProductionRecords', () => {
     vi.clearAllMocks();
   });
 
-  it('should fetch production records', () => {
+  it('should fetch production records', async () => {
     vi.mocked(AuthContext.useAuth).mockReturnValue({
       profile: { tenant_id: 'tenant-123', role: 'production' },
       tenant: null,
@@ -40,8 +40,8 @@ describe('useProductionRecords', () => {
       wrapper: createWrapper(),
     });
 
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.data).toBeDefined();
-    expect(result.current.isLoading).toBeDefined();
   });
 
   it('should handle loading state', () => {

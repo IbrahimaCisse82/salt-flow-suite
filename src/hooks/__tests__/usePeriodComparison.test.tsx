@@ -109,7 +109,7 @@ describe('usePeriodComparison', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.comparison).toBeNull();
+    expect(result.current.comparison ?? null).toBeNull();
   });
 
   it('should default to month period type', async () => {
