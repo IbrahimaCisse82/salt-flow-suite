@@ -1542,6 +1542,8 @@ export type Database = {
           payment_method: string | null
           period_end: string | null
           period_start: string | null
+          processed_by: string | null
+          receiver_signature: string | null
           reference: string | null
           status: Database["public"]["Enums"]["payment_status"]
           tenant_id: string
@@ -1566,6 +1568,8 @@ export type Database = {
           payment_method?: string | null
           period_end?: string | null
           period_start?: string | null
+          processed_by?: string | null
+          receiver_signature?: string | null
           reference?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           tenant_id?: string
@@ -1590,6 +1594,8 @@ export type Database = {
           payment_method?: string | null
           period_end?: string | null
           period_start?: string | null
+          processed_by?: string | null
+          receiver_signature?: string | null
           reference?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           tenant_id?: string
