@@ -1053,6 +1053,7 @@ export type Database = {
           item_code: string | null
           item_name: string | null
           last_purchase_date: string | null
+          last_purchase_price: number
           name: string
           notes: string | null
           quantity: number
@@ -1080,6 +1081,7 @@ export type Database = {
           item_code?: string | null
           item_name?: string | null
           last_purchase_date?: string | null
+          last_purchase_price?: number
           name?: string
           notes?: string | null
           quantity?: number
@@ -1107,6 +1109,7 @@ export type Database = {
           item_code?: string | null
           item_name?: string | null
           last_purchase_date?: string | null
+          last_purchase_price?: number
           name?: string
           notes?: string | null
           quantity?: number
@@ -2201,6 +2204,13 @@ export type Database = {
             referencedRelation: "production_records"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "quality_tests_tested_by_fkey"
+            columns: ["tested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       sale_items: {
@@ -2425,9 +2435,11 @@ export type Database = {
           created_at: string
           created_by: string | null
           deleted_at: string | null
+          end_date: string | null
           frequency: string
           id: string
           is_active: boolean
+          last_run_at: string | null
           last_sent_at: string | null
           next_run_at: string | null
           recipient_emails: string[]
@@ -2443,9 +2455,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          end_date?: string | null
           frequency?: string
           id?: string
           is_active?: boolean
+          last_run_at?: string | null
           last_sent_at?: string | null
           next_run_at?: string | null
           recipient_emails?: string[]
@@ -2461,9 +2475,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          end_date?: string | null
           frequency?: string
           id?: string
           is_active?: boolean
+          last_run_at?: string | null
           last_sent_at?: string | null
           next_run_at?: string | null
           recipient_emails?: string[]
@@ -3302,7 +3318,7 @@ export type Database = {
       employee_type: "permanent" | "saisonnier" | "journalier"
       fiscal_period_status: "open" | "closed" | "locked"
       fixed_asset_status: "active" | "disposed" | "scrapped"
-      payment_status: "pending" | "paid" | "cancelled"
+      payment_status: "pending" | "paid" | "cancelled" | "partial"
       po_status:
         | "draft"
         | "pending"
@@ -3507,7 +3523,7 @@ export const Constants = {
       employee_type: ["permanent", "saisonnier", "journalier"],
       fiscal_period_status: ["open", "closed", "locked"],
       fixed_asset_status: ["active", "disposed", "scrapped"],
-      payment_status: ["pending", "paid", "cancelled"],
+      payment_status: ["pending", "paid", "cancelled", "partial"],
       po_status: [
         "draft",
         "pending",
