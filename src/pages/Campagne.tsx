@@ -612,7 +612,7 @@ const Campagne = () => {
                   : "Aucune campagne active - Créez un nouveau plan de campagne"}
               </p>
             </div>
-            {activeCampagne && activeCampagne.status !== 'terminee' && (
+            {activeCampagne && activeCampagne.status !== 'cloturee' && (
               <div className="flex gap-2 flex-shrink-0">
                 <Button 
                   variant="outline"
@@ -669,7 +669,7 @@ const Campagne = () => {
                     </p>
                     <p className="text-xs text-muted-foreground mt-1 truncate">
                       {activeCampagne.status === 'en_cours' ? 'En cours' : 
-                       activeCampagne.status === 'terminee' ? 'Terminée' : 
+                       activeCampagne.status === 'cloturee' ? 'Terminée' : 
                        'Planification'}
                     </p>
                   </div>

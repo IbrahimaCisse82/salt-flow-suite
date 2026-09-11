@@ -364,11 +364,11 @@ const Comptabilite = () => {
         .from('payments')
         .insert({
           tenant_id: profile.tenant_id,
-          facture_id: sale_id,  // La colonne s'appelle facture_id, pas sale_id
+          sale_id,
+          account_id,
           payment_date,
           amount: Number(amount),
           payment_method: 'manual',
-          notes: `Compte: ${account_id}` // On stocke l'account_id dans les notes pour référence
         });
       
       if (paymentError) throw paymentError;
@@ -548,7 +548,7 @@ const Comptabilite = () => {
         .insert({
           tenant_id: profileData.tenant_id,
           account_name: formData.accountName,
-          account_type: formData.accountType,
+          account_type: formData.accountType as 'banque' | 'caisse' | 'mobile_money',
           account_number: accountNumber,
           balance: balance
         })
