@@ -2196,6 +2196,7 @@ export type Database = {
         Row: {
           batch_number: string | null
           color_grade: string | null
+          corrective_actions: string | null
           created_at: string
           deleted_at: string | null
           grain_size: string | null
@@ -2218,6 +2219,7 @@ export type Database = {
         Insert: {
           batch_number?: string | null
           color_grade?: string | null
+          corrective_actions?: string | null
           created_at?: string
           deleted_at?: string | null
           grain_size?: string | null
@@ -2240,6 +2242,7 @@ export type Database = {
         Update: {
           batch_number?: string | null
           color_grade?: string | null
+          corrective_actions?: string | null
           created_at?: string
           deleted_at?: string | null
           grain_size?: string | null

@@ -1,0 +1,1 @@
+ALTER TABLE public.quality_tests ADD COLUMN IF NOT EXISTS corrective_actions TEXT;
