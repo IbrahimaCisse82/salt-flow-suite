@@ -271,7 +271,7 @@ export interface CreatePurchaseOrderInput {
          ...updates,
          requires_reapproval: true,
          previous_total: oldOrder.total_amount,
-         status: "modified"
+         status: "modified" as const
        } : updates;
  
        const { error } = await supabase

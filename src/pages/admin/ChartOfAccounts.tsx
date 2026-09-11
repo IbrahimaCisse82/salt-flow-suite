@@ -200,7 +200,10 @@ export default function ChartOfAccounts() {
         .from('chart_of_accounts')
         .insert({
           tenant_id: tenantId,
-          ...newAccount
+          account_number: newAccount.account_number,
+          account_name: newAccount.account_name,
+          account_type: newAccount.account_type as 'actif' | 'passif' | 'charge' | 'produit' | 'capitaux',
+          account_class: Number(newAccount.account_number.charAt(0)) || 1,
         });
       
       if (error) throw error;

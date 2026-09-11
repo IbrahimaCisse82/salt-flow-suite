@@ -207,10 +207,8 @@ const Parametres = () => {
       
       // Use the secure update function that prevents role escalation
       const { error: profileError } = await supabase.rpc('update_own_profile', {
-        user_id: user?.id,
-        new_full_name: profileData.full_name.trim(),
-        new_phone: profileData.phone || null,
-        new_avatar_url: null // Keep existing avatar
+        _full_name: profileData.full_name.trim(),
+        _phone: profileData.phone || undefined,
       });
       
       if (profileError) {

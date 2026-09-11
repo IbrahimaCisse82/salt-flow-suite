@@ -53,7 +53,7 @@ export const useSuppliers = () => {
       const supplierData: SupplierInsert = {
         tenant_id,
         name: input.name,
-        supplier_type: input.supplier_type || "fourniture",
+        supplier_type: (input.supplier_type || "fourniture") as SupplierInsert["supplier_type"],
         contact_person: input.contact_person,
         phone: input.phone,
         email: input.email,

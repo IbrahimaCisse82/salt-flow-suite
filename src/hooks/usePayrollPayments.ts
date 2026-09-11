@@ -36,13 +36,13 @@ export const usePayrollPayments = () => {
         .from('payroll_payments')
         .select(`
           *,
-          employees:paid_to (full_name, employee_number),
-          accounts:payment_account_id (account_name, account_number)
+          employees:employee_id (full_name, employee_number),
+          accounts:account_id (account_name, account_number)
         `)
         .order('payment_date', { ascending: false });
 
       if (error) throw error;
-      return data as PayrollPayment[];
+      return (data ?? []) as unknown as PayrollPayment[];
     }
   });
 };
@@ -81,10 +81,11 @@ export const useCreatePayrollPayment = () => {
       const newBalanceDue = totalDue - totalPreviouslyPaid - payment.paid_amount;
 
       // 3. Créer le paiement avec le reliquat
+      const { employees: _e, accounts: _a, ...paymentFields } = payment;
       const { data: paymentData, error: paymentError } = await supabase
         .from('payroll_payments')
         .insert({
-          ...payment,
+          ...paymentFields,
           tenant_id: profile.tenant_id,
           processed_by: userData.user?.id,
           balance_due: Math.max(0, newBalanceDue)
