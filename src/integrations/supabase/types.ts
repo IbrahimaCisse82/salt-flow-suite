@@ -3196,6 +3196,21 @@ export type Database = {
       }
     }
     Functions: {
+      allocate_result: {
+        Args: {
+          p_autres_reserves?: number
+          p_dividendes?: number
+          p_fiscal_year_end: string
+          p_report_nouveau?: number
+          p_reserve_legale?: number
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      assert_accounting_access: {
+        Args: { _tenant_id: string }
+        Returns: undefined
+      }
       check_user_active: {
         Args: { p_user_id: string }
         Returns: {
@@ -3203,6 +3218,14 @@ export type Database = {
           tenant_name: string
           user_active: boolean
         }[]
+      }
+      close_fiscal_year: {
+        Args: {
+          p_description?: string
+          p_fiscal_year_end: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       create_valuation_snapshot: {
         Args: { p_snapshot_date?: string }
@@ -3217,6 +3240,37 @@ export type Database = {
           _tenant_id: string
         }
         Returns: string
+      }
+      generate_balance_sheet: {
+        Args: {
+          p_campagne_id?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      generate_income_statement: {
+        Args: {
+          p_campagne_id?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      generate_opening_balances: {
+        Args: { p_fiscal_year_end: string; p_tenant_id: string }
+        Returns: Json
+      }
+      generate_tafire: {
+        Args: {
+          p_campagne_id?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       generate_trial_balance: {
         Args: {
@@ -3294,6 +3348,17 @@ export type Database = {
           _lines: Json
           _source_id: string
           _source_table: string
+          _tenant_id: string
+          _tx_type?: Database["public"]["Enums"]["transaction_type"]
+        }
+        Returns: string
+      }
+      post_closing_entry: {
+        Args: {
+          _description: string
+          _entry_date: string
+          _journal: string
+          _lines: Json
           _tenant_id: string
           _tx_type?: Database["public"]["Enums"]["transaction_type"]
         }
