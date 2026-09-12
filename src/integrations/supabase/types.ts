@@ -3196,6 +3196,17 @@ export type Database = {
       }
     }
     Functions: {
+      allocate_result: {
+        Args: {
+          p_autres_reserves?: number
+          p_dividendes?: number
+          p_fiscal_year_end: string
+          p_report_nouveau?: number
+          p_reserve_legale?: number
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       assert_accounting_access: {
         Args: { _tenant_id: string }
         Returns: undefined
@@ -3229,6 +3240,37 @@ export type Database = {
           _tenant_id: string
         }
         Returns: string
+      }
+      generate_balance_sheet: {
+        Args: {
+          p_campagne_id?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      generate_income_statement: {
+        Args: {
+          p_campagne_id?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      generate_opening_balances: {
+        Args: { p_fiscal_year_end: string; p_tenant_id: string }
+        Returns: Json
+      }
+      generate_tafire: {
+        Args: {
+          p_campagne_id?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: Json
       }
       generate_trial_balance: {
         Args: {
