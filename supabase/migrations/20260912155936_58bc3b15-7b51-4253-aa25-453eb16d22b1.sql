@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS sales_updated_at ON public.sales;
