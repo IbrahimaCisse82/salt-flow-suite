@@ -143,43 +143,38 @@ export const useFinancialReports = () => {
     return data;
   };
 
-  const makeMutation = (
+  const mutationOptions = (
     rpcName: string,
     reportType: FinancialReportType,
     successTitle: string,
     errorTitle: string
-  ) =>
-    useMutation({
-      mutationFn: (params: GenerateReportParams) => runReport(rpcName, reportType, params),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["financial-reports"] });
-        toast({ title: successTitle, description: "Le rapport a été généré et enregistré avec succès" });
-      },
-      onError: (err: Error) => {
-        toast({ title: errorTitle, description: err.message, variant: "destructive" });
-        console.error(errorTitle, err);
-      },
-    });
+  ) => ({
+    mutationFn: (params: GenerateReportParams) => runReport(rpcName, reportType, params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["financial-reports"] });
+      toast({ title: successTitle, description: "Le rapport a été généré et enregistré avec succès" });
+    },
+    onError: (err: Error) => {
+      toast({ title: errorTitle, description: err.message, variant: "destructive" });
+      console.error(errorTitle, err);
+    },
+  });
 
-  const generateBalanceSheet = makeMutation(
-    "generate_balance_sheet",
-    "bilan",
-    "Bilan généré",
-    "Impossible de générer le bilan"
+  const generateBalanceSheet = useMutation(
+    mutationOptions("generate_balance_sheet", "bilan", "Bilan généré", "Impossible de générer le bilan")
   );
 
-  const generateIncomeStatement = makeMutation(
-    "generate_income_statement",
-    "compte_resultat",
-    "Compte de résultat généré",
-    "Impossible de générer le compte de résultat"
+  const generateIncomeStatement = useMutation(
+    mutationOptions(
+      "generate_income_statement",
+      "compte_resultat",
+      "Compte de résultat généré",
+      "Impossible de générer le compte de résultat"
+    )
   );
 
-  const generateTafire = makeMutation(
-    "generate_tafire",
-    "tafire",
-    "TAFIRE généré",
-    "Impossible de générer le TAFIRE"
+  const generateTafire = useMutation(
+    mutationOptions("generate_tafire", "tafire", "TAFIRE généré", "Impossible de générer le TAFIRE")
   );
 
   // Valider un rapport
