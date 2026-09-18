@@ -584,6 +584,95 @@ export type Database = {
         }
         Relationships: []
       }
+      cost_per_ton: {
+        Row: {
+          autres_couts: number
+          calculation_date: string
+          campagne_id: string | null
+          cout_amortissement: number
+          cout_energie: number
+          cout_main_oeuvre: number
+          cout_maintenance: number
+          cout_matieres_premieres: number
+          cout_par_tonne: number | null
+          cout_total: number | null
+          cout_transport: number
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          details_par_type: Json
+          id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          status: string
+          tenant_id: string
+          total_production_kg: number
+          total_production_tons: number | null
+          updated_at: string
+        }
+        Insert: {
+          autres_couts?: number
+          calculation_date?: string
+          campagne_id?: string | null
+          cout_amortissement?: number
+          cout_energie?: number
+          cout_main_oeuvre?: number
+          cout_maintenance?: number
+          cout_matieres_premieres?: number
+          cout_par_tonne?: number | null
+          cout_total?: number | null
+          cout_transport?: number
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          details_par_type?: Json
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          status?: string
+          tenant_id: string
+          total_production_kg?: number
+          total_production_tons?: number | null
+          updated_at?: string
+        }
+        Update: {
+          autres_couts?: number
+          calculation_date?: string
+          campagne_id?: string | null
+          cout_amortissement?: number
+          cout_energie?: number
+          cout_main_oeuvre?: number
+          cout_maintenance?: number
+          cout_matieres_premieres?: number
+          cout_par_tonne?: number | null
+          cout_total?: number | null
+          cout_transport?: number
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          details_par_type?: Json
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string
+          tenant_id?: string
+          total_production_kg?: number
+          total_production_tons?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_per_ton_campagne_id_fkey"
+            columns: ["campagne_id"]
+            isOneToOne: false
+            referencedRelation: "campagnes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_workers: {
         Row: {
           created_at: string
@@ -2141,6 +2230,39 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          subscription: Json
+          tenant_id: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          subscription: Json
+          tenant_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          subscription?: Json
+          tenant_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       quality_certificates: {
         Row: {
           certificate_number: string
@@ -3211,6 +3333,15 @@ export type Database = {
         Args: { _tenant_id: string }
         Returns: undefined
       }
+      calculate_cost_per_ton: {
+        Args: {
+          p_campagne_id?: string
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       check_user_active: {
         Args: { p_user_id: string }
         Returns: {
@@ -3229,6 +3360,17 @@ export type Database = {
       }
       create_valuation_snapshot: {
         Args: { p_snapshot_date?: string }
+        Returns: Json
+      }
+      dispose_fixed_asset: {
+        Args: {
+          p_asset_id: string
+          p_disposal_date?: string
+          p_disposal_price?: number
+          p_disposal_type: string
+          p_notes?: string
+          p_payment_account_id?: string
+        }
         Returns: Json
       }
       emit_domain_event: {
