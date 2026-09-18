@@ -407,7 +407,7 @@ export const FinancialReportsGenerator = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {renderBalanceSheet(report.report_data as BalanceSheetData)}
+                  {renderBalanceSheet(report.data as BalanceSheetData)}
                 </CardContent>
               </Card>
             ))
@@ -460,13 +460,57 @@ export const FinancialReportsGenerator = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {renderIncomeStatement(report.report_data as IncomeStatementData)}
+                  {renderIncomeStatement(report.data as IncomeStatementData)}
                 </CardContent>
               </Card>
             ))
           )}
         </TabsContent>
+
+        <TabsContent value="tafire" className="space-y-4">
+          {isLoading ? (
+            <Skeleton className="h-[200px] w-full" />
+          ) : tafires.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Aucun TAFIRE généré. Utilisez l'onglet "Générer" pour en créer un.
+              </CardContent>
+            </Card>
+          ) : (
+            tafires.map((report) => (
+              <Card key={report.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>TAFIRE — Tableau financier des ressources et emplois</CardTitle>
+                      <CardDescription>
+                        Période: {format(new Date(report.period_start), "dd MMM yyyy", { locale: fr })} - {format(new Date(report.period_end), "dd MMM yyyy", { locale: fr })}
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={report.status === "validated" ? "default" : "secondary"}>
+                        {report.status === "validated" ? "Validé" : "Brouillon"}
+                      </Badge>
+                      {report.status !== "validated" && (
+                        <Button size="sm" variant="outline" onClick={() => validateReport.mutate(report.id)}>
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button size="sm" variant="ghost" onClick={() => deleteReport.mutate(report.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>{renderTafire(report.data as TafireData)}</CardContent>
+              </Card>
+            ))
+          )}
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+};
     </div>
   );
 };
