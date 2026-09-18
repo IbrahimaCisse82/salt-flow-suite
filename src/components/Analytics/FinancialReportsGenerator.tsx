@@ -511,6 +511,3 @@ export const FinancialReportsGenerator = () => {
     </div>
   );
 };
-    </div>
-  );
-};
