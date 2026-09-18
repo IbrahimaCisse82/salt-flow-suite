@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useFinancialReports, BalanceSheetData, IncomeStatementData } from "@/hooks/useFinancialReports";
+import { useFinancialReports, BalanceSheetData, IncomeStatementData, TafireData } from "@/hooks/useFinancialReports";
 import { useCampagnes } from "@/hooks/useCampagnes";
 import { FileText, Download, CheckCircle, Trash2, RefreshCw, TrendingUp, TrendingDown } from "lucide-react";
 import { format } from "date-fns";
@@ -25,18 +25,21 @@ export const FinancialReportsGenerator = () => {
     isLoading, 
     generateBalanceSheet, 
     generateIncomeStatement,
+    generateTafire,
     validateReport,
     deleteReport 
   } = useFinancialReports();
 
   const { campagnes } = useCampagnes();
 
+  const campagneId = selectedCampagne && selectedCampagne !== "all" ? selectedCampagne : undefined;
+
   const handleGenerateBalanceSheet = () => {
     if (!periodStart || !periodEnd) return;
     generateBalanceSheet.mutate({
       period_start: periodStart,
       period_end: periodEnd,
-      campagne_id: selectedCampagne || undefined,
+      campagne_id: campagneId,
     });
   };
 
@@ -45,7 +48,16 @@ export const FinancialReportsGenerator = () => {
     generateIncomeStatement.mutate({
       period_start: periodStart,
       period_end: periodEnd,
-      campagne_id: selectedCampagne || undefined,
+      campagne_id: campagneId,
+    });
+  };
+
+  const handleGenerateTafire = () => {
+    if (!periodStart || !periodEnd) return;
+    generateTafire.mutate({
+      period_start: periodStart,
+      period_end: periodEnd,
+      campagne_id: campagneId,
     });
   };
 
@@ -54,11 +66,90 @@ export const FinancialReportsGenerator = () => {
       style: "decimal",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount) + " FCFA";
+    }).format(amount ?? 0) + " FCFA";
   };
 
   const bilans = reports.filter(r => r.report_type === "bilan");
   const comptesResultat = reports.filter(r => r.report_type === "compte_resultat");
+  const tafires = reports.filter(r => r.report_type === "tafire");
+
+  const renderTafire = (data: TafireData) => {
+    const caf = (data.caf ?? {}) as Record<string, number>;
+    const tresorerie = (data.tresorerie ?? {}) as Record<string, number>;
+    const emplois = (data.emplois ?? []) as Array<{ libelle: string; montant: number }>;
+    const ressources = (data.ressources ?? []) as Array<{ libelle: string; montant: number }>;
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="bg-muted/50">
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">CAFG</div>
+              <div className="text-xl font-bold">{formatCurrency(caf.cafg)}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-muted/50">
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">Trésorerie ouverture</div>
+              <div className="text-xl font-bold">{formatCurrency(tresorerie.ouverture)}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-muted/50">
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">Trésorerie clôture</div>
+              <div className="text-xl font-bold">{formatCurrency(tresorerie.cloture)}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-muted/50">
+            <CardContent className="pt-4">
+              <div className="text-sm text-muted-foreground">Variation trésorerie</div>
+              <div className={`text-xl font-bold ${(tresorerie.variation ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
+                {formatCurrency(tresorerie.variation)}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-medium text-muted-foreground mb-2">EMPLOIS</h4>
+            <Table>
+              <TableBody>
+                {emplois.map((line, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="text-sm">{line.libelle}</TableCell>
+                    <TableCell className="text-right font-mono">{formatCurrency(line.montant)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <div className="bg-primary/10 p-3 rounded-lg mt-2 flex justify-between">
+              <span className="font-semibold">TOTAL EMPLOIS</span>
+              <span className="font-bold">{formatCurrency(data.total_emplois as number)}</span>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-muted-foreground mb-2">RESSOURCES</h4>
+            <Table>
+              <TableBody>
+                {ressources.map((line, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="text-sm">{line.libelle}</TableCell>
+                    <TableCell className="text-right font-mono">{formatCurrency(line.montant)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <div className="bg-primary/10 p-3 rounded-lg mt-2 flex justify-between">
+              <span className="font-semibold">TOTAL RESSOURCES</span>
+              <span className="font-bold">{formatCurrency(data.total_ressources as number)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderBalanceSheet = (data: BalanceSheetData) => (
     <div className="grid grid-cols-2 gap-6">
