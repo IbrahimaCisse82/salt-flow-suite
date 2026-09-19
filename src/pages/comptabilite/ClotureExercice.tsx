@@ -397,6 +397,41 @@ const ClotureExercice = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Étape 3: Report à nouveau */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Badge variant="outline" className="text-base px-3">3</Badge>
+                Report à nouveau
+              </CardTitle>
+              <CardDescription>
+                Génère les écritures d'à-nouveaux : reprise des soldes des comptes de bilan
+                (classes 1 à 5) à l'ouverture de l'exercice {selectedYear + 1}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  À effectuer uniquement après la clôture et l'affectation du résultat de
+                  l'exercice {selectedYear}.
+                </AlertDescription>
+              </Alert>
+              <Button
+                className="gap-2"
+                size="lg"
+                variant="secondary"
+                onClick={() => generateOpeningBalances.mutate()}
+                disabled={generateOpeningBalances.isPending}
+              >
+                <ArrowRight className="h-4 w-4" />
+                {generateOpeningBalances.isPending
+                  ? "Génération en cours..."
+                  : `Générer les à-nouveaux ${selectedYear + 1}`}
+              </Button>
+            </CardContent>
+          </Card>
         </main>
       </div>
     </div>
