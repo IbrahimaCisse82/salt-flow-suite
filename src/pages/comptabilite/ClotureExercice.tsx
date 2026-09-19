@@ -110,6 +110,32 @@ const ClotureExercice = () => {
     },
   });
 
+  // Report à nouveau (à-nouveaux d'ouverture de l'exercice suivant)
+  const generateOpeningBalances = useMutation({
+    mutationFn: async () => {
+      if (!profile?.tenant_id) throw new Error("Tenant non trouvé");
+
+      const { data, error } = await (supabase.rpc as any)("generate_opening_balances", {
+        p_tenant_id: profile.tenant_id,
+        p_fiscal_year_end: fiscalYearEnd,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["accounting-ledger"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+      toast({
+        title: "Report à nouveau effectué",
+        description: `Les à-nouveaux d'ouverture de l'exercice ${selectedYear + 1} ont été générés.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erreur de report à nouveau", description: error.message, variant: "destructive" });
+    },
+  });
+
   const allocationTotal = (Number(reserveLegale) || 0) + (Number(autresReserves) || 0) + (Number(reportNouveau) || 0) + (Number(dividendes) || 0);
   const allocationBalanced = Math.abs(allocationTotal - Math.abs(resultat)) < 0.01;
 
