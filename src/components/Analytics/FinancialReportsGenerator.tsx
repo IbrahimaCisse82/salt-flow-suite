@@ -370,10 +370,11 @@ export const FinancialReportsGenerator = () => {
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="generate">Générer</TabsTrigger>
           <TabsTrigger value="bilans">Bilans ({bilans.length})</TabsTrigger>
           <TabsTrigger value="resultats">Comptes de Résultat ({comptesResultat.length})</TabsTrigger>
+          <TabsTrigger value="tafire">TAFIRE ({tafires.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="generate" className="space-y-4">
@@ -446,6 +447,19 @@ export const FinancialReportsGenerator = () => {
                     <FileText className="h-4 w-4 mr-2" />
                   )}
                   Générer le Compte de Résultat
+                </Button>
+                <Button
+                  onClick={handleGenerateTafire}
+                  disabled={!periodStart || !periodEnd || generateTafire.isPending}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {generateTafire.isPending ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 mr-2" />
+                  )}
+                  Générer le TAFIRE
                 </Button>
               </div>
             </CardContent>

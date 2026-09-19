@@ -110,6 +110,32 @@ const ClotureExercice = () => {
     },
   });
 
+  // Report à nouveau (à-nouveaux d'ouverture de l'exercice suivant)
+  const generateOpeningBalances = useMutation({
+    mutationFn: async () => {
+      if (!profile?.tenant_id) throw new Error("Tenant non trouvé");
+
+      const { data, error } = await (supabase.rpc as any)("generate_opening_balances", {
+        p_tenant_id: profile.tenant_id,
+        p_fiscal_year_end: fiscalYearEnd,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["accounting-ledger"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+      toast({
+        title: "Report à nouveau effectué",
+        description: `Les à-nouveaux d'ouverture de l'exercice ${selectedYear + 1} ont été générés.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erreur de report à nouveau", description: error.message, variant: "destructive" });
+    },
+  });
+
   const allocationTotal = (Number(reserveLegale) || 0) + (Number(autresReserves) || 0) + (Number(reportNouveau) || 0) + (Number(dividendes) || 0);
   const allocationBalanced = Math.abs(allocationTotal - Math.abs(resultat)) < 0.01;
 
@@ -369,6 +395,41 @@ const ClotureExercice = () => {
                   Effectuez d'abord la clôture de l'exercice pour accéder à l'affectation du résultat.
                 </p>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Étape 3: Report à nouveau */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Badge variant="outline" className="text-base px-3">3</Badge>
+                Report à nouveau
+              </CardTitle>
+              <CardDescription>
+                Génère les écritures d'à-nouveaux : reprise des soldes des comptes de bilan
+                (classes 1 à 5) à l'ouverture de l'exercice {selectedYear + 1}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  À effectuer uniquement après la clôture et l'affectation du résultat de
+                  l'exercice {selectedYear}.
+                </AlertDescription>
+              </Alert>
+              <Button
+                className="gap-2"
+                size="lg"
+                variant="secondary"
+                onClick={() => generateOpeningBalances.mutate()}
+                disabled={generateOpeningBalances.isPending}
+              >
+                <ArrowRight className="h-4 w-4" />
+                {generateOpeningBalances.isPending
+                  ? "Génération en cours..."
+                  : `Générer les à-nouveaux ${selectedYear + 1}`}
+              </Button>
             </CardContent>
           </Card>
         </main>
