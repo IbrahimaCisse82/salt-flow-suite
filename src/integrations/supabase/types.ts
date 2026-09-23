@@ -3654,6 +3654,10 @@ export type Database = {
         Returns: Json
       }
       next_document_number: { Args: { p_doc_type: string }; Returns: string }
+      next_document_number_for: {
+        Args: { p_doc_type: string; p_tenant_id: string }
+        Returns: string
+      }
       post_accounting_entry: {
         Args: {
           _description: string
