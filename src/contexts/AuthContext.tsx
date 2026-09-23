@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const queryClient = useQueryClient();
 
   // ── Profile + Tenant query ──────────────────────────────
-  const { data: profileData } = useQuery({
+  const { data: profileData, isLoading: profileLoading } = useQuery({
     queryKey: ['profile-with-tenant-role', user?.id],
     queryFn: async () => {
       if (!user?.id) return { profile: null, tenant: null };
@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [queryClient]);
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, tenant, loading }}>
+    <AuthContext.Provider value={{ user, session, profile, tenant, loading: loading || (!!user && profileLoading) }}>
       {children}
     </AuthContext.Provider>
   );
