@@ -438,7 +438,7 @@ const Comptabilite = () => {
       const { error: balanceError } = await supabase
         .from('accounts')
         .update({ 
-          balance: (Number(currentAccount?.balance) || 0) + Number(amount), 
+          current_balance: (Number(currentAccount?.balance) || 0) + Number(amount), 
           updated_at: new Date().toISOString() 
         })
         .eq('id', account_id);
@@ -531,7 +531,7 @@ const Comptabilite = () => {
       const { data: profileData } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', user.id)
+        .eq("user_id", user.id)
         .single();
       
       if (!profileData?.tenant_id) throw new Error('Tenant not found');
@@ -550,7 +550,8 @@ const Comptabilite = () => {
           account_name: formData.accountName,
           account_type: formData.accountType as 'banque' | 'caisse' | 'mobile_money',
           account_number: accountNumber,
-          balance: balance
+          initial_balance: balance,
+          current_balance: balance
         })
         .select()
         .single();
@@ -976,13 +977,13 @@ const Comptabilite = () => {
       // 4. Mettre à jour les soldes des comptes
       const { error: fromBalanceError } = await supabase
         .from('accounts')
-        .update({ balance: (fromAccount.balance || 0) - amount, updated_at: new Date().toISOString() })
+        .update({ current_balance: (fromAccount.balance || 0) - amount, updated_at: new Date().toISOString() })
         .eq('id', fromAccount.id);
       if (fromBalanceError) throw fromBalanceError;
 
       const { error: toBalanceError } = await supabase
         .from('accounts')
-        .update({ balance: (toAccount.balance || 0) + amount, updated_at: new Date().toISOString() })
+        .update({ current_balance: (toAccount.balance || 0) + amount, updated_at: new Date().toISOString() })
         .eq('id', toAccount.id);
       if (toBalanceError) throw toBalanceError;
 
