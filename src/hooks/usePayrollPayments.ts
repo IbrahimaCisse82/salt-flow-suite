@@ -129,7 +129,7 @@ export const useCreatePayrollPayment = () => {
       const newAccountBalance = (account?.balance || 0) - payment.paid_amount;
       const { error: accountError } = await supabase
         .from('accounts')
-        .update({ balance: newAccountBalance })
+        .update({ current_balance: newAccountBalance })
         .eq('id', payment.payment_account_id);
 
       if (accountError) {
