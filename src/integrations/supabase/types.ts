@@ -2361,50 +2361,65 @@ export type Database = {
       }
       quality_certificates: {
         Row: {
+          batch_number: string | null
           certificate_number: string
+          certificate_type: string | null
           client_id: string | null
           created_at: string
           deleted_at: string | null
           expiry_date: string | null
           id: string
+          issue_date: string
           issued_by: string | null
-          issued_date: string
           notes: string | null
           pdf_url: string | null
           production_record_id: string | null
+          quality_grade: string | null
           quality_test_id: string | null
+          quantity_certified: number | null
+          status: string
           tenant_id: string
           updated_at: string
         }
         Insert: {
+          batch_number?: string | null
           certificate_number: string
+          certificate_type?: string | null
           client_id?: string | null
           created_at?: string
           deleted_at?: string | null
           expiry_date?: string | null
           id?: string
+          issue_date?: string
           issued_by?: string | null
-          issued_date?: string
           notes?: string | null
           pdf_url?: string | null
           production_record_id?: string | null
+          quality_grade?: string | null
           quality_test_id?: string | null
+          quantity_certified?: number | null
+          status?: string
           tenant_id?: string
           updated_at?: string
         }
         Update: {
+          batch_number?: string | null
           certificate_number?: string
+          certificate_type?: string | null
           client_id?: string | null
           created_at?: string
           deleted_at?: string | null
           expiry_date?: string | null
           id?: string
+          issue_date?: string
           issued_by?: string | null
-          issued_date?: string
           notes?: string | null
           pdf_url?: string | null
           production_record_id?: string | null
+          quality_grade?: string | null
           quality_test_id?: string | null
+          quantity_certified?: number | null
+          status?: string
           tenant_id?: string
           updated_at?: string
         }
