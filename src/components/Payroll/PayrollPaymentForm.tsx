@@ -44,7 +44,7 @@ export function PayrollPaymentForm() {
       const { data, error } = await supabase
         .from('accounts')
         .select('*')
-        .or('account_type.ilike.%banque%,account_type.ilike.%caisse%')
+        .in('account_type', ['banque', 'caisse'])
         .order('account_name');
       
       if (error) throw error;
