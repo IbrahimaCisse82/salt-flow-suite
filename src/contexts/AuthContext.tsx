@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const { data: profilesData, error: profileError } = await supabase
         .rpc('get_profiles_with_roles')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (profileError) {
