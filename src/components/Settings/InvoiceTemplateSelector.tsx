@@ -255,7 +255,7 @@ export const InvoiceTemplateSelector = () => {
         .select("setting_value")
         .eq("setting_key", `invoice_style_${tenant.id}`)
         .maybeSingle();
-      return data?.setting_value as string | null;
+      return (data?.setting_value as string | null) ?? null;
     },
     enabled: !!tenant?.id,
   });

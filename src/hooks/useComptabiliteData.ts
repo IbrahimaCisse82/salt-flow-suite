@@ -103,7 +103,7 @@ export const useComptabiliteData = () => {
       const { data, error } = await supabase
         .from('transactions')
         .select(`*, journal_entries:journal_entries(*, account:chart_of_accounts(account_number, account_name))`)
-        .eq('transaction_type', 'divers' as any)
+        .eq('transaction_type', 'od')
         .order('transaction_date', { ascending: false });
       if (error) throw error;
       return data || [];

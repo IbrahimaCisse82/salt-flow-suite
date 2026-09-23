@@ -1,0 +1,3 @@
+ALTER TABLE public.quality_certificates RENAME COLUMN issued_date TO issue_date;
+ALTER TABLE public.quality_certificates ADD COLUMN IF NOT EXISTS certificate_type text, ADD COLUMN IF NOT EXISTS batch_number text, ADD COLUMN IF NOT EXISTS quantity_certified numeric, ADD COLUMN IF NOT EXISTS quality_grade text, ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'active';
+NOTIFY pgrst, 'reload schema';

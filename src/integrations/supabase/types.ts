@@ -2361,54 +2361,91 @@ export type Database = {
       }
       quality_certificates: {
         Row: {
+          batch_number: string | null
           certificate_number: string
+          certificate_type: string | null
           client_id: string | null
           created_at: string
           deleted_at: string | null
           expiry_date: string | null
           id: string
+          issue_date: string
           issued_by: string | null
-          issued_date: string
           notes: string | null
           pdf_url: string | null
           production_record_id: string | null
+          quality_grade: string | null
           quality_test_id: string | null
+          quantity_certified: number | null
+          status: string
           tenant_id: string
           updated_at: string
         }
         Insert: {
+          batch_number?: string | null
           certificate_number: string
+          certificate_type?: string | null
           client_id?: string | null
           created_at?: string
           deleted_at?: string | null
           expiry_date?: string | null
           id?: string
+          issue_date?: string
           issued_by?: string | null
-          issued_date?: string
           notes?: string | null
           pdf_url?: string | null
           production_record_id?: string | null
+          quality_grade?: string | null
           quality_test_id?: string | null
+          quantity_certified?: number | null
+          status?: string
           tenant_id?: string
           updated_at?: string
         }
         Update: {
+          batch_number?: string | null
           certificate_number?: string
+          certificate_type?: string | null
           client_id?: string | null
           created_at?: string
           deleted_at?: string | null
           expiry_date?: string | null
           id?: string
+          issue_date?: string
           issued_by?: string | null
-          issued_date?: string
           notes?: string | null
           pdf_url?: string | null
           production_record_id?: string | null
+          quality_grade?: string | null
           quality_test_id?: string | null
+          quantity_certified?: number | null
+          status?: string
           tenant_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quality_certificates_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_certificates_production_record_id_fkey"
+            columns: ["production_record_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_certificates_quality_test_id_fkey"
+            columns: ["quality_test_id"]
+            isOneToOne: false
+            referencedRelation: "quality_tests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quality_tests: {
         Row: {
@@ -2426,6 +2463,7 @@ export type Database = {
           production_record_id: string | null
           purity_percent: number | null
           quality_grade: string | null
+          quality_score: number | null
           quality_status: Database["public"]["Enums"]["quality_status"]
           salt_purity: number | null
           status: Database["public"]["Enums"]["quality_status"]
@@ -2449,6 +2487,7 @@ export type Database = {
           production_record_id?: string | null
           purity_percent?: number | null
           quality_grade?: string | null
+          quality_score?: number | null
           quality_status?: Database["public"]["Enums"]["quality_status"]
           salt_purity?: number | null
           status?: Database["public"]["Enums"]["quality_status"]
@@ -2472,6 +2511,7 @@ export type Database = {
           production_record_id?: string | null
           purity_percent?: number | null
           quality_grade?: string | null
+          quality_score?: number | null
           quality_status?: Database["public"]["Enums"]["quality_status"]
           salt_purity?: number | null
           status?: Database["public"]["Enums"]["quality_status"]
@@ -2556,6 +2596,13 @@ export type Database = {
           warehouse_name?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sale_items_warehouse_id_fkey"
             columns: ["warehouse_id"]
