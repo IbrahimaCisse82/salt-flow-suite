@@ -77,8 +77,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         tenant = tenantData;
       }
 
+      // La base renvoie une liste de rôles : on choisit le rôle principal
+      const roles: string[] = (profilesData as any).roles ?? [];
+      const priority = ['admin', 'gerant', 'comptable', 'chef_production', 'commercial', 'rh', 'magasinier', 'qualite'];
+      const role = priority.find((r) => roles.includes(r)) ?? roles[0] ?? null;
+
       return {
-        profile: profilesData as Profile,
+        profile: { ...(profilesData as any), role } as Profile,
         tenant: tenant as Tenant | null,
       };
     },
