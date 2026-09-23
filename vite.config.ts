@@ -74,9 +74,9 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       },
+      // Désactivé en dev : le service worker provoquait des rechargements (écran qui tremble) dans l'aperçu
       devOptions: {
-        enabled: true,
-        type: 'module'
+        enabled: false,
       }
     })
   ].filter(Boolean),
