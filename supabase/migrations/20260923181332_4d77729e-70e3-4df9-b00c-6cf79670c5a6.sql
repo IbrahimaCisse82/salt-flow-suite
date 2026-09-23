@@ -1,0 +1,16 @@
+CREATE TABLE public.performance_metrics (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), metric_name text NOT NULL, metric_value numeric NOT NULL DEFAULT 0, metadata jsonb DEFAULT '{}'::jsonb, recorded_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE public.security_audit_log (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid, action text NOT NULL, old_value text, new_value text, changed_by uuid, changed_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE public.admin_activity_logs (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid, admin_id uuid, action_type text NOT NULL, resource_type text, resource_id uuid, details jsonb DEFAULT '{}'::jsonb, ip_address text, created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE public.email_templates (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), template_key text NOT NULL UNIQUE, subject text NOT NULL, body_html text, body_text text, variables jsonb NOT NULL DEFAULT '[]'::jsonb, is_active boolean NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT ON public.performance_metrics, public.security_audit_log, public.admin_activity_logs TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.email_templates TO authenticated;
+GRANT ALL ON public.performance_metrics, public.security_audit_log, public.admin_activity_logs, public.email_templates TO service_role;
+ALTER TABLE public.performance_metrics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.security_audit_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.email_templates ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins read metrics" ON public.performance_metrics FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Admins read security log" ON public.security_audit_log FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Admins read activity" ON public.admin_activity_logs FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "Admins manage templates" ON public.email_templates FOR ALL TO authenticated USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
+CREATE TRIGGER trg_email_templates_uat BEFORE UPDATE ON public.email_templates FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

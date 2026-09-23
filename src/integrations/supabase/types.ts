@@ -198,6 +198,42 @@ export type Database = {
           },
         ]
       }
+      admin_activity_logs: {
+        Row: {
+          action_type: string
+          admin_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          resource_id: string | null
+          resource_type: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           created_at: string
@@ -840,6 +876,42 @@ export type Database = {
           processed_at?: string | null
           processing_error?: string | null
           tenant_id?: string
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          subject: string
+          template_key: string
+          updated_at: string
+          variables: Json
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          subject: string
+          template_key: string
+          updated_at?: string
+          variables?: Json
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          subject?: string
+          template_key?: string
+          updated_at?: string
+          variables?: Json
         }
         Relationships: []
       }
@@ -1727,6 +1799,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      performance_metrics: {
+        Row: {
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_value: number
+          recorded_at: string
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_value?: number
+          recorded_at?: string
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_value?: number
+          recorded_at?: string
+        }
+        Relationships: []
       }
       production_records: {
         Row: {
@@ -2677,6 +2773,36 @@ export type Database = {
           start_date?: string
           tenant_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      security_audit_log: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          tenant_id?: string | null
         }
         Relationships: []
       }
