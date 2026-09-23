@@ -2448,6 +2448,7 @@ export type Database = {
           production_record_id: string | null
           purity_percent: number | null
           quality_grade: string | null
+          quality_score: number | null
           quality_status: Database["public"]["Enums"]["quality_status"]
           salt_purity: number | null
           status: Database["public"]["Enums"]["quality_status"]
@@ -2471,6 +2472,7 @@ export type Database = {
           production_record_id?: string | null
           purity_percent?: number | null
           quality_grade?: string | null
+          quality_score?: number | null
           quality_status?: Database["public"]["Enums"]["quality_status"]
           salt_purity?: number | null
           status?: Database["public"]["Enums"]["quality_status"]
@@ -2494,6 +2496,7 @@ export type Database = {
           production_record_id?: string | null
           purity_percent?: number | null
           quality_grade?: string | null
+          quality_score?: number | null
           quality_status?: Database["public"]["Enums"]["quality_status"]
           salt_purity?: number | null
           status?: Database["public"]["Enums"]["quality_status"]
