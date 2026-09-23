@@ -2408,7 +2408,29 @@ export type Database = {
           tenant_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quality_certificates_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_certificates_production_record_id_fkey"
+            columns: ["production_record_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_certificates_quality_test_id_fkey"
+            columns: ["quality_test_id"]
+            isOneToOne: false
+            referencedRelation: "quality_tests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quality_tests: {
         Row: {
@@ -2556,6 +2578,13 @@ export type Database = {
           warehouse_name?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sale_items_warehouse_id_fkey"
             columns: ["warehouse_id"]
