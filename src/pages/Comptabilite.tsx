@@ -445,13 +445,13 @@ const Comptabilite = () => {
       
       if (balanceError) console.warn('Erreur mise à jour solde:', balanceError);
 
-      // 5. Trouver le compte de produits approprié (701 pour local, 702 pour export)
-      // Utiliser ilike avec % pour trouver un compte commençant par 701 ou 702
-      const productAccountNumber = clientType === 'local' ? '701' : '702';
+      // 5. Compte de produits SYSCOHADA révisé : ventes de produits finis
+      // 7021 = dans la Région (local), 7022 = hors Région (export)
+      const productAccountNumber = clientType === 'local' ? '7021' : '7022';
       const { data: productAccount } = await supabase
         .from('chart_of_accounts')
         .select('id')
-        .ilike('account_number', `${productAccountNumber}%`)
+        .eq('account_number', productAccountNumber)
         .limit(1)
         .maybeSingle();
 
