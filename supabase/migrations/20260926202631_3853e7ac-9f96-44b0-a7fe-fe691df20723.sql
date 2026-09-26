@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.validate_sale_item(), public.validate_bassin() FROM authenticated;
