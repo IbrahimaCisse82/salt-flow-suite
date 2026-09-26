@@ -199,7 +199,7 @@ export const useCreateProductionRecord = () => {
           quantity: quantity,
           movementType: 'entry',
           unitCost: 0,
-          warehouseTo: warehouseName,
+          warehouseTo: input.warehouse_id ?? undefined,
           referenceType: 'production',
           referenceId: record.id,
           notes: `Récolte ${saltTypeName} - Bassin ${bassin.id}`,
