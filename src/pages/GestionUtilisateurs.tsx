@@ -83,7 +83,7 @@ const GestionUtilisateurs = () => {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteFullName, setInviteFullName] = useState("");
-  const [inviteRole, setInviteRole] = useState<string>("production");
+  const [inviteRole, setInviteRole] = useState<string>("chef_production");
   const [invitePassword, setInvitePassword] = useState("");
 
   // Récupérer l'utilisateur actuel et vérifier qu'il est gérant
@@ -183,7 +183,7 @@ const GestionUtilisateurs = () => {
       setShowInviteDialog(false);
       setInviteEmail("");
       setInviteFullName("");
-      setInviteRole("production");
+      setInviteRole("chef_production");
       setInvitePassword("");
     },
     onError: (error: any) => {
