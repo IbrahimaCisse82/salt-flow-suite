@@ -171,9 +171,9 @@ export const useCreateProductionRecord = () => {
             .from('inventory_items')
             .insert({
               tenant_id: profile.tenant_id,
-              item_name: saltTypeName,
-              item_category: 'production',
-              quantity_on_hand: 0,
+              name: saltTypeName,
+              category: 'production',
+              quantity: 0,
               storage_location: warehouseName,
               unit_of_measure: 'tonnes',
               is_active: true,
