@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
     } else {
       // Non-admins inviting users: only allow non-privileged roles
       if (role === 'admin' || role === 'gerant') {
-        finalRole = 'production'
+        finalRole = 'chef_production'
       } else {
         finalRole = role
       }

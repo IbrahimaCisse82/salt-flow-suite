@@ -28,12 +28,24 @@ describe('Permissions Utils', () => {
       expect(hasAccessToPage('commercial', '/comptabilite')).toBe(false);
     });
 
-    it('should restrict production role correctly', () => {
-      expect(hasAccessToPage('production', '/')).toBe(true);
-      expect(hasAccessToPage('production', '/production')).toBe(true);
-      expect(hasAccessToPage('production', '/bassins')).toBe(true);
-      expect(hasAccessToPage('production', '/commercial')).toBe(false);
-      expect(hasAccessToPage('production', '/comptabilite')).toBe(false);
+    it('should restrict chef_production role correctly', () => {
+      expect(hasAccessToPage('chef_production', '/')).toBe(true);
+      expect(hasAccessToPage('chef_production', '/production')).toBe(true);
+      expect(hasAccessToPage('chef_production', '/bassins')).toBe(true);
+      expect(hasAccessToPage('chef_production', '/commercial')).toBe(false);
+      expect(hasAccessToPage('chef_production', '/comptabilite')).toBe(false);
+    });
+
+    it('should grant access to rh, magasinier and qualite roles', () => {
+      expect(hasAccessToPage('rh', '/')).toBe(true);
+      expect(hasAccessToPage('rh', '/equipes')).toBe(true);
+      expect(hasAccessToPage('rh', '/comptabilite')).toBe(false);
+      expect(hasAccessToPage('magasinier', '/')).toBe(true);
+      expect(hasAccessToPage('magasinier', '/stocks')).toBe(true);
+      expect(hasAccessToPage('magasinier', '/production')).toBe(false);
+      expect(hasAccessToPage('qualite', '/')).toBe(true);
+      expect(hasAccessToPage('qualite', '/production')).toBe(true);
+      expect(hasAccessToPage('qualite', '/commercial')).toBe(false);
     });
 
     it('should restrict comptable role correctly', () => {
