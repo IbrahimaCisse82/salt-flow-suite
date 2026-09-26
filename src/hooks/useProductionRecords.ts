@@ -83,7 +83,7 @@ export const useCreateProductionRecord = () => {
       if (bassinError || !bassin) {
         throw new Error("Bassin introuvable");
       }
-      if (!bassin.is_active || bassin.status !== 'active') {
+      if (bassin.is_active === false || !['active', 'actif', 'recolte'].includes(String(bassin.status))) {
         throw new Error("Ce bassin n'est pas actif");
       }
       if (bassin.bassin_type !== 'Table Salante') {
