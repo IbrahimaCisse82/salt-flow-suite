@@ -60,7 +60,7 @@ export const useCampagneBudgetLines = (campagneId?: string) => {
 
       const { data, error } = await supabase
         .from('purchase_orders')
-        .select('campagne_phase, expense_category, total_amount, total_paid, status')
+        .select('campagne_phase, expense_category, subtotal, total_amount, total_paid, status')
         .eq('campagne_id', campagneId)
         .not('status', 'in', '("cancelled","rejected")')
         .is('deleted_at', null);
@@ -80,13 +80,16 @@ export const useCampagneBudgetLines = (campagneId?: string) => {
       po => po.campagne_phase === line.phase && po.expense_category === line.expense_category
     );
 
+    // Montants HT, alignés sur le contrôle serveur (trg_po_budget)
+    const poAmount = (po: any) => Number(po.subtotal ?? po.total_amount ?? 0);
+    const realizedStatuses = ['received', 'partially_received', 'partial', 'paid', 'partially_paid'];
     const committed = matchingPOs
-      .filter(po => ['approved', 'pending'].includes(po.status))
-      .reduce((sum, po) => sum + Number(po.total_amount || 0), 0);
+      .filter(po => !realizedStatuses.includes(po.status))
+      .reduce((sum, po) => sum + poAmount(po), 0);
 
     const realized = matchingPOs
-      .filter(po => po.status === 'received')
-      .reduce((sum, po) => sum + Number(po.total_amount || 0), 0);
+      .filter(po => realizedStatuses.includes(po.status))
+      .reduce((sum, po) => sum + poAmount(po), 0);
 
     const paid = matchingPOs
       .reduce((sum, po) => sum + Number(po.total_paid || 0), 0);
