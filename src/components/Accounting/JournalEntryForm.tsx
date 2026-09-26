@@ -153,7 +153,7 @@ export const JournalEntryForm = ({ onSuccess, onCancel }: JournalEntryFormProps)
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single();
       
       if (!profile) throw new Error('Profile not found');

@@ -91,7 +91,7 @@ export default function ChartOfAccounts() {
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', user?.id)
+        .eq('user_id', user?.id)
         .maybeSingle();
 
       const { data: roleData } = await supabase
@@ -180,7 +180,7 @@ export default function ChartOfAccounts() {
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', user?.id)
+        .eq('user_id', user?.id)
         .maybeSingle();
 
       const { data: roleData } = await supabase
