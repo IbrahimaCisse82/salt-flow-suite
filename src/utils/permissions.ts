@@ -1,5 +1,14 @@
 // Définition des permissions par rôle
-export type UserRole = 'gerant' | 'commercial' | 'production' | 'comptable' | 'admin';
+// Les valeurs correspondent exactement à l'enum app_role de la base de données
+export type UserRole =
+  | 'gerant'
+  | 'chef_production'
+  | 'commercial'
+  | 'comptable'
+  | 'admin'
+  | 'rh'
+  | 'magasinier'
+  | 'qualite';
 
 export const rolePermissions: Record<UserRole, string[]> = {
   admin: [
@@ -53,14 +62,28 @@ export const rolePermissions: Record<UserRole, string[]> = {
     '/rapports',
     '/parametres'
   ],
-  production: [
+  chef_production: [
     '/',
     '/bassins',
     '/campagne',
     '/production',
     '/stocks',
     '/equipes',
-    
+    '/parametres'
+  ],
+  rh: [
+    '/',
+    '/equipes',
+    '/parametres'
+  ],
+  magasinier: [
+    '/',
+    '/stocks',
+    '/parametres'
+  ],
+  qualite: [
+    '/',
+    '/production',
     '/parametres'
   ]
 };
