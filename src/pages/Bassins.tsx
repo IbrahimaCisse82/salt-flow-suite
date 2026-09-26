@@ -203,8 +203,8 @@ const Bassins = () => {
                             {(bassin as any).bassin_type && <>• <span className="text-muted-foreground">{(bassin as any).bassin_type}</span></>}
                           </p>
                         </div>
-                        <Badge className={statusConfig[status].className}>
-                          {statusConfig[status].label}
+                        <Badge className={getStatusStyle(status).className}>
+                          {getStatusStyle(status).label}
                         </Badge>
                       </CardHeader>
                       <CardContent className="space-y-4 p-4 md:p-6">
@@ -215,7 +215,7 @@ const Bassins = () => {
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Statut</p>
-                            <p className="text-lg font-semibold">{statusConfig[status].label}</p>
+                            <p className="text-lg font-semibold">{getStatusStyle(status).label}</p>
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -323,7 +323,7 @@ const Bassins = () => {
                   <p><strong>Code :</strong> {selectedBassin.code || "Non défini"}</p>
                   <p><strong>Surface :</strong> {selectedBassin.area ? `${selectedBassin.area} ha` : "Non spécifié"}</p>
                   <p><strong>Localisation :</strong> {selectedBassin.location || "Non spécifiée"}</p>
-                  <p><strong>Statut :</strong> {statusConfig[getBassinStatus(selectedBassin)].label}</p>
+                  <p><strong>Statut :</strong> {getStatusStyle(getBassinStatus(selectedBassin)).label}</p>
                   {selectedBassin.latitude && selectedBassin.longitude && (
                     <div className="space-y-2">
                       <p className="font-semibold text-sm">Position GPS</p>
