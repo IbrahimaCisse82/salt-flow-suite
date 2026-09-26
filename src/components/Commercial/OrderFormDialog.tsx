@@ -147,7 +147,9 @@ export const OrderFormDialog = ({
   const totalTTC = totalHT + tvaAmount;
   const totalQuantity = form.items.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0);
 
-  const isValid = form.client_id && form.items.every((i) => i.salt_type && i.warehouse_id && parseFloat(i.quantity) > 0 && parseFloat(i.unit_price) > 0);
+  const isValid = form.client_id && form.items.every((i) =>
+    i.salt_type && i.warehouse_id && parseFloat(i.quantity) > 0 && parseFloat(i.unit_price) > 0 &&
+    parseFloat(i.quantity) <= getAvailableStock(i.warehouse_id, i.salt_type));
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
