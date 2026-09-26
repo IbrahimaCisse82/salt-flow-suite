@@ -2607,7 +2607,7 @@ export type Database = {
             foreignKeyName: "sale_items_warehouse_id_fkey"
             columns: ["warehouse_id"]
             isOneToOne: false
-            referencedRelation: "warehouses"
+            referencedRelation: "inventory_items"
             referencedColumns: ["id"]
           },
         ]
@@ -2755,7 +2755,7 @@ export type Database = {
             foreignKeyName: "sales_warehouse_id_fkey"
             columns: ["warehouse_id"]
             isOneToOne: false
-            referencedRelation: "warehouses"
+            referencedRelation: "inventory_items"
             referencedColumns: ["id"]
           },
         ]
