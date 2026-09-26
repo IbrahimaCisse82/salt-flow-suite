@@ -18,11 +18,20 @@ import { StatsSkeleton } from "@/components/LoadingSkeletons/StatsSkeleton";
 
 const MapPicker = lazy(() => import("@/components/Map/MapPicker"));
 
-const statusConfig: Record<BassinStatus, { label: string; className: string }> = {
+type StatusStyle = { label: string; className: string };
+
+const statusConfig: Record<string, StatusStyle> = {
   active: { label: "En production", className: "bg-primary/10 text-primary border-primary/30" },
+  actif: { label: "En production", className: "bg-primary/10 text-primary border-primary/30" },
+  recolte: { label: "Récolte", className: "bg-secondary/10 text-secondary-foreground border-secondary/30" },
   repos: { label: "Repos", className: "bg-accent/10 text-accent border-accent/30" },
+  inactif: { label: "Inactif", className: "bg-muted text-muted-foreground border-border" },
   maintenance: { label: "Maintenance", className: "bg-destructive/10 text-destructive border-destructive/30" },
 };
+
+const FALLBACK_STATUS: StatusStyle = { label: "Inconnu", className: "bg-muted text-muted-foreground border-border" };
+
+const getStatusStyle = (status: string): StatusStyle => statusConfig[status] ?? FALLBACK_STATUS;
 
 const bassinTypes: BassinType[] = ['Bassin 1', 'Bassin 2', 'Bassin 3', 'Bassin 4', 'Table Salante'];
 
