@@ -76,7 +76,7 @@ export const useCreateProductionRecord = () => {
       // Backend validation: only active Table Salante bassins allowed
       const { data: bassin, error: bassinError } = await supabase
         .from('bassins')
-        .select('id, bassin_type, status, is_active')
+        .select('id, name, bassin_type, status, is_active, capacity_tonnes')
         .eq('id', input.bassin_id)
         .single();
 
@@ -88,6 +88,14 @@ export const useCreateProductionRecord = () => {
       }
       if (bassin.bassin_type !== 'Table Salante') {
         throw new Error("Seuls les bassins de type 'Table Salante' sont autorisés pour la récolte");
+      }
+
+      // ── Validation de la capacité du bassin ──
+      const bassinCapacity = Number(bassin.capacity_tonnes || 0);
+      if (bassinCapacity > 0 && quantity > bassinCapacity) {
+        throw new Error(
+          `Récolte impossible : ${quantity.toLocaleString()} tonnes dépassent la capacité du bassin "${bassin.name}" (${bassinCapacity.toLocaleString()} tonnes)`
+        );
       }
 
       // ── Validation de la capacité de l'entrepôt ──
