@@ -209,6 +209,7 @@ export const useCreateProductionRecord = () => {
           production_date: dateToYYYYMMDD(input.production_date),
           bassin_id: input.bassin_id,
           quantity: quantity,
+          quantity_tonnes: quantity,
           quality_grade: cleanString(input.quality_grade ?? undefined),
           traceability_code: cleanString(input.traceability_code ?? undefined),
           campagne_id: input.campagne_id ?? null,
