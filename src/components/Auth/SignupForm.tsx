@@ -94,57 +94,15 @@ export const SignupForm = ({ onSuccess }: SignupFormProps) => {
       if (signInError) throw signInError;
       if (!signInData.session) throw new Error("Impossible d'ouvrir une session");
 
-      // 3) Create tenant
-      const tenantId = crypto.randomUUID();
-
-      const slugify = (str: string) =>
-        str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "").slice(0, 48);
-
-      const genSuffix = () => {
-        const bytes = new Uint8Array(3);
-        crypto.getRandomValues(bytes);
-        return Array.from(bytes).map((b) => (b % 36).toString(36)).join("");
-      };
-
-      const baseSubdomain = slugify(validated.tenantName);
-      let subdomain = baseSubdomain || `tenant-${genSuffix()}`;
-
-      let tenantError: any = null;
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const { error } = await supabase.from("tenants").insert({
-          id: tenantId,
-          name: validated.tenantName,
-          subdomain,
-          contact_email: validated.email,
-        });
-
-        if (!error) {
-          tenantError = null;
-          break;
-        }
-
-        if (attempt === 0 && (error.code === "23505" || (error.message || "").includes("tenants_subdomain_key"))) {
-          subdomain = `${baseSubdomain}-${genSuffix()}`;
-          tenantError = error;
-          continue;
-        }
-
-        tenantError = error;
-        break;
-      }
-
-      if (tenantError) throw tenantError;
-
-      // 4) Link profile to tenant via secure function
+      // 3) Create tenant + link profile + assign "gerant" role atomically
       const user = signInData.session.user;
-      const { error: profileUpdateError } = await supabase.rpc("link_profile_to_tenant", {
-        _user_id: user.id,
-        _tenant_id: tenantId,
+      const { error: tenantError } = await supabase.rpc("create_tenant_for_self", {
+        _name: validated.tenantName,
+        _contact_email: validated.email,
         _full_name: validated.fullName,
-        _email: validated.email,
       });
 
-      if (profileUpdateError) throw profileUpdateError;
+      if (tenantError) throw tenantError;
 
       await queryClient.invalidateQueries({ queryKey: ['profile-with-tenant-role', user.id] });
 

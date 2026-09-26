@@ -76,18 +76,26 @@ export const useCreateProductionRecord = () => {
       // Backend validation: only active Table Salante bassins allowed
       const { data: bassin, error: bassinError } = await supabase
         .from('bassins')
-        .select('id, bassin_type, status, is_active')
+        .select('id, name, bassin_type, status, is_active, capacity_tonnes')
         .eq('id', input.bassin_id)
         .single();
 
       if (bassinError || !bassin) {
         throw new Error("Bassin introuvable");
       }
-      if (!bassin.is_active || bassin.status !== 'active') {
+      if (bassin.is_active === false || !['active', 'actif', 'recolte'].includes(String(bassin.status))) {
         throw new Error("Ce bassin n'est pas actif");
       }
       if (bassin.bassin_type !== 'Table Salante') {
         throw new Error("Seuls les bassins de type 'Table Salante' sont autorisés pour la récolte");
+      }
+
+      // ── Validation de la capacité du bassin ──
+      const bassinCapacity = Number(bassin.capacity_tonnes || 0);
+      if (bassinCapacity > 0 && quantity > bassinCapacity) {
+        throw new Error(
+          `Récolte impossible : ${quantity.toLocaleString()} tonnes dépassent la capacité du bassin "${bassin.name}" (${bassinCapacity.toLocaleString()} tonnes)`
+        );
       }
 
       // ── Validation de la capacité de l'entrepôt ──
@@ -136,6 +144,7 @@ export const useCreateProductionRecord = () => {
             production_date: dateToYYYYMMDD(input.production_date),
             bassin_id: input.bassin_id,
             quantity: quantity,
+            quantity_tonnes: quantity,
             quality_grade: cleanString(input.quality_grade ?? undefined),
             traceability_code: cleanString(input.traceability_code ?? undefined),
             campagne_id: input.campagne_id ?? null,
@@ -170,9 +179,9 @@ export const useCreateProductionRecord = () => {
             .from('inventory_items')
             .insert({
               tenant_id: profile.tenant_id,
-              item_name: saltTypeName,
-              item_category: 'production',
-              quantity_on_hand: 0,
+              name: saltTypeName,
+              category: 'production',
+              quantity: 0,
               storage_location: warehouseName,
               unit_of_measure: 'tonnes',
               is_active: true,
@@ -190,7 +199,7 @@ export const useCreateProductionRecord = () => {
           quantity: quantity,
           movementType: 'entry',
           unitCost: 0,
-          warehouseTo: warehouseName,
+          warehouseTo: input.warehouse_id ?? undefined,
           referenceType: 'production',
           referenceId: record.id,
           notes: `Récolte ${saltTypeName} - Bassin ${bassin.id}`,
@@ -208,6 +217,7 @@ export const useCreateProductionRecord = () => {
           production_date: dateToYYYYMMDD(input.production_date),
           bassin_id: input.bassin_id,
           quantity: quantity,
+          quantity_tonnes: quantity,
           quality_grade: cleanString(input.quality_grade ?? undefined),
           traceability_code: cleanString(input.traceability_code ?? undefined),
           campagne_id: input.campagne_id ?? null,

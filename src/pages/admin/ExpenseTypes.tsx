@@ -102,7 +102,7 @@ export default function ExpenseTypes() {
       const { data: profile } = await supabase
         .from("profiles")
         .select("tenant_id")
-        .eq("id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
         .single();
 
       const { error } = await supabase.from("expense_types").insert({

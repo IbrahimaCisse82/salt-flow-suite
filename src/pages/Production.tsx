@@ -231,7 +231,7 @@ const Production = () => {
                       <SelectValue placeholder="Sélectionner un bassin" />
                     </SelectTrigger>
                      <SelectContent>
-                      {bassins?.filter(b => b.is_active && b.status === 'active' && b.bassin_type === 'Table Salante').map((bassin) => (
+                      {bassins?.filter(b => b.is_active !== false && ['active', 'actif', 'recolte'].includes(String(b.status)) && b.bassin_type === 'Table Salante').map((bassin) => (
                         <SelectItem key={bassin.id} value={bassin.id}>
                           {bassin.name}
                         </SelectItem>
@@ -393,7 +393,7 @@ const Production = () => {
                 {isLoading ? (
                   <Skeleton className="h-9 w-16 mt-1" />
                 ) : (
-                  <p className="text-3xl font-bold">{bassins?.filter(b => b.is_active).length || 0}</p>
+                  <p className="text-3xl font-bold">{bassins?.filter(b => !b.deleted_at && ['active', 'actif', 'recolte'].includes(String(b.status))).length || 0}</p>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">En production</p>
               </CardContent>

@@ -3531,6 +3531,15 @@ export type Database = {
         }
         Returns: Json
       }
+      create_tenant_for_self: {
+        Args: {
+          _contact_email?: string
+          _full_name?: string
+          _name: string
+          _subdomain?: string
+        }
+        Returns: string
+      }
       create_valuation_snapshot: {
         Args: { p_snapshot_date?: string }
         Returns: Json

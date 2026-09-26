@@ -93,7 +93,7 @@ export const useCreateAttendance = () => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('tenant_id')
-        .eq('id', userData.user?.id)
+        .eq('user_id', userData.user?.id)
         .single();
 
       const { data, error } = await supabase

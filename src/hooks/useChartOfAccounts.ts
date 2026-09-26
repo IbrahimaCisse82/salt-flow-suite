@@ -56,7 +56,7 @@ export const useChartOfAccounts = () => {
       const { data: profile } = await supabase
         .from("profiles")
         .select("tenant_id")
-        .eq("id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
         .single();
 
       if (!profile?.tenant_id) throw new Error("Tenant non trouvé");
