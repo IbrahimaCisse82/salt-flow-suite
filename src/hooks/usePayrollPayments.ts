@@ -118,7 +118,12 @@ export const useCreatePayrollPayment = () => {
           amount: payment.paid_amount,
           description: `Paiement salaire${newBalanceDue > 0 ? ' (partiel)' : ''} - ${employee?.full_name || 'Employé'}`,
           reference: `PAY-${paymentData.id.substring(0, 8)}`,
-          notes: payment.notes || null
+          notes: payment.notes || null,
+          // Lien vers le paiement : l'écriture 422/52x est déjà passée par le trigger
+          // trg_acc_payroll_payment ; cette ligne n'est qu'un suivi de trésorerie.
+          source_table: 'payroll_payments',
+          source_id: paymentData.id,
+          account_id: payment.payment_account_id,
         });
 
       if (txError) {
