@@ -1,0 +1,2 @@
+DELETE FROM public.purchase_orders WHERE notes = 'TEST-BUDGET' AND tenant_id = '11111111-2026-4001-8001-000000000001';
+DELETE FROM public.campagne_budget_lines WHERE notes = 'TEST-BUDGET' AND tenant_id = '11111111-2026-4001-8001-000000000001';
