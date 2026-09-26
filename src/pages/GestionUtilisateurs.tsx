@@ -49,14 +49,29 @@ const roleLabels: Record<string, { label: string; description: string; color: st
     description: "Gestion des ventes, clients et commandes",
     color: "bg-accent"
   },
-  production: {
-    label: "Production",
+  chef_production: {
+    label: "Chef de production",
     description: "Gestion des bassins, récoltes et production",
     color: "bg-secondary"
   },
   comptable: {
     label: "Comptable",
     description: "Gestion financière et comptabilité",
+    color: "bg-muted-foreground"
+  },
+  rh: {
+    label: "RH",
+    description: "Gestion des équipes, présences et paie",
+    color: "bg-accent"
+  },
+  magasinier: {
+    label: "Magasinier",
+    description: "Gestion des stocks et entrepôts",
+    color: "bg-secondary"
+  },
+  qualite: {
+    label: "Qualité",
+    description: "Contrôle qualité et certificats",
     color: "bg-muted-foreground"
   }
 };
@@ -68,7 +83,7 @@ const GestionUtilisateurs = () => {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteFullName, setInviteFullName] = useState("");
-  const [inviteRole, setInviteRole] = useState<string>("production");
+  const [inviteRole, setInviteRole] = useState<string>("chef_production");
   const [invitePassword, setInvitePassword] = useState("");
 
   // Récupérer l'utilisateur actuel et vérifier qu'il est gérant
@@ -168,7 +183,7 @@ const GestionUtilisateurs = () => {
       setShowInviteDialog(false);
       setInviteEmail("");
       setInviteFullName("");
-      setInviteRole("production");
+      setInviteRole("chef_production");
       setInvitePassword("");
     },
     onError: (error: any) => {

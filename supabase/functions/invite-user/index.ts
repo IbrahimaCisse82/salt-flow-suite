@@ -110,8 +110,8 @@ Deno.serve(async (req) => {
 
     // Role hierarchy: gerant can only create operational roles
     // Admin can create any non-admin role via invite
-    const allowedByGerant = ['commercial', 'comptable', 'production']
-    const allowedByAdmin = ['gerant', 'commercial', 'comptable', 'production']
+    const allowedByGerant = ['commercial', 'comptable', 'chef_production', 'rh', 'magasinier', 'qualite']
+    const allowedByAdmin = ['gerant', 'commercial', 'comptable', 'chef_production', 'rh', 'magasinier', 'qualite']
     
     const allowedRoles = callerRole === 'admin' ? allowedByAdmin : allowedByGerant
     if (!allowedRoles.includes(role)) {

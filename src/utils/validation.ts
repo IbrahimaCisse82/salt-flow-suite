@@ -95,7 +95,7 @@ export const inviteUserSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   fullName: nameSchema,
-  role: z.enum(["gerant", "commercial", "production", "comptable"]),
+  role: z.enum(["gerant", "commercial", "chef_production", "comptable", "rh", "magasinier", "qualite"]),
 });
 
 export const profileUpdateSchema = z.object({

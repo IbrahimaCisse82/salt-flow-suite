@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    const validRoles = ['admin', 'gerant', 'commercial', 'comptable', 'production']
+    const validRoles = ['admin', 'gerant', 'commercial', 'comptable', 'chef_production', 'rh', 'magasinier', 'qualite']
     if (!validRoles.includes(newRole)) {
       return new Response(
         JSON.stringify({ error: 'Rôle invalide' }),

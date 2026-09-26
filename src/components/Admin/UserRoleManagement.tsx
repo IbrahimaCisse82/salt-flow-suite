@@ -27,7 +27,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Shield, Users, AlertTriangle, UserX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-type UserRole = 'admin' | 'gerant' | 'commercial' | 'comptable' | 'production';
+// Valeurs alignées sur l'enum app_role de la base de données
+type UserRole = 'admin' | 'gerant' | 'commercial' | 'comptable' | 'chef_production' | 'rh' | 'magasinier' | 'qualite';
 
 interface UserWithRole {
   id: string;
@@ -44,7 +45,10 @@ const roleColors: Record<UserRole, string> = {
   gerant: 'bg-green-600',
   commercial: 'bg-blue-600',
   comptable: 'bg-indigo-600',
-  production: 'bg-orange-600',
+  chef_production: 'bg-orange-600',
+  rh: 'bg-pink-600',
+  magasinier: 'bg-teal-600',
+  qualite: 'bg-cyan-600',
 };
 
 const roleLabels: Record<UserRole, string> = {
@@ -52,7 +56,10 @@ const roleLabels: Record<UserRole, string> = {
   gerant: 'Gérant',
   commercial: 'Commercial',
   comptable: 'Comptable',
-  production: 'Production',
+  chef_production: 'Chef de production',
+  rh: 'RH',
+  magasinier: 'Magasinier',
+  qualite: 'Qualité',
 };
 
 export const UserRoleManagement = () => {
@@ -274,7 +281,10 @@ export const UserRoleManagement = () => {
                           <SelectItem value="gerant">Gérant</SelectItem>
                           <SelectItem value="commercial">Commercial</SelectItem>
                           <SelectItem value="comptable">Comptable</SelectItem>
-                          <SelectItem value="production">Production</SelectItem>
+                          <SelectItem value="chef_production">Chef de production</SelectItem>
+                          <SelectItem value="rh">RH</SelectItem>
+                          <SelectItem value="magasinier">Magasinier</SelectItem>
+                          <SelectItem value="qualite">Qualité</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
