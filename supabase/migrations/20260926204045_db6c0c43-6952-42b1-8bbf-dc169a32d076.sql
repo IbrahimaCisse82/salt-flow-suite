@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.enforce_po_budget() FROM authenticated;
