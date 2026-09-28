@@ -54,6 +54,7 @@ export type Database = {
         Row: {
           activated_at: string | null
           created_at: string
+          daily_worker_withholding_rate: number
           employee_social_rate: number
           employer_social_rate: number
           income_tax_rate: number
@@ -65,6 +66,7 @@ export type Database = {
         Insert: {
           activated_at?: string | null
           created_at?: string
+          daily_worker_withholding_rate?: number
           employee_social_rate?: number
           employer_social_rate?: number
           income_tax_rate?: number
@@ -76,6 +78,7 @@ export type Database = {
         Update: {
           activated_at?: string | null
           created_at?: string
+          daily_worker_withholding_rate?: number
           employee_social_rate?: number
           employer_social_rate?: number
           income_tax_rate?: number
