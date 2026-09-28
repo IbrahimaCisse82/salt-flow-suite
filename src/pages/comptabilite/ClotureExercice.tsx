@@ -62,6 +62,13 @@ const ClotureExercice = () => {
     mutationFn: async () => {
       if (!profile?.tenant_id) throw new Error("Tenant non trouvé");
 
+      // Inventaire de fin d'exercice : variation des stocks achetés (32 / 6032)
+      const { error: varErr } = await (supabase.rpc as any)("post_inventory_variation", {
+        p_tenant_id: profile.tenant_id,
+        p_fiscal_year_end: fiscalYearEnd,
+      });
+      if (varErr) throw varErr;
+
       const { data, error } = await (supabase.rpc as any)("close_fiscal_year", {
         p_tenant_id: profile.tenant_id,
         p_fiscal_year_end: fiscalYearEnd,

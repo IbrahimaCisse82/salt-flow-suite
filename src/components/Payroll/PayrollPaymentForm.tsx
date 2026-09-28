@@ -71,7 +71,9 @@ export function PayrollPaymentForm() {
     a => a.id === form.watch('attendance_id')
   );
 
-  const totalAmount = selectedAttendance?.calculated_amount || 0;
+  // Net à payer = brut − cotisations salariales − impôt retenu (le reste va en 431/447)
+  const att = selectedAttendance as (typeof selectedAttendance & { net_amount?: number }) | undefined;
+  const totalAmount = (att?.net_amount && att.net_amount > 0 ? att.net_amount : att?.calculated_amount) || 0;
   const alreadyPaid = selectedAttendance ? getPaidAmountForAttendance(selectedAttendance.id) : 0;
   const remainingDue = totalAmount - alreadyPaid;
   const paidAmount = parseFloat(form.watch('paid_amount') || '0');

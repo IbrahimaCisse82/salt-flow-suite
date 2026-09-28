@@ -54,6 +54,9 @@ export type Database = {
         Row: {
           activated_at: string | null
           created_at: string
+          employee_social_rate: number
+          employer_social_rate: number
+          income_tax_rate: number
           posting_mode: string
           shadow_since: string
           tenant_id: string
@@ -62,6 +65,9 @@ export type Database = {
         Insert: {
           activated_at?: string | null
           created_at?: string
+          employee_social_rate?: number
+          employer_social_rate?: number
+          income_tax_rate?: number
           posting_mode?: string
           shadow_since?: string
           tenant_id?: string
@@ -70,6 +76,9 @@ export type Database = {
         Update: {
           activated_at?: string | null
           created_at?: string
+          employee_social_rate?: number
+          employer_social_rate?: number
+          income_tax_rate?: number
           posting_mode?: string
           shadow_since?: string
           tenant_id?: string
@@ -3024,7 +3033,11 @@ export type Database = {
           employee_id: string
           hours_worked: number
           id: string
+          income_tax_amount: number
+          net_amount: number
           notes: string | null
+          social_employee_amount: number
+          social_employer_amount: number
           status: Database["public"]["Enums"]["attendance_status"]
           team_id: string
           tenant_id: string
@@ -3040,7 +3053,11 @@ export type Database = {
           employee_id: string
           hours_worked?: number
           id?: string
+          income_tax_amount?: number
+          net_amount?: number
           notes?: string | null
+          social_employee_amount?: number
+          social_employer_amount?: number
           status?: Database["public"]["Enums"]["attendance_status"]
           team_id: string
           tenant_id?: string
@@ -3056,7 +3073,11 @@ export type Database = {
           employee_id?: string
           hours_worked?: number
           id?: string
+          income_tax_amount?: number
+          net_amount?: number
           notes?: string | null
+          social_employee_amount?: number
+          social_employer_amount?: number
           status?: Database["public"]["Enums"]["attendance_status"]
           team_id?: string
           tenant_id?: string
@@ -3693,6 +3714,10 @@ export type Database = {
         Returns: string
       }
       post_depreciation: { Args: { p_schedule_id: string }; Returns: Json }
+      post_inventory_variation: {
+        Args: { p_fiscal_year_end: string; p_tenant_id: string }
+        Returns: Json
+      }
       process_stock_movement: {
         Args: {
           p_item_id: string
