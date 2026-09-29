@@ -14,11 +14,11 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { FileSpreadsheet, Download, CheckCircle, AlertTriangle } from "lucide-react";
-import { buildLiasse, type LiasseLine, type TrialBalanceRow } from "@/lib/domain/syscohadaLiasse";
+import { buildLiasse, buildTft, type Liasse, type TftLine, type LiasseLine, type TrialBalanceRow } from "@/lib/domain/syscohadaLiasse";
 
 const fmt = (n: number) => (n ? new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(n) : "-");
 
-function LinesTable({ lines, withAmort }: { lines: LiasseLine[]; withAmort?: boolean }) {
+function LinesTable({ lines, prev, withAmort }: { lines: LiasseLine[]; prev?: LiasseLine[]; withAmort?: boolean }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -28,7 +28,8 @@ function LinesTable({ lines, withAmort }: { lines: LiasseLine[]; withAmort?: boo
             <th className="text-left p-2">Libellé</th>
             {withAmort && <th className="text-right p-2">Brut</th>}
             {withAmort && <th className="text-right p-2">Amort./Dépr.</th>}
-            <th className="text-right p-2">{withAmort ? "Net" : "Montant (FCFA)"}</th>
+            <th className="text-right p-2">{withAmort ? "Net N" : "Exercice N"}</th>
+            <th className="text-right p-2">{withAmort ? "Net N-1" : "Exercice N-1"}</th>
           </tr>
         </thead>
         <tbody>
@@ -39,10 +40,68 @@ function LinesTable({ lines, withAmort }: { lines: LiasseLine[]; withAmort?: boo
               {withAmort && <td className="p-2 text-right tabular-nums">{fmt(l.brut)}</td>}
               {withAmort && <td className="p-2 text-right tabular-nums">{fmt(l.amort)}</td>}
               <td className="p-2 text-right tabular-nums">{fmt(l.net)}</td>
+              <td className="p-2 text-right tabular-nums text-muted-foreground">{fmt(prev?.find(p => p.ref === l.ref)?.net ?? 0)}</td>
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+const shift = (d: string) => `${Number(d.slice(0, 4)) - 1}${d.slice(4)}`;
+const fetchLiasse = async (s: string, e: string): Promise<Liasse> => {
+  const { data, error } = await supabase.rpc("generate_trial_balance", { p_start_date: s, p_end_date: e });
+  if (error) throw error;
+  return buildLiasse((data ?? []) as TrialBalanceRow[]);
+};
+
+function TftTable({ lines, prev }: { lines: TftLine[]; prev: TftLine[] }) {
+  return (
+    <table className="w-full text-sm">
+      <thead><tr className="border-b text-muted-foreground"><th className="text-left p-2 w-12">Réf</th><th className="text-left p-2">Libellé</th><th className="text-right p-2">Exercice N</th><th className="text-right p-2">Exercice N-1</th></tr></thead>
+      <tbody>{lines.map(l => (
+        <tr key={l.ref} className={cn("border-b", l.total && "bg-muted font-semibold")}>
+          <td className="p-2 font-mono">{l.ref}</td><td className="p-2">{l.label}</td>
+          <td className="p-2 text-right tabular-nums">{fmt(l.amount)}</td>
+          <td className="p-2 text-right tabular-nums text-muted-foreground">{fmt(prev.find(p => p.ref === l.ref)?.amount ?? 0)}</td>
+        </tr>))}</tbody>
+    </table>
+  );
+}
+
+function Notes({ n, n1 }: { n: Liasse; n1: Liasse }) {
+  const groups: [string, LiasseLine[], LiasseLine[]][] = [
+    ["Bilan actif", n.actif, n1.actif], ["Bilan passif", n.passif, n1.passif], ["Compte de résultat", n.compteResultat, n1.compteResultat],
+  ];
+  return (
+    <div className="space-y-6">
+      {groups.map(([title, cur, prev]) => {
+        const lines = cur.filter(l => !l.total && ((l.detail?.length ?? 0) > 0 || (prev.find(p => p.ref === l.ref)?.detail?.length ?? 0) > 0));
+        if (!lines.length) return null;
+        return (
+          <div key={title}>
+            <h3 className="font-semibold mb-2">{title}</h3>
+            {lines.map(l => {
+              const p = prev.find(x => x.ref === l.ref);
+              const accts = [...new Set([...(l.detail ?? []), ...(p?.detail ?? [])].map(d => d.account))].sort();
+              const sum = (arr: LiasseLine["detail"], a: string) => (arr ?? []).filter(d => d.account === a).reduce((s, d) => s + d.amount, 0);
+              return (
+                <div key={l.ref} className="mb-3 border rounded-md">
+                  <div className="p-2 bg-muted font-medium text-sm">{l.ref} – {l.label}</div>
+                  <table className="w-full text-sm"><tbody>{accts.map(a => (
+                    <tr key={a} className="border-t">
+                      <td className="p-2 font-mono w-28">{a}</td>
+                      <td className="p-2">{(l.detail ?? p?.detail ?? []).find(d => d.account === a)?.name ?? (p?.detail ?? []).find(d => d.account === a)?.name}</td>
+                      <td className="p-2 text-right tabular-nums">{fmt(sum(l.detail, a))}</td>
+                      <td className="p-2 text-right tabular-nums text-muted-foreground">{fmt(sum(p?.detail, a))}</td>
+                    </tr>))}</tbody></table>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -56,9 +115,12 @@ const LiasseSyscohada = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ["liasse", start, end],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("generate_trial_balance", { p_start_date: start, p_end_date: end });
-      if (error) throw error;
-      return buildLiasse((data ?? []) as TrialBalanceRow[]);
+      const [n, n1, n2] = await Promise.all([
+        fetchLiasse(start, end),
+        fetchLiasse(shift(start), shift(end)),
+        fetchLiasse(shift(shift(start)), shift(shift(end))),
+      ]);
+      return { ...n, n1, tft: buildTft(n, n1), tft1: buildTft(n1, n2) };
     },
   });
 
@@ -67,6 +129,7 @@ const LiasseSyscohada = () => {
     const out = ["Etat;Ref;Libelle;Brut;Amort;Net"];
     const push = (etat: string, ls: LiasseLine[]) => ls.forEach(l => out.push([etat, l.ref, `"${l.label}"`, l.brut, l.amort, l.net].join(";")));
     push("Bilan actif", data.actif); push("Bilan passif", data.passif); push("Compte de resultat", data.compteResultat);
+    data.tft.lines.forEach(l => out.push(["TFT", l.ref, `"${l.label}"`, "", "", l.amount].join(";")));
     const url = URL.createObjectURL(new Blob(["\ufeff" + out.join("\n")], { type: "text/csv" }));
     const a = document.createElement("a"); a.href = url; a.download = `liasse_syscohada_${end}.csv`; a.click();
   };
@@ -114,10 +177,17 @@ const LiasseSyscohada = () => {
                   <TabsTrigger value="actif">Bilan actif</TabsTrigger>
                   <TabsTrigger value="passif">Bilan passif</TabsTrigger>
                   <TabsTrigger value="cr">Compte de résultat</TabsTrigger>
+                  <TabsTrigger value="tft">Flux de trésorerie</TabsTrigger>
+                  <TabsTrigger value="notes">Notes (détail)</TabsTrigger>
                 </TabsList>
-                <TabsContent value="actif"><Card><CardHeader><CardTitle>Bilan – Actif</CardTitle><CardDescription>Au {end}</CardDescription></CardHeader><CardContent><LinesTable lines={data.actif} withAmort /></CardContent></Card></TabsContent>
-                <TabsContent value="passif"><Card><CardHeader><CardTitle>Bilan – Passif</CardTitle><CardDescription>Au {end}</CardDescription></CardHeader><CardContent><LinesTable lines={data.passif} /></CardContent></Card></TabsContent>
-                <TabsContent value="cr"><Card><CardHeader><CardTitle>Compte de résultat</CardTitle><CardDescription>Du {start} au {end}</CardDescription></CardHeader><CardContent><LinesTable lines={data.compteResultat} /></CardContent></Card></TabsContent>
+                <TabsContent value="actif"><Card><CardHeader><CardTitle>Bilan – Actif</CardTitle><CardDescription>Au {end}</CardDescription></CardHeader><CardContent><LinesTable lines={data.actif} prev={data.n1.actif} withAmort /></CardContent></Card></TabsContent>
+                <TabsContent value="passif"><Card><CardHeader><CardTitle>Bilan – Passif</CardTitle><CardDescription>Au {end}</CardDescription></CardHeader><CardContent><LinesTable lines={data.passif} prev={data.n1.passif} /></CardContent></Card></TabsContent>
+                <TabsContent value="cr"><Card><CardHeader><CardTitle>Compte de résultat</CardTitle><CardDescription>Du {start} au {end}</CardDescription></CardHeader><CardContent><LinesTable lines={data.compteResultat} prev={data.n1.compteResultat} /></CardContent></Card></TabsContent>
+                <TabsContent value="tft"><Card><CardHeader><CardTitle>Tableau des flux de trésorerie</CardTitle><CardDescription>Méthode indirecte, du {start} au {end}</CardDescription></CardHeader><CardContent className="space-y-3">
+                  {Math.abs(data.tft.ecart) >= 1 && <Alert><AlertTriangle className="h-4 w-4" /><AlertDescription>Écart de {fmt(data.tft.ecart)} FCFA avec la trésorerie du bilan (cessions ou reprises à analyser).</AlertDescription></Alert>}
+                  <div className="overflow-x-auto"><TftTable lines={data.tft.lines} prev={data.tft1.lines} /></div>
+                </CardContent></Card></TabsContent>
+                <TabsContent value="notes"><Card><CardHeader><CardTitle>Notes annexes – détail des rubriques</CardTitle><CardDescription>Comptes composant chaque rubrique, exercice N et N-1</CardDescription></CardHeader><CardContent><Notes n={data} n1={data.n1} /></CardContent></Card></TabsContent>
               </Tabs>
             </>
           )}
