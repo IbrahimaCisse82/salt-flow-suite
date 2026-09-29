@@ -1,2 +1,3 @@
 
-- [ ] Plan v2→v3 (document utilisateur) : lire la Partie A et le Lot 0 (audit seul, sans modification), attendre la validation avant chaque lot
+- [x] Lot 0 audit v3 livré (docs/audit-v3.md)
+- [ ] Lot 1 et suivants : en attente de validation de l'audit
