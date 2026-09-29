@@ -21,6 +21,7 @@ import {
   Landmark,
   FilePlus2,
   Lock,
+  FileSpreadsheet,
 } from "lucide-react";
 
 export interface NavItem {
