@@ -1,0 +1,130 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Header } from "@/components/Layout/Header";
+import { Sidebar } from "@/components/Layout/Sidebar";
+import { Breadcrumbs } from "@/components/Layout/Breadcrumbs";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { FileSpreadsheet, Download, CheckCircle, AlertTriangle } from "lucide-react";
+import { buildLiasse, type LiasseLine, type TrialBalanceRow } from "@/lib/domain/syscohadaLiasse";
+
+const fmt = (n: number) => (n ? new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(n) : "-");
+
+function LinesTable({ lines, withAmort }: { lines: LiasseLine[]; withAmort?: boolean }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b text-muted-foreground">
+            <th className="text-left p-2 w-12">Réf</th>
+            <th className="text-left p-2">Libellé</th>
+            {withAmort && <th className="text-right p-2">Brut</th>}
+            {withAmort && <th className="text-right p-2">Amort./Dépr.</th>}
+            <th className="text-right p-2">{withAmort ? "Net" : "Montant (FCFA)"}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lines.map(l => (
+            <tr key={l.ref} className={cn("border-b", l.total && "bg-muted font-semibold")} title={l.accounts.join(", ")}>
+              <td className="p-2 font-mono">{l.ref}</td>
+              <td className="p-2">{l.label}</td>
+              {withAmort && <td className="p-2 text-right tabular-nums">{fmt(l.brut)}</td>}
+              {withAmort && <td className="p-2 text-right tabular-nums">{fmt(l.amort)}</td>}
+              <td className="p-2 text-right tabular-nums">{fmt(l.net)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const LiasseSyscohada = () => {
+  const { isOpen } = useSidebar();
+  const year = new Date().getFullYear();
+  const [start, setStart] = useState(`${year}-01-01`);
+  const [end, setEnd] = useState(`${year}-12-31`);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["liasse", start, end],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("generate_trial_balance", { p_start_date: start, p_end_date: end });
+      if (error) throw error;
+      return buildLiasse((data ?? []) as TrialBalanceRow[]);
+    },
+  });
+
+  const exportCsv = () => {
+    if (!data) return;
+    const out = ["Etat;Ref;Libelle;Brut;Amort;Net"];
+    const push = (etat: string, ls: LiasseLine[]) => ls.forEach(l => out.push([etat, l.ref, `"${l.label}"`, l.brut, l.amort, l.net].join(";")));
+    push("Bilan actif", data.actif); push("Bilan passif", data.passif); push("Compte de resultat", data.compteResultat);
+    const url = URL.createObjectURL(new Blob(["\ufeff" + out.join("\n")], { type: "text/csv" }));
+    const a = document.createElement("a"); a.href = url; a.download = `liasse_syscohada_${end}.csv`; a.click();
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex w-full">
+      <Sidebar />
+      <div className={cn("flex-1 flex flex-col transition-all duration-300", isOpen ? "md:ml-64" : "md:ml-16")}>
+        <Header />
+        <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto">
+          <Breadcrumbs />
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <FileSpreadsheet className="h-5 w-5 text-primary" /> Liasse SYSCOHADA révisé
+              </h2>
+              <p className="text-sm text-muted-foreground">Bilan et Compte de résultat générés depuis la balance générale.</p>
+            </div>
+            <div className="flex flex-wrap items-end gap-2">
+              <div><Label>Du</Label><Input type="date" value={start} onChange={e => setStart(e.target.value)} /></div>
+              <div><Label>Au</Label><Input type="date" value={end} onChange={e => setEnd(e.target.value)} /></div>
+              <Button variant="outline" onClick={exportCsv} disabled={!data}><Download className="h-4 w-4 mr-1" /> Export</Button>
+            </div>
+          </div>
+
+          {error && <Alert variant="destructive"><AlertDescription>{(error as Error).message}</AlertDescription></Alert>}
+          {isLoading && <p className="text-muted-foreground">Calcul en cours…</p>}
+
+          {data && (
+            <>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant={data.equilibre ? "default" : "destructive"} className="gap-1">
+                  {data.equilibre ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                  Actif {fmt(data.totalActif)} / Passif {fmt(data.totalPassif)}
+                </Badge>
+                <Badge variant="secondary">Résultat net : {fmt(data.resultatNet)} FCFA</Badge>
+              </div>
+              {data.nonMappes.length > 0 && (
+                <Alert><AlertTriangle className="h-4 w-4" /><AlertDescription>
+                  Comptes non rattachés à une rubrique : {data.nonMappes.map(n => `${n.account_number} (${fmt(n.solde)})`).join(", ")}
+                </AlertDescription></Alert>
+              )}
+              <Tabs defaultValue="actif">
+                <TabsList>
+                  <TabsTrigger value="actif">Bilan actif</TabsTrigger>
+                  <TabsTrigger value="passif">Bilan passif</TabsTrigger>
+                  <TabsTrigger value="cr">Compte de résultat</TabsTrigger>
+                </TabsList>
+                <TabsContent value="actif"><Card><CardHeader><CardTitle>Bilan – Actif</CardTitle><CardDescription>Au {end}</CardDescription></CardHeader><CardContent><LinesTable lines={data.actif} withAmort /></CardContent></Card></TabsContent>
+                <TabsContent value="passif"><Card><CardHeader><CardTitle>Bilan – Passif</CardTitle><CardDescription>Au {end}</CardDescription></CardHeader><CardContent><LinesTable lines={data.passif} /></CardContent></Card></TabsContent>
+                <TabsContent value="cr"><Card><CardHeader><CardTitle>Compte de résultat</CardTitle><CardDescription>Du {start} au {end}</CardDescription></CardHeader><CardContent><LinesTable lines={data.compteResultat} /></CardContent></Card></TabsContent>
+              </Tabs>
+            </>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default LiasseSyscohada;
