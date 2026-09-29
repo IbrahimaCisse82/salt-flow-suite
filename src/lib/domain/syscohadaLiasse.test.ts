@@ -7,7 +7,7 @@ const row = (n: string, d: number, c: number): TrialBalanceRow => ({
 
 describe("buildLiasse", () => {
   const rows = [
-    row("101000", 0, 10_000_000),     // capital
+    row("101000", 0, 11_000_000),     // capital
     row("245000", 6_000_000, 0),      // matériel de transport
     row("284500", 0, 1_000_000),      // amort transport
     row("521000", 5_000_000, 0),      // banque
