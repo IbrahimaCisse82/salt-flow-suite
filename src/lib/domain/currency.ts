@@ -136,3 +136,21 @@ export const calculateMargin = (
   if (rev.isZero()) return 0;
   return rev.minus(toDecimal(cost)).dividedBy(rev).times(100).toDecimalPlaces(2).toNumber();
 };
+
+/**
+ * Totaux de facture en FCFA entiers (Lot 1.1) : chaque ligne HT est arrondie
+ * à l'unité, la TVA est calculée et arrondie PAR LIGNE, et les totaux sont la
+ * somme des lignes. Aucun calcul en virgule flottante (decimal.js).
+ */
+export interface InvoiceLineInput { quantity: number | string; unit_price: number | string }
+export interface InvoiceTotals { lines: { ht: number; tva: number; ttc: number }[]; totalHT: number; totalTVA: number; totalTTC: number }
+export const computeInvoiceTotals = (items: InvoiceLineInput[], tvaRate: number | string = 0): InvoiceTotals => {
+  const rate = toDecimal(tvaRate);
+  const lines = items.map((i) => {
+    const ht = toDecimal(i.quantity || 0).times(toDecimal(i.unit_price || 0)).toDecimalPlaces(0, Decimal.ROUND_HALF_UP);
+    const tva = ht.times(rate).dividedBy(100).toDecimalPlaces(0, Decimal.ROUND_HALF_UP);
+    return { ht: ht.toNumber(), tva: tva.toNumber(), ttc: ht.plus(tva).toNumber() };
+  });
+  const sum = (k: "ht" | "tva" | "ttc") => lines.reduce((s, l) => s.plus(l[k]), new Decimal(0)).toNumber();
+  return { lines, totalHT: sum("ht"), totalTVA: sum("tva"), totalTTC: sum("ttc") };
+};
