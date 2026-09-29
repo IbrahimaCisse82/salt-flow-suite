@@ -328,13 +328,14 @@ export function buildLiasse(rows: TrialBalanceRow[]): Liasse {
   const buildSide = (labels: [string, string, boolean?][], totals: Record<string, string[]>, brut: Map<string, Decimal>, amort?: Map<string, Decimal>) => {
     const b = new Map<string, Decimal>(); const a = new Map<string, Decimal>();
     for (const [ref] of labels) {
-      if (totals[ref]) {
-        b.set(ref, totals[ref].reduce((s, k) => s.plus(b.get(k) ?? 0), new Decimal(0)));
-        a.set(ref, totals[ref].reduce((s, k) => s.plus(a.get(k) ?? 0), new Decimal(0)));
-      } else {
-        b.set(ref, brut.get(ref) ?? new Decimal(0));
-        a.set(ref, amort?.get(ref) ?? new Decimal(0));
-      }
+      if (totals[ref]) continue;
+      b.set(ref, brut.get(ref) ?? new Decimal(0));
+      a.set(ref, amort?.get(ref) ?? new Decimal(0));
+    }
+    // Totaux ensuite, dans l'ordre de dépendance (clés de l'objet)
+    for (const ref of Object.keys(totals)) {
+      b.set(ref, totals[ref].reduce((s, k) => s.plus(b.get(k) ?? 0), new Decimal(0)));
+      a.set(ref, totals[ref].reduce((s, k) => s.plus(a.get(k) ?? 0), new Decimal(0)));
     }
     return labels.map(([ref, label, total]) => {
       const br = b.get(ref)!; const am = a.get(ref)!;
