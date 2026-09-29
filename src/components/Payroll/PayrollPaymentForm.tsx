@@ -41,14 +41,11 @@ export function PayrollPaymentForm() {
   const { data: accounts } = useQuery({
     queryKey: ['treasury-accounts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('accounts')
-        .select('*')
-        .in('account_type', ['banque', 'caisse'])
-        .order('account_name');
-      
+      // Liste sans soldes, accessible à tout rôle autorisé à payer (Lot 1.3)
+      const { data, error } = await (supabase as any).rpc('list_payment_accounts');
       if (error) throw error;
-      return data;
+      return ((data ?? []) as { id: string; account_name: string; account_type: string }[])
+        .filter((a) => ['banque', 'caisse', 'mobile_money'].includes(a.account_type));
     }
   });
 
