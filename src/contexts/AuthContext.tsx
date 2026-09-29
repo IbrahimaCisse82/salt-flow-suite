@@ -11,6 +11,7 @@ interface Profile {
   id: string;
   tenant_id: string | null;
   role?: string;
+  roles?: string[];
   email: string;
   full_name: string | null;
   phone: string | null;
@@ -83,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const role = priority.find((r) => roles.includes(r)) ?? roles[0] ?? null;
 
       return {
-        profile: { ...(profilesData as any), role } as Profile,
+        profile: { ...(profilesData as any), role, roles } as Profile,
         tenant: tenant as Tenant | null,
       };
     },

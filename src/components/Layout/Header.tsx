@@ -24,7 +24,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { useAuth } from "@/contexts/AuthContext";
-import { hasAccessToPage, UserRole } from "@/utils/permissions";
+import { hasAccessToPage, profileRoles, UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
 import saltLogo from "@/assets/salt-logo.png";
 import { NotificationCenter } from "@/components/Notifications/NotificationCenter";
@@ -51,7 +51,7 @@ const HeaderComponent = () => {
   );
 
   const visibleNavItems = useMemo(() => 
-    navItems.filter(item => hasAccessToPage(userRole, item.href)),
+    navItems.filter(item => hasAccessToPage(profileRoles(profile), item.href)),
     [navItems, userRole]
   );
 
