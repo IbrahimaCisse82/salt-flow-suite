@@ -1,3 +1,4 @@
+import { ShadowModeBanner } from "@/components/Accounting/ShadowModeBanner";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Layout/Header";
@@ -1071,6 +1072,7 @@ const Comptabilite = () => {
           "flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 overflow-x-hidden transition-all duration-300",
           isOpen ? "md:ml-64" : "md:ml-16"
         )}>
+          <ShadowModeBanner />
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">Comptabilité</h1>
