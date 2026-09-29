@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildLiasse, type TrialBalanceRow } from "./syscohadaLiasse";
+import { buildLiasse, buildTft, type TrialBalanceRow } from "./syscohadaLiasse";
 
 const row = (n: string, d: number, c: number): TrialBalanceRow => ({
   account_number: n, account_name: n, opening_balance: 0, period_debit: d, period_credit: c, closing_balance: d - c,
@@ -39,5 +39,11 @@ describe("buildLiasse", () => {
     expect(get(l.passif, "CJ").net).toBe(-1_600_000);
     expect(l.equilibre).toBe(true);
     expect(l.nonMappes).toHaveLength(0);
+  });
+
+  it("TFT : trésorerie finale = banque", () => {
+    const tft = buildTft(l, buildLiasse([]));
+    expect(tft.lines.find(x => x.ref === "ZH")!.amount).toBe(5_000_000);
+    expect(tft.ecart).toBe(0);
   });
 });

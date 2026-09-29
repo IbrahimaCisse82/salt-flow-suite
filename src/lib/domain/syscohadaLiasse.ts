@@ -26,6 +26,7 @@ export interface LiasseLine {
   amort: number;
   net: number;
   accounts: string[];
+  detail?: { account: string; name: string; amount: number }[];
 }
 
 // ---------- BILAN ACTIF ----------
@@ -263,8 +264,13 @@ export function buildLiasse(rows: TrialBalanceRow[]): Liasse {
   const passifM = new Map<string, Decimal>(); const crM = new Map<string, Decimal>();
   const accs = new Map<string, Set<string>>();
   const nonMappes: Liasse["nonMappes"] = [];
+  const det = new Map<string, { account: string; name: string; amount: number }[]>();
+  const names = new Map(rows.map(r => [String(r.account_number).trim(), r.account_name]));
   const add = (m: Map<string, Decimal>, k: string, v: Decimal, acc: string) => {
     m.set(k, (m.get(k) ?? new Decimal(0)).plus(v));
+    const key = (m === actifA ? "A:" : "") + k;
+    if (!det.has(key)) det.set(key, []);
+    det.get(key)!.push({ account: acc, name: names.get(acc) ?? acc, amount: v.toNumber() });
     if (!accs.has(k)) accs.set(k, new Set());
     accs.get(k)!.add(acc);
   };
@@ -322,7 +328,7 @@ export function buildLiasse(rows: TrialBalanceRow[]): Liasse {
     } else v = crM.get(l.ref) ?? new Decimal(0);
     crVal.set(l.ref, v);
     const n = v.toNumber();
-    return { ref: l.ref, label: l.label, total: !!l.formula, brut: n, amort: 0, net: n, accounts: [...(accs.get(l.ref) ?? [])] };
+    return { ref: l.ref, label: l.label, total: !!l.formula, brut: n, amort: 0, net: n, accounts: [...(accs.get(l.ref) ?? [])], detail: det.get(l.ref) };
   });
 
   const buildSide = (labels: [string, string, boolean?][], totals: Record<string, string[]>, brut: Map<string, Decimal>, amort?: Map<string, Decimal>) => {
@@ -339,7 +345,7 @@ export function buildLiasse(rows: TrialBalanceRow[]): Liasse {
     }
     return labels.map(([ref, label, total]) => {
       const br = b.get(ref)!; const am = a.get(ref)!;
-      return { ref, label, total: !!total || !!totals[ref], brut: br.toNumber(), amort: am.toNumber(), net: br.minus(am).toNumber(), accounts: [...(accs.get(ref) ?? [])] };
+      return { ref, label, total: !!total || !!totals[ref], brut: br.toNumber(), amort: am.toNumber(), net: br.minus(am).toNumber(), accounts: [...(accs.get(ref) ?? [])], detail: [...(det.get(ref) ?? []), ...(det.get("A:" + ref) ?? []).map(d => ({ ...d, amount: -d.amount }))] };
     });
   };
 
@@ -352,5 +358,70 @@ export function buildLiasse(rows: TrialBalanceRow[]): Liasse {
     resultatNet: compteResultat.find(l => l.ref === "XI")!.net,
     equilibre: Math.abs(totalActif - totalPassif) < 1,
     nonMappes,
+  };
+}
+
+// ---------- TABLEAU DES FLUX DE TRÉSORERIE (SYSCOHADA révisé) ----------
+export interface TftLine { ref: string; label: string; total?: boolean; amount: number }
+
+/** TFT indirect à partir de la liasse N et N-1. `ecart` = contrôle avec la trésorerie réelle. */
+export function buildTft(n: Liasse, n1: Liasse): { lines: TftLine[]; ecart: number } {
+  const v = (l: Liasse, side: "actif" | "passif" | "cr", ref: string, col: "brut" | "net" = "net") => {
+    const arr = side === "actif" ? l.actif : side === "passif" ? l.passif : l.compteResultat;
+    return new Decimal(arr.find(x => x.ref === ref)?.[col] ?? 0);
+  };
+  const d = (side: "actif" | "passif", ref: string, col: "brut" | "net" = "net") => v(n, side, ref, col).minus(v(n1, side, ref, col));
+  const cr = (ref: string) => v(n, "cr", ref);
+  const treso = (l: Liasse) => v(l, "actif", "BT").minus(v(l, "passif", "DT"));
+
+  const ZA = treso(n1);
+  const FA = cr("XI").plus(cr("RL")).plus(cr("RN")).minus(cr("TJ")).minus(cr("TL")).plus(cr("RO")).minus(cr("TN"));
+  const FB = d("actif", "BA").neg();
+  const FC = d("actif", "BB").neg();
+  const FD = d("actif", "BG").plus(d("actif", "BU")).neg();
+  const FE = d("passif", "DP").plus(d("passif", "DV"));
+  const ZB = FA.plus(FB).plus(FC).plus(FD).plus(FE);
+  const FI = cr("TN");
+  const FF = d("actif", "AD", "brut").neg();
+  const FG = d("actif", "AI", "brut").plus(cr("RO")).neg();
+  const FH = d("actif", "AQ", "brut").neg();
+  const ZC = FF.plus(FG).plus(FH).plus(FI);
+  const FK = d("passif", "CA").plus(d("passif", "CB")).plus(d("passif", "CD")).plus(d("passif", "CE"));
+  const FL = d("passif", "CL").plus(d("passif", "CM"));
+  const FN = d("passif", "CF").plus(d("passif", "CG")).plus(d("passif", "CH")).plus(d("passif", "CJ")).minus(cr("XI"));
+  const ZD = FK.plus(FL).plus(FN);
+  const dDette = d("passif", "DA").plus(d("passif", "DB")).plus(d("passif", "DC"));
+  const FO = Decimal.max(dDette, 0); const FQ = Decimal.min(dDette, 0);
+  const ZE = FO.plus(FQ);
+  const ZF = ZD.plus(ZE);
+  const ZG = ZB.plus(ZC).plus(ZF);
+  const ZH = ZA.plus(ZG);
+  const L = (ref: string, label: string, a: Decimal, total = false): TftLine => ({ ref, label, amount: a.toNumber(), total });
+  return {
+    ecart: ZH.minus(treso(n)).toNumber(),
+    lines: [
+      L("ZA", "Trésorerie nette au 1er janvier", ZA, true),
+      L("FA", "Capacité d'Autofinancement Globale (CAFG)", FA),
+      L("FB", "- Variation d'actif circulant HAO", FB),
+      L("FC", "- Variation des stocks", FC),
+      L("FD", "- Variation des créances", FD),
+      L("FE", "+ Variation du passif circulant", FE),
+      L("ZB", "Flux de trésorerie provenant des activités opérationnelles", ZB, true),
+      L("FF", "- Décaissements liés aux acquisitions d'immobilisations incorporelles", FF),
+      L("FG", "- Décaissements liés aux acquisitions d'immobilisations corporelles", FG),
+      L("FH", "- Décaissements liés aux acquisitions d'immobilisations financières", FH),
+      L("FI", "+ Encaissements liés aux cessions d'immobilisations", FI),
+      L("ZC", "Flux de trésorerie provenant des activités d'investissement", ZC, true),
+      L("FK", "+ Augmentations de capital", FK),
+      L("FL", "+ Subventions d'investissement reçues", FL),
+      L("FN", "- Dividendes versés / prélèvements", FN),
+      L("ZD", "Flux provenant des capitaux propres", ZD, true),
+      L("FO", "+ Emprunts et autres dettes financières", FO),
+      L("FQ", "- Remboursements des emprunts et dettes financières", FQ),
+      L("ZE", "Flux provenant des capitaux étrangers", ZE, true),
+      L("ZF", "Flux de trésorerie provenant des activités de financement", ZF, true),
+      L("ZG", "VARIATION DE LA TRÉSORERIE NETTE DE LA PÉRIODE", ZG, true),
+      L("ZH", "Trésorerie nette au 31 décembre", ZH, true),
+    ],
   };
 }
