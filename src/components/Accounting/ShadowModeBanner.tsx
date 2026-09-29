@@ -9,7 +9,7 @@ export const ShadowModeBanner = () => {
   const { mode, config, entries } = useAccountingShadow();
   if (!config || (mode !== "shadow" && entries.length === 0)) return null;
   return (
-    <Alert className="border-warning">
+    <Alert className="border-primary">
       <AlertTriangle className="h-4 w-4" />
       <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
         <span>

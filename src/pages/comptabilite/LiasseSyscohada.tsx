@@ -1,3 +1,4 @@
+import { ShadowModeBanner } from "@/components/Accounting/ShadowModeBanner";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -197,6 +198,7 @@ const LiasseSyscohada = () => {
         <Header />
         <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto">
           <Breadcrumbs />
+          <ShadowModeBanner />
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="text-xl font-semibold flex items-center gap-2">

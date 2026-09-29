@@ -1,3 +1,4 @@
+import { ShadowModeBanner } from "@/components/Accounting/ShadowModeBanner";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { Breadcrumbs } from "@/components/Layout/Breadcrumbs";
@@ -15,6 +16,7 @@ const Rapprochement = () => {
         <Header />
         <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto">
           <Breadcrumbs />
+          <ShadowModeBanner />
           <BankReconciliation />
         </main>
       </div>

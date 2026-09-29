@@ -1,3 +1,4 @@
+import { ShadowModeBanner } from "@/components/Accounting/ShadowModeBanner";
 import { useState } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
@@ -78,6 +79,7 @@ const Immobilisations = () => {
         <Header />
         <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto">
           <Breadcrumbs />
+          <ShadowModeBanner />
 
           {/* KPIs */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
