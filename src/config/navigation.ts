@@ -56,6 +56,7 @@ export const salinesNavItems: NavItem[] = [
     { icon: Landmark, label: "Rapprochement", href: "/comptabilite/rapprochement" },
     { icon: FilePlus2, label: "Opérations Diverses", href: "/comptabilite/operations-diverses" },
     { icon: Lock, label: "Clôture exercice", href: "/comptabilite/cloture" },
+    { icon: FileSpreadsheet, label: "Liasse SYSCOHADA", href: "/comptabilite/liasse" },
     { icon: Building2, label: "Immobilisations", href: "/comptabilite/immobilisations" },
   ]},
   { icon: ShoppingCart, label: "Achats", href: "/achats" },

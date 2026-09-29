@@ -65,6 +65,7 @@ const routes: RouteConfig[] = [
   // Form routes
   { path: "/comptabilite/operations-diverses", load: () => import("./pages/comptabilite/OperationsDiverses"), fallback: "form" },
   { path: "/comptabilite/cloture", load: () => import("./pages/comptabilite/ClotureExercice"), fallback: "form" },
+  { path: "/comptabilite/liasse", load: () => import("./pages/comptabilite/LiasseSyscohada"), fallback: "table" },
   { path: "/parametres", load: () => import("./pages/Parametres"), fallback: "form" },
   { path: "/admin/settings", load: () => import("./pages/admin/Settings"), fallback: "form" },
   { path: "/admin/email-templates", load: () => import("./pages/admin/EmailTemplates"), fallback: "form" },
