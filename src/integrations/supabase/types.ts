@@ -106,10 +106,16 @@ export type Database = {
           id: string
           journal_code: string
           lines: Json
+          posted_transaction_id: string | null
+          reject_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           source_id: string | null
           source_table: string | null
+          status: string
           tenant_id: string
           total_amount: number
+          tx_type: string
         }
         Insert: {
           created_at?: string
@@ -119,10 +125,16 @@ export type Database = {
           id?: string
           journal_code: string
           lines: Json
+          posted_transaction_id?: string | null
+          reject_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source_id?: string | null
           source_table?: string | null
+          status?: string
           tenant_id?: string
           total_amount?: number
+          tx_type?: string
         }
         Update: {
           created_at?: string
@@ -132,10 +144,16 @@ export type Database = {
           id?: string
           journal_code?: string
           lines?: Json
+          posted_transaction_id?: string | null
+          reject_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           source_id?: string | null
           source_table?: string | null
+          status?: string
           tenant_id?: string
           total_amount?: number
+          tx_type?: string
         }
         Relationships: []
       }
@@ -3686,6 +3704,15 @@ export type Database = {
         }
         Returns: Json
       }
+      list_payment_accounts: {
+        Args: never
+        Returns: {
+          account_name: string
+          account_number: string
+          account_type: string
+          id: string
+        }[]
+      }
       next_document_number: { Args: { p_doc_type: string }; Returns: string }
       next_document_number_for: {
         Args: { p_doc_type: string; p_tenant_id: string }
@@ -3717,6 +3744,20 @@ export type Database = {
         Returns: string
       }
       post_depreciation: { Args: { p_schedule_id: string }; Returns: Json }
+      post_entry_live: {
+        Args: {
+          _description: string
+          _entry_date: string
+          _event_type: string
+          _journal: string
+          _lines: Json
+          _source_id: string
+          _source_table: string
+          _tenant_id: string
+          _tx_type?: Database["public"]["Enums"]["transaction_type"]
+        }
+        Returns: string
+      }
       post_inventory_variation: {
         Args: { p_fiscal_year_end: string; p_tenant_id: string }
         Returns: Json
@@ -3735,14 +3776,20 @@ export type Database = {
         }
         Returns: Json
       }
+      reject_shadow_entries: {
+        Args: { _ids: string[]; _reason: string }
+        Returns: Json
+      }
       resolve_account: {
         Args: { _name?: string; _number: string; _tenant_id: string }
         Returns: string
       }
+      round_entry_lines: { Args: { _lines: Json }; Returns: Json }
       seed_chart_of_accounts: {
         Args: { _tenant_id: string }
         Returns: undefined
       }
+      set_posting_mode: { Args: { _mode: string }; Returns: string }
       update_own_profile: {
         Args: {
           _avatar_url?: string
@@ -3772,6 +3819,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      validate_shadow_entries: { Args: { _ids: string[] }; Returns: Json }
       validate_transaction: { Args: { _id: string }; Returns: Json }
       validate_transactions_bulk: { Args: { _ids: string[] }; Returns: Json }
     }
