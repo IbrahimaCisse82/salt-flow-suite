@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { hasAccessToPage, UserRole } from "@/utils/permissions";
+import { hasAccessToPage, profileRoles, UserRole } from "@/utils/permissions";
 import { useAuth } from "@/contexts/AuthContext";
 import { prefetchRoute } from "@/App";
 import {
@@ -44,7 +44,7 @@ const MobileBottomNavComponent = () => {
 
   const userRole = (profile?.role as UserRole) ?? null;
   const items = useMemo(
-    () => (userRole === "admin" ? adminBottomNav : salinesBottomNav).filter((item) => hasAccessToPage(userRole, item.href)),
+    () => (userRole === "admin" ? adminBottomNav : salinesBottomNav).filter((item) => hasAccessToPage(profileRoles(profile), item.href)),
     [userRole]
   );
 

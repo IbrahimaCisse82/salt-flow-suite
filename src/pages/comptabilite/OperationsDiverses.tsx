@@ -1,3 +1,4 @@
+import { ShadowModeBanner } from "@/components/Accounting/ShadowModeBanner";
 import { useState } from "react";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
@@ -44,6 +45,7 @@ const OperationsDiverses = () => {
         <Header />
         <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto">
           <Breadcrumbs />
+          <ShadowModeBanner />
 
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Écritures diverses</h2>

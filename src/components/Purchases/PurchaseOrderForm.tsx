@@ -1,3 +1,4 @@
+import { computeInvoiceTotals } from "@/lib/domain/currency";
 import { useState, useMemo } from "react";
 import { Plus, Trash2, AlertTriangle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -99,9 +100,11 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
   }, [formData.campagne_phase, getCategoriesForPhase]);
 
   // Vérification budgétaire
-  const subtotal = items.reduce((sum, item) => sum + item.line_total, 0);
-  const tvaAmount = Math.round(subtotal * (formData.tva_rate / 100));
-  const totalTTC = subtotal + tvaAmount;
+  // FCFA entiers, TVA arrondie par ligne (Lot 1.1)
+  const totals = computeInvoiceTotals(items.map((i) => ({ quantity: i.quantity, unit_price: i.unit_price })), formData.tva_rate);
+  const subtotal = totals.totalHT;
+  const tvaAmount = totals.totalTVA;
+  const totalTTC = totals.totalTTC;
   
   const budgetCheck = useMemo(() => {
     if (!formData.campagne_phase || !formData.expense_category || !activeCampagne?.id) {
@@ -122,7 +125,7 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
       id: crypto.randomUUID(),
       ...newItem,
       item_category: formData.expense_category,
-      line_total: newItem.quantity * newItem.unit_price,
+      line_total: computeInvoiceTotals([newItem], 0).totalHT,
     };
 
     setItems([...items, item]);

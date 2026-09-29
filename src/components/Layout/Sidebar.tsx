@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { hasAccessToPage, UserRole } from "@/utils/permissions";
+import { hasAccessToPage, profileRoles, UserRole } from "@/utils/permissions";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCampagnes } from "@/hooks/useCampagnes";
@@ -34,7 +34,7 @@ const SidebarComponent = () => {
   );
   
   const visibleNavItems = useMemo(() => 
-    navItems.filter(item => hasAccessToPage(userRole, item.href)),
+    navItems.filter(item => hasAccessToPage(profileRoles(profile), item.href)),
     [navItems, userRole]
   );
 

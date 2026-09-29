@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { Loader2, ShieldAlert } from "lucide-react";
-import { hasAccessToPage, UserRole } from "@/utils/permissions";
+import { hasAccessToPage, profileRoles, UserRole } from "@/utils/permissions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,7 +39,7 @@ export const RoleProtectedRoute = ({ children }: { children: React.ReactNode }) 
   }
 
   // Vérifier si l'utilisateur a accès à cette page
-  const hasAccess = hasAccessToPage(userRole, currentPath);
+  const hasAccess = hasAccessToPage(profileRoles(profile), currentPath);
 
   if (!hasAccess) {
     return (

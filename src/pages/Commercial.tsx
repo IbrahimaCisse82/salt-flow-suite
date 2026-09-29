@@ -1,3 +1,4 @@
+import { computeInvoiceTotals } from "@/lib/domain/currency";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -207,9 +208,10 @@ const Commercial = () => {
     const firstLine = orderForm.items[0];
     const totalQty = orderForm.items.reduce((sum, i) => sum + (parseFloat(i.quantity) || 0), 0);
     // Weighted average unit price
-    const totalHT = orderForm.items.reduce((sum, i) => sum + (parseFloat(i.quantity) || 0) * (parseFloat(i.unit_price) || 0), 0);
+    const totals = computeInvoiceTotals(orderForm.items.map((i) => ({ quantity: parseFloat(i.quantity) || 0, unit_price: parseFloat(i.unit_price) || 0 })), tvaRate);
+    const totalHT = totals.totalHT;
     const avgUnitPrice = totalQty > 0 ? totalHT / totalQty : 0;
-    const tvaAmount = Math.round(totalHT * tvaRate / 100);
+    const tvaAmount = totals.totalTVA;
 
     try {
       await createSale({

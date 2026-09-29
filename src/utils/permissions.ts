@@ -90,12 +90,17 @@ export const rolePermissions: Record<UserRole, string[]> = {
   ]
 };
 
-export const hasAccessToPage = (userRole: UserRole | null, page: string): boolean => {
-  if (!userRole) return false;
-  return rolePermissions[userRole]?.includes(page) || false;
+/** Rôles multiples : UNION des droits (Lot 1.3). Accepte un rôle ou une liste. */
+export const hasAccessToPage = (userRole: UserRole | UserRole[] | null | undefined, page: string): boolean => {
+  const roles = Array.isArray(userRole) ? userRole : userRole ? [userRole] : [];
+  return roles.some((r) => rolePermissions[r]?.includes(page));
 };
 
-export const getAccessiblePages = (userRole: UserRole | null): string[] => {
-  if (!userRole) return [];
-  return rolePermissions[userRole] || [];
+export const getAccessiblePages = (userRole: UserRole | UserRole[] | null | undefined): string[] => {
+  const roles = Array.isArray(userRole) ? userRole : userRole ? [userRole] : [];
+  return [...new Set(roles.flatMap((r) => rolePermissions[r] || []))];
 };
+
+/** Liste des rôles effectifs d'un profil (tous ses rôles, sinon le rôle principal). */
+export const profileRoles = (profile: { role?: string | null; roles?: string[] | null } | null | undefined): UserRole[] =>
+  ((profile?.roles?.length ? profile.roles : profile?.role ? [profile.role] : []) as UserRole[]);
