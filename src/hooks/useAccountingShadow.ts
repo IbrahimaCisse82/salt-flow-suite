@@ -48,10 +48,10 @@ export const useAccountingShadow = () => {
     queryKey: ["accounting-shadow-entries", tenantId],
     enabled: !!tenantId,
     queryFn: async (): Promise<ShadowEntry[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("accounting_shadow_entries")
         .select("*")
-        .eq("status" as any, "pending")
+        .eq("status", "pending")
         .order("entry_date", { ascending: false })
         .limit(200);
       if (error) throw error;
