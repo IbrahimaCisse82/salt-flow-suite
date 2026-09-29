@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { computeInvoiceTotals } from "@/lib/domain/currency";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -137,14 +138,12 @@ export const OrderFormDialog = ({
   };
 
   // Totals
-  const lineTotals = form.items.map((item) => {
-    const qty = parseFloat(item.quantity) || 0;
-    const price = parseFloat(item.unit_price) || 0;
-    return qty * price;
-  });
-  const totalHT = lineTotals.reduce((sum, v) => sum + v, 0);
-  const tvaAmount = Math.round((totalHT * effectiveTvaRate) / 100);
-  const totalTTC = totalHT + tvaAmount;
+  // FCFA entiers, TVA arrondie par ligne (Lot 1.1)
+  const totals = computeInvoiceTotals(form.items.map((i) => ({ quantity: parseFloat(i.quantity) || 0, unit_price: parseFloat(i.unit_price) || 0 })), effectiveTvaRate);
+  const lineTotals = totals.lines.map((l) => l.ht);
+  const totalHT = totals.totalHT;
+  const tvaAmount = totals.totalTVA;
+  const totalTTC = totals.totalTTC;
   const totalQuantity = form.items.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0);
 
   const isValid = form.client_id && form.items.every((i) =>
