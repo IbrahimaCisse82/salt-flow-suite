@@ -1,0 +1,1 @@
+ALTER TABLE public.accounting_config ALTER COLUMN daily_worker_withholding_rate SET DEFAULT 0.05;
