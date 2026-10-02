@@ -37,6 +37,8 @@ import { AssetDepreciationChart } from "@/components/Analytics/AssetDepreciation
 import { ProfitabilityChart } from "@/components/Analytics/ProfitabilityChart";
 import { BudgetAlertsWidget } from "@/components/Analytics/BudgetAlertsWidget";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import { profileRoles, canSeeFinancialReports } from "@/utils/permissions";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useScheduledReports, ReportType, ReportFrequency } from "@/hooks/useScheduledReports";
@@ -180,6 +182,8 @@ const addReportHeader = (
 
 const Rapports = () => {
   const { toast } = useToast();
+  const { profile: authProfile } = useAuth();
+  const showFinance = canSeeFinancialReports(profileRoles(authProfile));
   const { isOpen } = useSidebar();
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
@@ -807,11 +811,11 @@ const Rapports = () => {
           </div>
 
           <Tabs defaultValue="rapports" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 max-w-3xl">
+            <TabsList className={cn("grid w-full max-w-3xl", showFinance ? "grid-cols-4" : "grid-cols-2")}>
               <TabsTrigger value="rapports">Rapports</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              {showFinance && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
               <TabsTrigger value="suivi-budget">Suivi budgétaire</TabsTrigger>
-              <TabsTrigger value="flux-tresorerie">Flux de trésorerie</TabsTrigger>
+              {showFinance && <TabsTrigger value="flux-tresorerie">Flux de trésorerie</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="rapports" className="space-y-6">
