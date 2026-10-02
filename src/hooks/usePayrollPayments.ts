@@ -64,9 +64,10 @@ export const useCreatePayrollPayment = () => {
       if (!profile?.tenant_id) throw new Error("Tenant non trouvé");
 
       // 1. Récupérer le pointage pour connaître le montant total dû
+      // Net à payer = brut − cotisations salariales − impôt retenu (calc_attendance_amount)
       const { data: attendance } = await supabase
         .from('team_attendance')
-        .select('calculated_amount')
+        .select('calculated_amount, net_amount')
         .eq('id', payment.attendance_id)
         .single();
 
@@ -77,7 +78,8 @@ export const useCreatePayrollPayment = () => {
         .eq('attendance_id', payment.attendance_id);
 
       const totalPreviouslyPaid = previousPayments?.reduce((sum, p) => sum + (p.paid_amount || 0), 0) || 0;
-      const totalDue = attendance?.calculated_amount || 0;
+      const att = attendance as { calculated_amount?: number; net_amount?: number } | null;
+      const totalDue = (att?.net_amount && att.net_amount > 0 ? att.net_amount : att?.calculated_amount) || 0;
       const newBalanceDue = totalDue - totalPreviouslyPaid - payment.paid_amount;
 
       // 3. Créer le paiement avec le reliquat
