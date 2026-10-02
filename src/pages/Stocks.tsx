@@ -42,6 +42,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useAuth } from "@/contexts/AuthContext";
+import { profileRoles, canSeeStockCosts } from "@/utils/permissions";
 import { useInventoryItems, useStockMovements } from "@/hooks/useInventoryItems";
 import { useStockMovementsHistory } from "@/hooks/useStockMovements";
 import { useInventoryValuation } from "@/hooks/useInventoryValuation";
@@ -71,6 +73,8 @@ function getStockStatus(quantity: number, reorderLevel: number | null) {
 
 const Stocks = () => {
   const { isOpen } = useSidebar();
+  const { profile } = useAuth();
+  const showCosts = canSeeStockCosts(profileRoles(profile));
   const [isMovementDialogOpen, setIsMovementDialogOpen] = useState(false);
   const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
   const [isWarehouseDialogOpen, setIsWarehouseDialogOpen] = useState(false);
@@ -461,7 +465,7 @@ const Stocks = () => {
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            {showCosts && <Card>
               <CardContent className="p-4 md:p-6">
                 <DollarSign className="h-8 w-8 text-primary mb-3" />
                 <p className="text-sm text-muted-foreground">Valeur stock</p>
@@ -472,7 +476,7 @@ const Stocks = () => {
                   CMP moyen: {Math.round(avgCMP).toLocaleString('fr-FR')} F/t
                 </p>
               </CardContent>
-            </Card>
+            </Card>}
             <Card>
               <CardContent className="p-4 md:p-6">
                 <Warehouse className="h-8 w-8 text-accent mb-3" />
@@ -525,7 +529,7 @@ const Stocks = () => {
           <Tabs defaultValue="stocks" className="space-y-4">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="stocks">Stocks</TabsTrigger>
-              <TabsTrigger value="valorisation">Valorisation</TabsTrigger>
+              {showCosts && <TabsTrigger value="valorisation">Valorisation</TabsTrigger>}
               <TabsTrigger value="chart">Graphique</TabsTrigger>
               <TabsTrigger value="movements">Mouvements</TabsTrigger>
               <TabsTrigger value="warehouses">Entrepôts</TabsTrigger>
@@ -566,7 +570,7 @@ const Stocks = () => {
                                 {(() => {
                                   const matchingItem = productionItems.find(i => i.item_name === stock.type && i.storage_location === stock.warehouse);
                                   const cmp = matchingItem ? Number(matchingItem.cmp || matchingItem.unit_cost || 0) : 0;
-                                  return cmp > 0 ? <p className="text-xs text-muted-foreground">CMP: {Math.round(cmp).toLocaleString('fr-FR')} F/t</p> : null;
+                                  return showCosts && cmp > 0 ? <p className="text-xs text-muted-foreground">CMP: {Math.round(cmp).toLocaleString('fr-FR')} F/t</p> : null;
                                 })()}
                                 {stock.reserved > 0 && (
                                   <p className="text-xs font-medium text-amber-600">🔒 {Math.round(stock.reserved)} {stock.unit} sous commande</p>
@@ -599,7 +603,7 @@ const Stocks = () => {
             </TabsContent>
 
             {/* Valorisation Tab */}
-            <TabsContent value="valorisation" className="space-y-4">
+            {showCosts && <TabsContent value="valorisation" className="space-y-4">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -689,7 +693,7 @@ const Stocks = () => {
                   </CardContent>
                 </Card>
               )}
-            </TabsContent>
+            </TabsContent>}
 
             {/* Chart Tab */}
             <TabsContent value="chart">

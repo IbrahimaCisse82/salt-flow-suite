@@ -104,3 +104,11 @@ export const getAccessiblePages = (userRole: UserRole | UserRole[] | null | unde
 /** Liste des rôles effectifs d'un profil (tous ses rôles, sinon le rôle principal). */
 export const profileRoles = (profile: { role?: string | null; roles?: string[] | null } | null | undefined): UserRole[] =>
   ((profile?.roles?.length ? profile.roles : profile?.role ? [profile.role] : []) as UserRole[]);
+
+/** Rôles autorisés à voir les coûts et valeurs de stock (CMP). */
+export const canSeeStockCosts = (roles: string[]): boolean =>
+  roles.some((r) => ['admin', 'gerant', 'comptable', 'magasinier'].includes(r));
+
+/** Rôles autorisés à voir les rapports financiers (trésorerie, rentabilité). */
+export const canSeeFinancialReports = (roles: string[]): boolean =>
+  roles.some((r) => ['admin', 'gerant', 'comptable'].includes(r));
