@@ -1,6 +1,6 @@
 - [x] Lot 0 audit v3 livré (docs/audit-v3.md)
 - [x] Lot 1 : arrondis, écritures en attente, cumul des rôles, soldes réservés
 - [x] Lot 1 : coûts de stock masqués (commercial, production, RH, qualité), rapports financiers réservés gérant/comptable
-- [ ] Lot 1 : vérifier à l'écran un compte à deux rôles (blocage : aucun compte de test multi-rôle)
+- [x] Lot 1 : compte deux rôles vérifié à l'écran (multirole.gestsa)
 - [ ] Annuler les ventes de test GEST-SA (écriture inverse) — attend accord
-- [ ] Taux de retenue à la source des journaliers — attend l'utilisateur
+- [x] Retenue source journaliers 5 %
