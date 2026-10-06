@@ -1,6 +1,11 @@
 - [x] Lot 0 audit v3 livré (docs/audit-v3.md)
-- [x] Lot 1 : arrondis, écritures en attente, cumul des rôles, soldes réservés
-- [x] Lot 1 : coûts de stock masqués (commercial, production, RH, qualité), rapports financiers réservés gérant/comptable
-- [x] Lot 1 : compte deux rôles vérifié à l'écran (multirole.gestsa)
-- [ ] Annuler les ventes de test GEST-SA (écriture inverse) — attend accord
+- [x] Lot 1 : arrondis, écritures en attente, cumul des rôles, soldes réservés, coûts masqués, rapports réservés
 - [x] Retenue source journaliers 5 %
+- [ ] Annuler les ventes de test GEST-SA (écriture inverse) — attend accord
+- [x] Lot 2.2 : impôt sur le résultat (891/441, IS 30 %, minimum 0,5 % CA) à la clôture
+- [x] Lot 2.4 : TVA paramétrée par entreprise, 3 types de client (Local 7021 / autres 7022 sans TVA)
+- [ ] Lot 2.1 : renommer TAFIRE en Tableau des flux, notes annexes avec champs libres (DSF reporté)
+- [ ] Lot 2.3 : clôture provisoire / définitive / réouverture motivée
+- [ ] Lot 2.5 : avoirs clients et fournisseurs
+- [ ] Lot 2.6 : catégories d'articles, coût de production, CMP mixte (inventaire permanent)
+- [ ] Lot 2.7 : compte d'écart d'inventaire configurable
