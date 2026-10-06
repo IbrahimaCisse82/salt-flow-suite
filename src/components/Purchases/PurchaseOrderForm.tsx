@@ -65,6 +65,8 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
   const { createItem } = usePurchaseOrderItems();
   const { activeCampagne } = useCampagnes();
 
+  const { data: taxSettings } = useTaxSettings();
+  const vatRate = taxSettings?.vatRate ?? 18;
   const [formData, setFormData] = useState({
     supplier_id: "",
     order_date: new Date().toISOString().split("T")[0],
