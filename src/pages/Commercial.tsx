@@ -1,4 +1,5 @@
 import { computeInvoiceTotals } from "@/lib/domain/currency";
+import { useTaxSettings, isForeignClientType } from "@/hooks/useTaxSettings";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -33,6 +34,7 @@ import { CommercialStats } from "@/components/Commercial/CommercialStats";
 
 const Commercial = () => {
   const { toast } = useToast();
+  const { data: taxSettings } = useTaxSettings();
   const queryClient = useQueryClient();
   const { isOpen } = useSidebar();
   const { profile, tenant } = useAuth();

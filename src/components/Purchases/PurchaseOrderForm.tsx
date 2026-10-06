@@ -1,3 +1,4 @@
+import { useTaxSettings } from "@/hooks/useTaxSettings";
 import { computeInvoiceTotals } from "@/lib/domain/currency";
 import { useState, useMemo } from "react";
 import { Plus, Trash2, AlertTriangle, CheckCircle } from "lucide-react";
@@ -73,7 +74,7 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
     expense_category: "",
     purchase_type: "charge" as "charge" | "immobilisation",
     charge_account_number: "6011",
-    tva_rate: 18,
+    tva_rate: vatRate,
     invoice_number: "",
     payment_mode: "credit" as "credit" | "comptant",
     commissioning_date: "",
@@ -225,7 +226,7 @@ export function PurchaseOrderForm({ open, onOpenChange }: PurchaseOrderFormProps
         expense_category: "",
         purchase_type: "charge",
         charge_account_number: "6011",
-        tva_rate: 18,
+        tva_rate: vatRate,
         invoice_number: "",
         payment_mode: "credit",
         commissioning_date: "",
