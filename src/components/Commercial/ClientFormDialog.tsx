@@ -61,8 +61,9 @@ export const ClientFormDialog = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="local">Local</SelectItem>
-              <SelectItem value="export">Export</SelectItem>
+              <SelectItem value="local">Local (TVA applicable)</SelectItem>
+              <SelectItem value="zone_ohada">Zone OHADA hors pays (exonéré)</SelectItem>
+              <SelectItem value="hors_ohada">Hors zone OHADA (exonéré)</SelectItem>
             </SelectContent>
           </Select>
         </div>
