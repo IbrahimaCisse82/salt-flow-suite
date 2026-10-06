@@ -1,3 +1,4 @@
+import { isForeignClientType, CLIENT_TYPE_LABELS } from "@/hooks/useTaxSettings";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,7 +93,7 @@ export const OrderFormDialog = ({
     [clients, form.client_id]
   );
 
-  const isExport = selectedClient?.client_type?.toLowerCase() === "export";
+  const isExport = isForeignClientType(selectedClient?.client_type);
   const applyTva = form.apply_tva !== undefined ? form.apply_tva : !isExport;
   const effectiveTvaRate = isExport ? 0 : applyTva ? tvaRate : 0;
 
@@ -168,7 +169,7 @@ export const OrderFormDialog = ({
               <SelectContent>
                 {clients.map((c: any) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.name} ({c.client_type === "export" ? "Export" : "Local"})
+                    {c.name} ({CLIENT_TYPE_LABELS[c.client_type] ?? "Local"})
                   </SelectItem>
                 ))}
               </SelectContent>

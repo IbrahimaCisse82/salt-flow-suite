@@ -53,39 +53,51 @@ export type Database = {
       accounting_config: {
         Row: {
           activated_at: string | null
+          corporate_tax_rate: number
+          country_code: string
           created_at: string
           daily_worker_withholding_rate: number
           employee_social_rate: number
           employer_social_rate: number
           income_tax_rate: number
+          minimum_tax_rate: number
           posting_mode: string
           shadow_since: string
           tenant_id: string
           updated_at: string
+          vat_rate: number
         }
         Insert: {
           activated_at?: string | null
+          corporate_tax_rate?: number
+          country_code?: string
           created_at?: string
           daily_worker_withholding_rate?: number
           employee_social_rate?: number
           employer_social_rate?: number
           income_tax_rate?: number
+          minimum_tax_rate?: number
           posting_mode?: string
           shadow_since?: string
           tenant_id?: string
           updated_at?: string
+          vat_rate?: number
         }
         Update: {
           activated_at?: string | null
+          corporate_tax_rate?: number
+          country_code?: string
           created_at?: string
           daily_worker_withholding_rate?: number
           employee_social_rate?: number
           employer_social_rate?: number
           income_tax_rate?: number
+          minimum_tax_rate?: number
           posting_mode?: string
           shadow_since?: string
           tenant_id?: string
           updated_at?: string
+          vat_rate?: number
         }
         Relationships: [
           {
@@ -3849,7 +3861,12 @@ export type Database = {
         | "annulee"
         | "active"
       cash_account_type: "banque" | "caisse" | "mobile_money"
-      client_type: "local" | "export" | "particulier"
+      client_type:
+        | "local"
+        | "export"
+        | "particulier"
+        | "zone_ohada"
+        | "hors_ohada"
       employee_type: "permanent" | "saisonnier" | "journalier"
       fiscal_period_status: "open" | "closed" | "locked"
       fixed_asset_status: "active" | "disposed" | "scrapped"
@@ -4057,7 +4074,13 @@ export const Constants = {
         "active",
       ],
       cash_account_type: ["banque", "caisse", "mobile_money"],
-      client_type: ["local", "export", "particulier"],
+      client_type: [
+        "local",
+        "export",
+        "particulier",
+        "zone_ohada",
+        "hors_ohada",
+      ],
       employee_type: ["permanent", "saisonnier", "journalier"],
       fiscal_period_status: ["open", "closed", "locked"],
       fixed_asset_status: ["active", "disposed", "scrapped"],

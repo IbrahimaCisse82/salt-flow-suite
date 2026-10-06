@@ -8,6 +8,13 @@
       "when": 1790973557178,
       "tag": "0000_daily_withholding_default_5pct",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791253425918,
+      "tag": "0001_lot2_tax_vat_client_types",
+      "breakpoints": true
     }
   ]
 }

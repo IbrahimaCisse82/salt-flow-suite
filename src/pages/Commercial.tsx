@@ -1,4 +1,5 @@
 import { computeInvoiceTotals } from "@/lib/domain/currency";
+import { useTaxSettings, isForeignClientType } from "@/hooks/useTaxSettings";
 import { Header } from "@/components/Layout/Header";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -33,6 +34,7 @@ import { CommercialStats } from "@/components/Commercial/CommercialStats";
 
 const Commercial = () => {
   const { toast } = useToast();
+  const { data: taxSettings } = useTaxSettings();
   const queryClient = useQueryClient();
   const { isOpen } = useSidebar();
   const { profile, tenant } = useAuth();
@@ -178,7 +180,7 @@ const Commercial = () => {
     }
   };
 
-  const TVA_RATE = 18; // Taux TVA standard SYSCOHADA
+  const TVA_RATE = taxSettings?.vatRate ?? 18; // Taux paramétré par entreprise
 
   const handleCreateOrder = async () => {
     if (!orderForm.client_id || orderForm.items.length === 0) {
@@ -200,7 +202,7 @@ const Commercial = () => {
       return;
     }
 
-    const isExportClient = selectedClientObj.client_type.toLowerCase() === "export";
+    const isExportClient = isForeignClientType(selectedClientObj.client_type);
     const applyTva = orderForm.apply_tva !== undefined ? orderForm.apply_tva : !isExportClient;
     const tvaRate = isExportClient ? 0 : applyTva ? TVA_RATE : 0;
 
