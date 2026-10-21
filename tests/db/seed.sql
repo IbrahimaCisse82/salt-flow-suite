@@ -1,0 +1,20 @@
+-- Tenant "Demo test", gérant + comptable + commercial, comptes, stock
+INSERT INTO tenants (id,name) VALUES ('00000000-0000-0000-0000-0000000000a1','Saline Test'),('00000000-0000-0000-0000-0000000000b2','Autre Saline');
+INSERT INTO auth.users (id,email) VALUES ('00000000-0000-0000-0000-000000000001','gerant@t'),('00000000-0000-0000-0000-000000000002','compta@t'),('00000000-0000-0000-0000-000000000003','commercial@t'),('00000000-0000-0000-0000-000000000004','rh@t'),('00000000-0000-0000-0000-000000000009','intrus@b');
+INSERT INTO profiles (user_id,tenant_id,email) SELECT id,'00000000-0000-0000-0000-0000000000a1',email FROM auth.users WHERE email LIKE '%@t';
+INSERT INTO profiles (user_id,tenant_id,email) VALUES ('00000000-0000-0000-0000-000000000009','00000000-0000-0000-0000-0000000000b2','intrus@b');
+INSERT INTO user_roles (user_id,role,tenant_id) VALUES
+ ('00000000-0000-0000-0000-000000000001','gerant','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-000000000002','comptable','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-000000000003','commercial','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-000000000004','rh','00000000-0000-0000-0000-0000000000a1'),
+ ('00000000-0000-0000-0000-000000000009','gerant','00000000-0000-0000-0000-0000000000b2');
+INSERT INTO accounting_config (tenant_id,posting_mode) VALUES ('00000000-0000-0000-0000-0000000000a1','live'),('00000000-0000-0000-0000-0000000000b2','live');
+INSERT INTO accounts (id,tenant_id,account_name,account_type,current_balance,initial_balance) VALUES
+ ('00000000-0000-0000-0000-00000000ba01','00000000-0000-0000-0000-0000000000a1','Banque Test','banque',5000000,5000000),
+ ('00000000-0000-0000-0000-00000000ca01','00000000-0000-0000-0000-0000000000a1','Caisse Test','caisse',100000,100000),
+ ('00000000-0000-0000-0000-00000000ba09','00000000-0000-0000-0000-0000000000b2','Banque Autre','banque',0,0);
+-- entrepôt + stock produit (modèle réel : ligne "warehouse" + article "production" rattaché)
+INSERT INTO inventory_items (id,tenant_id,name,category,unit_of_measure,quantity) VALUES ('00000000-0000-0000-0000-00000000e001','00000000-0000-0000-0000-0000000000a1','ENT-01','warehouse','tonnes',5000);
+INSERT INTO inventory_items (id,tenant_id,name,category,unit_of_measure,quantity,cmp,unit_cost,warehouse_id) VALUES ('00000000-0000-0000-0000-00000000f001','00000000-0000-0000-0000-0000000000a1','Sel gros','production','tonnes',150,20000,20000,'00000000-0000-0000-0000-00000000e001');
+INSERT INTO clients (id,tenant_id,name,client_type) VALUES ('00000000-0000-0000-0000-00000000c001','00000000-0000-0000-0000-0000000000a1','Client Local','local'),('00000000-0000-0000-0000-00000000c002','00000000-0000-0000-0000-0000000000a1','Client Export','hors_ohada');

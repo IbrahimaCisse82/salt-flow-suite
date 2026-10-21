@@ -1,0 +1,12 @@
+CREATE TRIGGER trg_acc_sale_cogs AFTER INSERT OR UPDATE OF status ON public.sales FOR EACH ROW EXECUTE FUNCTION trg_acc_sale_cogs();
+CREATE TRIGGER trg_acc_sale_invoiced AFTER INSERT OR UPDATE OF status ON public.sales FOR EACH ROW EXECUTE FUNCTION trg_acc_sale_invoiced();
+CREATE TRIGGER trg_prevent_tenant_change BEFORE UPDATE ON public.sales FOR EACH ROW EXECUTE FUNCTION prevent_tenant_change();
+CREATE TRIGGER trg_sales_uat BEFORE UPDATE ON public.sales FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trg_set_invoice_number BEFORE INSERT ON public.sales FOR EACH ROW EXECUTE FUNCTION set_sales_invoice_number();
+CREATE TRIGGER trg_validate_sale_item BEFORE INSERT OR UPDATE OF quantity, unit_price, total_price, inventory_item_id, production_record_id ON public.sale_items FOR EACH ROW EXECUTE FUNCTION validate_sale_item();
+CREATE TRIGGER trg_acc_client_payment AFTER INSERT ON public.payments FOR EACH ROW EXECUTE FUNCTION trg_acc_client_payment();
+CREATE TRIGGER trg_set_payment_reference BEFORE INSERT ON public.payments FOR EACH ROW EXECUTE FUNCTION set_payment_reference();
+CREATE TRIGGER trg_acc_stock_adjustment AFTER INSERT ON public.stock_movements FOR EACH ROW EXECUTE FUNCTION trg_acc_stock_adjustment();
+CREATE TRIGGER trg_je_period_lock BEFORE INSERT OR UPDATE ON public.journal_entries FOR EACH ROW EXECUTE FUNCTION check_period_not_closed();
+CREATE TRIGGER trg_set_je_reference BEFORE INSERT ON public.journal_entries FOR EACH ROW EXECUTE FUNCTION set_journal_entry_reference();
+CREATE TRIGGER trg_tx_period_lock BEFORE INSERT OR UPDATE ON public.transactions FOR EACH ROW EXECUTE FUNCTION check_period_not_closed();
