@@ -3788,6 +3788,18 @@ export type Database = {
         }
         Returns: Json
       }
+      record_sale_payment: {
+        Args: {
+          p_account_id: string
+          p_amount: number
+          p_can_be_delivered?: boolean | null
+          p_notes?: string | null
+          p_payment_date?: string
+          p_payment_method?: string | null
+          p_sale_id: string
+        }
+        Returns: Json
+      }
       reject_shadow_entries: {
         Args: { _ids: string[]; _reason: string }
         Returns: Json

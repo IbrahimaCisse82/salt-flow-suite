@@ -247,7 +247,7 @@ const Commercial = () => {
   const handleValidateOrder = async (saleId: string) => {
     try {
       await updateSale({ id: saleId, sale_status: "invoiced" });
-      toast({ title: "Commande validée", description: "La commande est prête pour facturation et le stock a été mis à jour" });
+      toast({ title: "Commande validée", description: "Facture émise, écriture comptable générée et stock réservé" });
       queryClient.invalidateQueries({ queryKey: ["sales"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
     } catch (error) {
@@ -258,7 +258,7 @@ const Commercial = () => {
   const handleMarkDelivered = async (saleId: string) => {
     try {
       await updateSale({ id: saleId, sale_status: "completed" });
-      toast({ title: "Livraison confirmée", description: "Le stock a été déduit définitivement de l'entrepôt" });
+      toast({ title: "Livraison confirmée", description: "Stock sorti de l'entrepôt et coût des ventes comptabilisé" });
       queryClient.invalidateQueries({ queryKey: ["sales"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
       queryClient.invalidateQueries({ queryKey: ["stock-stats"] });
@@ -271,7 +271,7 @@ const Commercial = () => {
   const handleCancelSale = async (saleId: string) => {
     try {
       await updateSale({ id: saleId, sale_status: "cancelled" });
-      toast({ title: "Commande annulée", description: "La commande a été annulée et le stock réservé libéré" });
+      toast({ title: "Commande annulée", description: "Réservation de stock libérée ; si elle était facturée, l'écriture de vente est contrepassée" });
       queryClient.invalidateQueries({ queryKey: ["sales"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
     } catch (error) {

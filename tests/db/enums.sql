@@ -1,0 +1,10 @@
+CREATE TYPE public.account_type AS ENUM ('actif','passif','charge','produit','capitaux');
+CREATE TYPE public.app_role AS ENUM ('gerant','chef_production','comptable','commercial','rh','magasinier','admin','qualite');
+CREATE TYPE public.cash_account_type AS ENUM ('banque','caisse','mobile_money');
+CREATE TYPE public.client_type AS ENUM ('local','export','particulier','zone_ohada','hors_ohada');
+CREATE TYPE public.fiscal_period_status AS ENUM ('open','closed','locked');
+CREATE TYPE public.payment_status AS ENUM ('pending','paid','cancelled','partial');
+CREATE TYPE public.sale_status AS ENUM ('draft','confirmed','delivered','cancelled','invoiced','completed','pending');
+CREATE TYPE public.stock_movement_type AS ENUM ('entry','exit','adjustment','transfer');
+CREATE TYPE public.transaction_status AS ENUM ('draft','validated','cancelled');
+CREATE TYPE public.transaction_type AS ENUM ('vente','achat','paiement','encaissement','od','paie','amortissement','cloture','transfert','vente_locale','vente_export','virement_interne','encaissement_client','autre','depense','recette','salaire');

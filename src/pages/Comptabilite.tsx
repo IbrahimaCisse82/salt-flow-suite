@@ -134,6 +134,10 @@ const Comptabilite = () => {
     if (account.account_type === 'caisse') {
       return [
         { value: 'especes', label: 'Espèces' },
+      ];
+    }
+    if (account.account_type === 'mobile_money') {
+      return [
         { value: 'mobile_money', label: 'Mobile Money' },
       ];
     }
@@ -234,8 +238,11 @@ const Comptabilite = () => {
         balance: Number(sale.total_amount) - Number(sale.amount_paid || 0),
         saltType: sale.salt_type,
         quantity: Number(sale.quantity),
-        canBeDelivered: sale.can_be_delivered || false
-      })).filter(invoice => invoice.balance > 0);
+        canBeDelivered: sale.can_be_delivered || false,
+        saleStatus: sale.sale_status,
+      })).filter(invoice =>
+        invoice.balance > 0 && ['confirmed', 'invoiced', 'delivered', 'completed'].includes(invoice.saleStatus || '')
+      );
     }
   });
 
@@ -336,159 +343,20 @@ const Comptabilite = () => {
   // Mutation pour enregistrer un paiement
   const recordPaymentMutation = useMutation({
     mutationFn: async (paymentData: any) => {
-      const { sale_id, account_id, payment_date, amount, can_be_delivered } = paymentData;
-      
-      // Get tenant_id from profile
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-      
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (!profile) throw new Error('Profile not found');
-      
-      // Récupérer la vente pour connaître le type de client
-      const { data: saleData, error: saleError } = await supabase
-        .from('sales')
-        .select('amount_paid, total_amount, client:clients(client_type)')
-        .eq('id', sale_id)
-        .single();
-      
-      if (saleError) throw saleError;
-
-      // 1. Créer l'enregistrement de paiement
-      // Insérer dans la table payments avec les bonnes colonnes
-      const { error: paymentError } = await supabase
-        .from('payments')
-        .insert({
-          tenant_id: profile.tenant_id,
-          sale_id,
-          account_id,
-          payment_date,
-          amount: Number(amount),
-          payment_method: 'manual',
-        });
-      
-      if (paymentError) throw paymentError;
-
-      // 2. Mettre à jour la vente
-      const newAmountPaid = Number(saleData.amount_paid || 0) + Number(amount);
-      const newBalance = Number(saleData.total_amount) - newAmountPaid;
-
-      // Déterminer le nouveau statut de vente:
-      // Si can_be_delivered est true, passer à 'delivered' pour déclencher le trigger de stock
-      const newSaleStatus = can_be_delivered ? 'delivered' : 'invoiced';
-
-      const { error: updateError } = await supabase
-        .from('sales')
-        .update({
-          amount_paid: newAmountPaid,
-          payment_status: newBalance <= 0 ? 'paid' : 'partial',
-          can_be_delivered: can_be_delivered,
-          sale_status: newSaleStatus  // Mettre à jour le statut pour déclencher le trigger stock
-        })
-        .eq('id', sale_id);
-      
-      if (updateError) throw updateError;
-
-      // 3. Générer le numéro de document avec code journal VTE
-      const clientType = saleData.client?.client_type || 'local';
-      const transactionType = clientType === 'local' ? 'vente_locale' : 'vente_export';
-      const journalCode = 'VTE';
-      const dateFormatted = payment_date.replace(/-/g, '');
-      
-      // Compter les transactions du même type pour la même date
-      const { data: existingTx } = await supabase
-        .from('transactions')
-        .select('id', { count: 'exact', head: false })
-        .eq('tenant_id', profile.tenant_id)
-        .eq('journal_code', journalCode)
-        .eq('transaction_date', payment_date);
-      
-      const sequenceNumber = String((existingTx?.length || 0) + 1).padStart(3, '0');
-      const documentNumber = `${journalCode}${dateFormatted}${sequenceNumber}`;
-      
-      // 4. Créer une transaction pour enregistrer la vente
-      const { data: transaction, error: txError } = await supabase
-        .from('transactions')
-        .insert({
-          tenant_id: profile.tenant_id,
-          account_id: account_id,
-          transaction_type: transactionType,
-          journal_code: journalCode,
-          transaction_date: payment_date,  // Correction: c'est transaction_date, pas date
-          amount: amount,
-          description: `Vente ${clientType === 'local' ? 'locale' : 'export'}`,
-          reference: documentNumber
-        } as any)
-        .select()
-        .single();
-
-      if (txError) throw txError;
-
-      // 4b. Mettre à jour le solde du compte (banque/caisse)
-      const { data: currentAccount } = await supabase
-        .from('accounts')
-        .select('balance')
-        .eq('id', account_id)
-        .single();
-      
-      const { error: balanceError } = await supabase
-        .from('accounts')
-        .update({ 
-          current_balance: (Number(currentAccount?.balance) || 0) + Number(amount), 
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', account_id);
-      
-      if (balanceError) console.warn('Erreur mise à jour solde:', balanceError);
-
-      // 5. Compte de produits SYSCOHADA révisé : ventes de produits finis
-      // 7021 = dans la Région (local), 7022 = hors Région (export)
-      const productAccountNumber = clientType === 'local' ? '7021' : '7022';
-      const { data: productAccount } = await supabase
-        .from('chart_of_accounts')
-        .select('id')
-        .eq('account_number', productAccountNumber)
-        .limit(1)
-        .maybeSingle();
-
-      // Si pas de compte trouvé, on continue sans écritures comptables détaillées
-      // (l'essentiel est que le paiement soit enregistré)
-      let productAccountId = productAccount?.id;
-
-      // 6. Créer les écritures comptables (double entrée) - seulement si compte produit trouvé
-      if (productAccountId) {
-        const journalEntries = [
-          {
-            transaction_id: transaction.id,
-            account_id: account_id,
-            debit: amount,
-            credit: 0,
-            description: `Encaissement vente ${clientType === 'local' ? 'locale' : 'export'}`
-          },
-          {
-            transaction_id: transaction.id,
-            account_id: productAccountId,
-            debit: 0,
-            credit: amount,
-            description: `Vente ${clientType === 'local' ? 'locale' : 'export'}`
-          }
-        ];
-
-        const { error: entriesError } = await supabase
-          .from('journal_entries')
-          .insert(journalEntries as any);
-
-        if (entriesError) {
-          console.warn('Erreur écritures comptables:', entriesError);
-        }
-      }
-
-      return { newBalance, newAmountPaid };
+      const { sale_id, account_id, payment_date, amount, payment_method, can_be_delivered } = paymentData;
+      // Opération serveur atomique : paiement + écriture (521/571/552 ↔ 411)
+      // + mise à jour de la facture et du solde du compte de trésorerie.
+      const { data, error } = await supabase.rpc('record_sale_payment', {
+        p_sale_id: sale_id,
+        p_account_id: account_id,
+        p_amount: Number(amount),
+        p_payment_date: payment_date,
+        p_payment_method: payment_method || null,
+        p_can_be_delivered: can_be_delivered,
+      });
+      if (error) throw error;
+      const result = data as { remaining: number; total_paid: number };
+      return { newBalance: Number(result.remaining), newAmountPaid: Number(result.total_paid) };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['pending-invoices'] });
@@ -516,7 +384,7 @@ const Comptabilite = () => {
     onError: (error) => {
       toast({
         title: "Erreur",
-        description: "Impossible d'enregistrer le paiement",
+        description: (error as Error)?.message || "Impossible d'enregistrer le paiement",
         variant: "destructive"
       });
       logger.error('Payment error:', error);
@@ -1027,7 +895,7 @@ const Comptabilite = () => {
   };
 
   const handlePaymentSubmit = () => {
-    if (!selectedInvoice || !paymentFormData.accountId || !paymentFormData.paymentDate || !paymentFormData.amountReceived) {
+    if (!selectedInvoice || !paymentFormData.accountId || !paymentFormData.paymentMethod || !paymentFormData.paymentDate || !paymentFormData.amountReceived) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -1052,6 +920,7 @@ const Comptabilite = () => {
       account_id: paymentFormData.accountId,
       payment_date: paymentFormData.paymentDate,
       amount: amountReceived,
+      payment_method: paymentFormData.paymentMethod,
       can_be_delivered: paymentFormData.canBeDelivered
     });
   };
