@@ -11,5 +11,18 @@ psql -q -c "ALTER DATABASE $DB SET search_path = public, extensions" postgres
 for f in stubs.sql enums.sql tables.sql functions.sql triggers.sql seed.sql; do
   psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$f" >/dev/null
 done
-psql -q -v ON_ERROR_STOP=1 -d "$DB" -f test_cycle.sql 2>&1 | grep -E "NOTICE: +(T[0-9]|OK)|ERROR"
-echo "Tous les tests du cycle de vente sont passés."
+reset_db() {
+  psql -q -c "DROP DATABASE IF EXISTS $DB" -c "CREATE DATABASE $DB" postgres
+  psql -q -c "ALTER DATABASE $DB SET search_path = public, extensions" postgres
+  for f in stubs.sql enums.sql tables.sql functions.sql triggers.sql seed.sql; do
+    psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$f" >/dev/null 2>&1
+  done
+}
+status=0
+for t in test_cycle.sql test_avoirs.sql; do
+  reset_db
+  echo "== $t"
+  out=$(psql -q -v ON_ERROR_STOP=1 -d "$DB" -f "$t" 2>&1) || status=1
+  echo "$out" | grep -E "NOTICE: +([A-Z][0-9a-z/]* OK|OK attendu)|ERROR" | sed 's/^psql:[^ ]* //'
+done
+[ $status -eq 0 ] && echo "Tous les tests SQL sont passés." || { echo "ÉCHEC des tests SQL"; exit 1; }

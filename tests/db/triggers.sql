@@ -10,3 +10,11 @@ CREATE TRIGGER trg_acc_stock_adjustment AFTER INSERT ON public.stock_movements F
 CREATE TRIGGER trg_je_period_lock BEFORE INSERT OR UPDATE ON public.journal_entries FOR EACH ROW EXECUTE FUNCTION check_period_not_closed();
 CREATE TRIGGER trg_set_je_reference BEFORE INSERT ON public.journal_entries FOR EACH ROW EXECUTE FUNCTION set_journal_entry_reference();
 CREATE TRIGGER trg_tx_period_lock BEFORE INSERT OR UPDATE ON public.transactions FOR EACH ROW EXECUTE FUNCTION check_period_not_closed();
+CREATE TRIGGER trg_acc_purchase_received AFTER INSERT OR UPDATE OF status ON public.purchase_orders FOR EACH ROW EXECUTE FUNCTION trg_acc_purchase_received();
+CREATE TRIGGER trg_po_budget BEFORE INSERT OR UPDATE ON public.purchase_orders FOR EACH ROW EXECUTE FUNCTION enforce_po_budget();
+CREATE TRIGGER trg_po_lock BEFORE UPDATE ON public.purchase_orders FOR EACH ROW EXECUTE FUNCTION prevent_modify_received_po();
+CREATE TRIGGER trg_po_uat BEFORE UPDATE ON public.purchase_orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trg_set_order_number BEFORE INSERT ON public.purchase_orders FOR EACH ROW EXECUTE FUNCTION set_po_order_number();
+CREATE TRIGGER trg_poi_reception AFTER UPDATE OF received_quantity ON public.purchase_order_items FOR EACH ROW WHEN ((new.received_quantity IS DISTINCT FROM old.received_quantity)) EXECUTE FUNCTION apply_po_item_reception();
+CREATE TRIGGER trg_validate_po_item BEFORE INSERT OR UPDATE OF quantity, unit_price, received_quantity ON public.purchase_order_items FOR EACH ROW EXECUTE FUNCTION validate_po_item();
+CREATE TRIGGER trg_acc_purchase_payment AFTER INSERT ON public.purchase_payments FOR EACH ROW EXECUTE FUNCTION trg_acc_purchase_payment();

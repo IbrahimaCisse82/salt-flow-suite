@@ -8,3 +8,6 @@ CREATE TYPE public.sale_status AS ENUM ('draft','confirmed','delivered','cancell
 CREATE TYPE public.stock_movement_type AS ENUM ('entry','exit','adjustment','transfer');
 CREATE TYPE public.transaction_status AS ENUM ('draft','validated','cancelled');
 CREATE TYPE public.transaction_type AS ENUM ('vente','achat','paiement','encaissement','od','paie','amortissement','cloture','transfert','vente_locale','vente_export','virement_interne','encaissement_client','autre','depense','recette','salaire');
+CREATE TYPE public.po_status AS ENUM ('draft','pending','approved','partial','received','cancelled','pending_approval','rejected','partially_received','modified','partially_paid','paid');
+CREATE TYPE public.purchase_payment_type AS ENUM ('advance','payment','refund');
+CREATE TYPE public.supplier_type AS ENUM ('fourniture','prestataire','transporteur','fournisseur');

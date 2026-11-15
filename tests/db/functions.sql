@@ -479,3 +479,188 @@ BEGIN
   RETURN NEW;
 END; $function$;
 
+CREATE OR REPLACE FUNCTION public.apply_po_item_reception()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  _delta NUMERIC;
+  _item RECORD;
+  _new_qty NUMERIC;
+  _new_cmp NUMERIC;
+BEGIN
+  IF NEW.inventory_item_id IS NULL THEN RETURN NEW; END IF;
+  _delta := COALESCE(NEW.received_quantity,0) - COALESCE(OLD.received_quantity,0);
+  IF _delta = 0 THEN RETURN NEW; END IF;
+
+  SELECT * INTO _item FROM public.inventory_items WHERE id = NEW.inventory_item_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN NEW; END IF;
+
+  IF _delta > 0 THEN
+    _new_qty := _item.quantity + _delta;
+    IF _new_qty > 0 THEN
+      _new_cmp := ((_item.quantity * _item.cmp) + (_delta * COALESCE(NEW.unit_price,0))) / _new_qty;
+    ELSE
+      _new_cmp := _item.cmp;
+    END IF;
+  ELSE
+    _new_qty := _item.quantity + _delta;
+    _new_cmp := _item.cmp;
+  END IF;
+
+  UPDATE public.inventory_items
+    SET quantity = _new_qty,
+        cmp = _new_cmp,
+        unit_cost = _new_cmp,
+        updated_at = now()
+    WHERE id = NEW.inventory_item_id;
+
+  INSERT INTO public.stock_movements (tenant_id, inventory_item_id, item_name, movement_type, quantity, previous_quantity, new_quantity, unit_cost, unit_of_measure, reference_type, reference_id, notes)
+  VALUES (NEW.tenant_id, NEW.inventory_item_id, _item.name,
+    CASE WHEN _delta > 0 THEN 'entry'::stock_movement_type ELSE 'adjustment'::stock_movement_type END,
+    ABS(_delta), _item.quantity, _new_qty, COALESCE(NEW.unit_price,0), _item.unit_of_measure,
+    'purchase_order', NEW.purchase_order_id, 'Réception bon de commande');
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.enforce_po_budget()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_budget numeric; v_engaged numeric; v_locked boolean; v_amount numeric;
+BEGIN
+  IF NEW.campagne_id IS NULL OR NEW.deleted_at IS NOT NULL
+     OR NEW.status::text IN ('cancelled','rejected') THEN
+    RETURN NEW;
+  END IF;
+  IF TG_OP = 'UPDATE' AND COALESCE(NEW.subtotal,0) <= COALESCE(OLD.subtotal,0)
+     AND NEW.campagne_id IS NOT DISTINCT FROM OLD.campagne_id
+     AND NEW.campagne_phase IS NOT DISTINCT FROM OLD.campagne_phase
+     AND NEW.expense_category IS NOT DISTINCT FROM OLD.expense_category
+     AND OLD.status::text NOT IN ('cancelled','rejected') THEN
+    RETURN NEW;
+  END IF;
+
+  SELECT bool_or(is_locked) INTO v_locked FROM campagne_phase_budgets
+   WHERE campagne_id = NEW.campagne_id AND phase = NEW.campagne_phase;
+  IF COALESCE(v_locked,false) THEN
+    RAISE EXCEPTION 'Phase "%" verrouillée : aucune nouvelle dépense possible', NEW.campagne_phase;
+  END IF;
+
+  SELECT SUM(budgeted_amount) INTO v_budget FROM campagne_budget_lines
+   WHERE campagne_id = NEW.campagne_id AND phase = NEW.campagne_phase
+     AND expense_category = NEW.expense_category;
+  IF v_budget IS NULL THEN
+    RAISE EXCEPTION 'Aucune ligne budgétaire pour la phase "%" / catégorie "%"', NEW.campagne_phase, NEW.expense_category;
+  END IF;
+
+  PERFORM 1 FROM campagne_budget_lines WHERE campagne_id = NEW.campagne_id
+    AND phase = NEW.campagne_phase AND expense_category = NEW.expense_category FOR UPDATE;
+
+  SELECT COALESCE(SUM(COALESCE(subtotal, amount_ht, total_amount, 0)),0) INTO v_engaged
+    FROM purchase_orders
+   WHERE campagne_id = NEW.campagne_id AND campagne_phase = NEW.campagne_phase
+     AND expense_category = NEW.expense_category AND deleted_at IS NULL
+     AND status::text NOT IN ('cancelled','rejected') AND id <> NEW.id;
+
+  v_amount := COALESCE(NEW.subtotal, NEW.amount_ht, NEW.total_amount, 0);
+  IF v_engaged + v_amount > v_budget THEN
+    RAISE EXCEPTION 'Budget dépassé : % FCFA demandés, % FCFA disponibles sur % FCFA', v_amount, GREATEST(v_budget - v_engaged,0), v_budget
+      USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NEW;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.prevent_modify_received_po()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF OLD.status = 'received' AND NEW.status = 'received' THEN
+    RAISE EXCEPTION 'Bon de commande déjà livré : modification interdite';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.set_po_order_number()
+ RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF NEW.order_number IS NULL OR NEW.order_number = '' THEN
+    NEW.order_number := public.next_document_number_for(NEW.tenant_id, 'purchase_order');
+  END IF;
+  RETURN NEW;
+END $function$;
+
+CREATE OR REPLACE FUNCTION public.trg_acc_purchase_payment()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE _cash TEXT; _lines JSONB; _amt NUMERIC;
+BEGIN
+  _amt := COALESCE(NEW.amount, 0);
+  IF _amt <= 0 THEN RETURN NEW; END IF;
+  _cash := CASE WHEN NEW.payment_method IN ('especes','cash','mobile_money') THEN '571' ELSE '521' END;
+
+  IF NEW.payment_type = 'advance' THEN
+    _lines := jsonb_build_array(
+      jsonb_build_object('account','4091','label','Fournisseurs, avances versées','debit',_amt,'credit',0),
+      jsonb_build_object('account',_cash,'label','Trésorerie','debit',0,'credit',_amt));
+    PERFORM public.post_accounting_entry(NEW.tenant_id,'supplier_advance',NEW.payment_date,'TR',
+      'Avance fournisseur','purchase_payments',NEW.id,_lines,'paiement');
+  ELSE
+    _lines := jsonb_build_array(
+      jsonb_build_object('account','401','label','Fournisseurs','debit',_amt,'credit',0),
+      jsonb_build_object('account',_cash,'label','Trésorerie','debit',0,'credit',_amt));
+    PERFORM public.post_accounting_entry(NEW.tenant_id,'supplier_payment',NEW.payment_date,'TR',
+      'Règlement fournisseur','purchase_payments',NEW.id,_lines,'paiement');
+  END IF;
+  RETURN NEW;
+END; $$;
+
+CREATE OR REPLACE FUNCTION public.trg_acc_purchase_received()
+ RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+DECLARE _ht NUMERIC; _tva NUMERIC; _ttc NUMERIC; _lines JSONB; _has_stock BOOLEAN;
+BEGIN
+  IF NEW.status NOT IN ('received','partially_received') THEN RETURN NEW; END IF;
+  IF TG_OP = 'UPDATE' AND OLD.status IN ('received','partially_received') THEN RETURN NEW; END IF;
+  _ttc := COALESCE(NEW.total_amount, 0);
+  _tva := COALESCE(NEW.tva_amount, NEW.tax_amount, 0);
+  _ht  := COALESCE(NULLIF(NEW.amount_ht, 0), _ttc - _tva);
+  IF _ttc <= 0 THEN RETURN NEW; END IF;
+  SELECT EXISTS (SELECT 1 FROM public.purchase_order_items
+                 WHERE purchase_order_id = NEW.id AND inventory_item_id IS NOT NULL)
+    INTO _has_stock;
+  IF _has_stock THEN
+    _lines := jsonb_build_array(
+      jsonb_build_object('account','602','label','Achats de matières premières et fournitures liées','debit',_ht,'credit',0));
+  ELSE
+    _lines := jsonb_build_array(
+      jsonb_build_object('account','605','label','Autres achats','debit',_ht,'credit',0));
+  END IF;
+  IF _tva > 0 THEN
+    _lines := _lines || jsonb_build_array(
+      jsonb_build_object('account','4452','label','TVA récupérable sur achats','debit',_tva,'credit',0));
+  END IF;
+  _lines := _lines || jsonb_build_array(
+    jsonb_build_object('account','401','label','Fournisseurs','debit',0,'credit',_ttc));
+  PERFORM public.post_accounting_entry(NEW.tenant_id,
+    CASE WHEN _has_stock THEN 'purchase_received_stock' ELSE 'purchase_received_service' END,
+    COALESCE(NEW.delivery_date, NEW.order_date),'AC',
+    'Achat ' || COALESCE(NEW.order_number,''),'purchase_orders',NEW.id,_lines,'achat');
+  RETURN NEW;
+END; $function$;
+
+CREATE OR REPLACE FUNCTION public.validate_po_item()
+RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$
+BEGIN
+  IF NEW.quantity IS NULL OR NEW.quantity <= 0 THEN RAISE EXCEPTION 'Quantité commandée invalide'; END IF;
+  IF COALESCE(NEW.unit_price,0) < 0 THEN RAISE EXCEPTION 'Prix unitaire invalide'; END IF;
+  IF COALESCE(NEW.received_quantity,0) < 0 THEN RAISE EXCEPTION 'Quantité reçue invalide'; END IF;
+  RETURN NEW;
+END $$;
+
