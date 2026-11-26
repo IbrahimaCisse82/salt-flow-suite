@@ -98,7 +98,7 @@ describe('E2E – Authentification', () => {
     wrap(<LoginForm onSuccess={vi.fn()} />);
 
     await userEvent.type(screen.getByLabelText(/email/i), 'test@test.com');
-    await userEvent.type(screen.getByLabelText(/mot de passe/i), 'Password123!');
+    await userEvent.type(screen.getByLabelText(/^mot de passe/i), 'Password123!');
     await userEvent.click(screen.getByRole('button', { name: /se connecter/i }));
 
     await waitFor(() => expect(mockSupabase.auth.signInWithPassword).toHaveBeenCalledWith({
@@ -115,7 +115,7 @@ describe('E2E – Authentification', () => {
     wrap(<LoginForm onSuccess={vi.fn()} />);
 
     await userEvent.type(screen.getByLabelText(/email/i), 'bad@test.com');
-    await userEvent.type(screen.getByLabelText(/mot de passe/i), 'wrong');
+    await userEvent.type(screen.getByLabelText(/^mot de passe/i), 'wrong');
     await userEvent.click(screen.getByRole('button', { name: /se connecter/i }));
 
     await waitFor(() => expect(mockSupabase.auth.signInWithPassword).toHaveBeenCalled());
