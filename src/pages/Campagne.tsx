@@ -313,7 +313,8 @@ const Campagne = () => {
 
       await updateCampagne({
         id: activeCampagne.id,
-        status: 'terminee',
+        status: 'cloturee',
+        closed_at: new Date().toISOString(),
         actual_production: campagneStats?.totalProduction || 0,
       });
 
@@ -327,7 +328,7 @@ const Campagne = () => {
       logger.error('Error closing campagne:', error);
       toast({
         title: "Erreur",
-        description: error instanceof Error ? error.message : "Impossible de clôturer la campagne",
+        description: (error as { message?: string })?.message || "Impossible de clôturer la campagne",
         variant: "destructive"
       });
     }
