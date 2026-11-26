@@ -24,3 +24,7 @@ alter default privileges in schema public revoke all on tables from anon;
 
 -- D4 (APPLIQUÉ 26/11/2026) : stock négatif interdit (EX-62)
 -- trigger z_no_negative_stock sur inventory_items (quantity < 0 ou reserved_quantity < 0 => erreur en français)
+
+-- D5 (APPLIQUÉ 26/11/2026) : allocate_result impose la réserve légale minimale
+-- _req_res = LEAST(10 % x résultat, GREATEST(0, 20 % x capital(101) - réserve existante(111)))
+-- erreur 'Réserve légale insuffisante : minimum % FCFA ...' si p_reserve_legale < _req_res - 0.5
