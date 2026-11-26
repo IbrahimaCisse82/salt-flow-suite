@@ -16,3 +16,8 @@ alter default privileges in schema public revoke all on tables from anon;
 -- IF auth.uid() IS NOT NULL AND NOT (public.has_role(auth.uid(),'admin'::app_role)
 --    OR public.is_tenant_member(auth.uid(), p_tenant_id)) THEN
 --   RAISE EXCEPTION 'Accès refusé à cette entreprise' USING ERRCODE='42501'; END IF;
+
+-- D3 (APPLIQUÉ 26/11/2026) : immuabilité du grand livre (EX-105 / NF-15)
+-- fonction public.trg_ledger_immutable() + triggers z_je_immutable (journal_entries) et z_tx_immutable (transactions)
+-- Bloque DELETE et la modification des montants/dates/comptes/référence/source d'une écriture validée ou verrouillée.
+-- Bypass maintenance : set_config('app.ledger_maintenance','on',true) dans la même transaction.
