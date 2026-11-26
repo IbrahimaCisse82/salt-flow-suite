@@ -10,3 +10,9 @@ end $$;
 revoke all on all tables in schema public from anon;
 revoke all on all sequences in schema public from anon;
 alter default privileges in schema public revoke all on tables from anon;
+
+-- D2 (APPLIQUÉ) : next_document_number_at vérifie l'appartenance au tenant
+-- (insertion après le test p_tenant_id IS NULL) :
+-- IF auth.uid() IS NOT NULL AND NOT (public.has_role(auth.uid(),'admin'::app_role)
+--    OR public.is_tenant_member(auth.uid(), p_tenant_id)) THEN
+--   RAISE EXCEPTION 'Accès refusé à cette entreprise' USING ERRCODE='42501'; END IF;
