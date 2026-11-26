@@ -141,7 +141,7 @@ export const SignupForm = ({ onSuccess }: SignupFormProps) => {
         <Label htmlFor="signup-password">Mot de passe</Label>
         <div className="relative">
           <Input id="signup-password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} maxLength={128} required disabled={loading} className="pr-10" />
-          <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full px-3 hover:bg-transparent" onClick={() => setShowPassword(!showPassword)} disabled={loading}>
+          <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full px-3 hover:bg-transparent" onClick={() => setShowPassword(!showPassword)} disabled={loading} aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}>
             {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
           </Button>
         </div>
@@ -151,7 +151,7 @@ export const SignupForm = ({ onSuccess }: SignupFormProps) => {
         <Label htmlFor="signup-password-confirm">Confirmer le mot de passe</Label>
         <div className="relative">
           <Input id="signup-password-confirm" type={showPasswordConfirm ? "text" : "password"} placeholder="••••••••" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} maxLength={128} required disabled={loading} className="pr-10" />
-          <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full px-3 hover:bg-transparent" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)} disabled={loading}>
+          <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full px-3 hover:bg-transparent" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)} disabled={loading} aria-label={showPasswordConfirm ? "Masquer la confirmation" : "Afficher la confirmation"}>
             {showPasswordConfirm ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
           </Button>
         </div>

@@ -103,6 +103,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
             className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
             onClick={() => setShowPassword(!showPassword)}
             disabled={loading}
+            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
           >
             {showPassword ? (
               <EyeOff className="h-4 w-4 text-muted-foreground" />

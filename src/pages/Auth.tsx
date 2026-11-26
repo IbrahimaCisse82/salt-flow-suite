@@ -32,7 +32,7 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${saltMarshesBg})` }}>
       <div className="absolute inset-0 bg-background/85" />
-      <Card className="w-full max-w-md relative z-10">
+      <main className="w-full max-w-md relative z-10"><Card className="w-full">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center p-3">
@@ -58,7 +58,7 @@ const Auth = () => {
             </TabsContent>
           </Tabs>
         </CardContent>
-      </Card>
+      </Card></main>
       <footer className="absolute bottom-4 left-0 right-0 text-center z-10">
         <p className="text-sm text-muted-foreground">
           © {new Date().getFullYear()} Grow Hub Sarl. Tous droits réservés.
