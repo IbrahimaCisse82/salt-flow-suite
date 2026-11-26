@@ -21,3 +21,6 @@ alter default privileges in schema public revoke all on tables from anon;
 -- fonction public.trg_ledger_immutable() + triggers z_je_immutable (journal_entries) et z_tx_immutable (transactions)
 -- Bloque DELETE et la modification des montants/dates/comptes/référence/source d'une écriture validée ou verrouillée.
 -- Bypass maintenance : set_config('app.ledger_maintenance','on',true) dans la même transaction.
+
+-- D4 (APPLIQUÉ 26/11/2026) : stock négatif interdit (EX-62)
+-- trigger z_no_negative_stock sur inventory_items (quantity < 0 ou reserved_quantity < 0 => erreur en français)
